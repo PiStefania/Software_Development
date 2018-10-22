@@ -37,5 +37,29 @@ typedef struct result{
 //Radix Hash Join
 result* RadixHashJoin(relation *relR, relation *relS);
 
+//H1 Function - return no of bucket
+int32_t hashFunction1(int32_t value);
+
+//create relation for field
+relation* createRelation(int* col, int noOfElems);
+
+//delete specific relation
+void deleteRelation(relation** rel);
+
+//print relation
+void printRelation(relation* rel);
+
+//create relation with buckets
+relation* createBucketsRelation(relation* rel);
+
+//create Histogram from R
+relation* createHistogram(relation* R);
+
+//create Psum
+relation* createPsum(relation* Hist);
+
+//create relation with ordered buckets
+relation* createROrdered(relation* R, relation* Psum);
+
 #endif
 
