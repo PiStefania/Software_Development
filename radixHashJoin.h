@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define ARRAYSIZE ((1014 * 1024) / 64)
+#define ARRAYSIZE ((1024 * 1024) / 64)
 
 typedef struct node resultNode;
 
@@ -59,7 +59,6 @@ relation* createHistogram(relation* R);
 relation* createPsum(relation* Hist);
 
 //create relation with ordered buckets
-relation* createROrdered(relation* R, relation* Psum);
+relation* createROrdered(relation* R, relation* Hist, relation* Psum);
 
 #endif
-

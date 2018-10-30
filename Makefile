@@ -1,4 +1,4 @@
-CC = gcc -g
+CC = gcc -Wall -g
 FILES = main.c radixHashJoin.c auxMethods.c
 OBJECTS = main.o radixHashJoin.o auxMethods.o
 OUT = joinProgram
@@ -10,12 +10,12 @@ all: $(OBJECTS) $(HEADERS)
 
 main.o: main.c
 	$(CC) -c main.c
-	
+
 radixHashJoin.o: radixHashJoin.c
 	$(CC) -c radixHashJoin.c
-	
+
 auxMethods.o: auxMethods.c
 	$(CC) -c auxMethods.c
-	
+
 clean:
 	rm -f $(OBJECTS)

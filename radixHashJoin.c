@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "radixHashJoin.h"
 
-#define BUCKETS 8
+#define BUCKETS 8				// Number of buckets is 2^n, where n = num of last bits for hashing
 
 //H1 for bucket selection, get last 3 bits
 int32_t hashFunction1(int32_t value){
@@ -14,13 +14,13 @@ relation* createRelation(int* col, int noOfElems){
 	relation* rel = malloc(sizeof(relation));
 	rel->tuples = malloc(noOfElems*sizeof(tuple));
 	for(int i=0;i<noOfElems;i++){
-		rel->tuples[i].rowId = i+1;
+		rel->tuples[i].rowId = i;
 		rel->tuples[i].value = col[i];
 	}
 	rel->num_tuples = noOfElems;
 	return rel;
 }
-	
+
 
 void deleteRelation(relation** rel){
 	free((*rel)->tuples);
@@ -36,6 +36,8 @@ void printRelation(relation* rel){
 	}
 }
 
+// Create the first unordered array (R)
+// Here, tuples.rowId field indicates the hash value of each rel.value element
 relation* createBucketsRelation(relation* rel){
 	relation* R = malloc(sizeof(relation));
 	R->tuples = malloc(rel->num_tuples*sizeof(tuple));
@@ -48,23 +50,27 @@ relation* createBucketsRelation(relation* rel){
 	return R;
 }
 
+// Create the Histogram, where we store the number of elements corresponding with each hash value
+// The size of tuples array is the number of buckets (one position for each hash value)
 relation* createHistogram(relation* R){
 	relation* Hist = malloc(sizeof(relation));
 	Hist->num_tuples = BUCKETS;
 	Hist->tuples = malloc(BUCKETS * sizeof(tuple));
 	//initialize Hist
 	for(int i=0;i<Hist->num_tuples;i++){
-		Hist->tuples[i].rowId = i+1;
+		Hist->tuples[i].rowId = i;
 		Hist->tuples[i].value = 0;
 	}
 	//populate Hist
 	for(int i=0;i<R->num_tuples;i++){
 		int bucket = R->tuples[i].rowId;
-		Hist->tuples[bucket-1].value++;
+		Hist->tuples[bucket].value++;
 	}
 	return Hist;
 }
 
+// Create Psum just like histogram, but for different purpose
+// We calculate the position of the first element from each bucket in the new ordered array
 relation* createPsum(relation* Hist){
 	relation* Psum = malloc(sizeof(relation));
 	Psum->num_tuples = BUCKETS;
@@ -72,32 +78,43 @@ relation* createPsum(relation* Hist){
 	int32_t sum = 0;
 	for(int i=0;i<Psum->num_tuples;i++){
 		Psum->tuples[i].rowId = Hist->tuples[i].rowId;
-		Psum->tuples[i].value = sum;
+		if (Hist->tuples[i].value == 0)
+			Psum->tuples[i].value = -1;				// If there is no item for a hash value, we write -1
+		else
+			Psum->tuples[i].value = sum;
 		sum += Hist->tuples[i].value;
 	}
 	return Psum;
 }
 
-relation* createROrdered(relation* R, relation* Psum){
+// Create the new ordered array (R')
+relation* createROrdered(relation* R, relation* Hist, relation* Psum){
+	// Allocate a relation array same as R
 	relation* ROrdered = malloc(sizeof(relation));
 	ROrdered->num_tuples = R->num_tuples;
-	ROrdered->tuples = malloc(ROrdered->num_tuples*sizeof(tuple));
-	int32_t bucket = 1;
-	for(int k=0;k<Psum->num_tuples-1;k++){
-		//get "floor" of psum
-		int32_t init = Psum->tuples[k].value;
-		//get "ceil" of psum
-		int32_t end = Psum->tuples[k+1].value;
-		for(int i=init;i<end;i++){
-			for(int j=0;j<R->num_tuples;j++){
-				if(R->tuples[j].rowId == bucket){
-					ROrdered->tuples[i].rowId = R->tuples[j].rowId;
-					ROrdered->tuples[i].value = R->tuples[j].value;
-				}
-			}	
-		}
-		bucket++;
+	ROrdered->tuples = malloc(ROrdered->num_tuples * sizeof(tuple));
+
+	// Create a copy of Histogram, so as to use it while filling in the new ordered array
+	// Whenever we copy an element from old array to the new one, reduce the counter of its hist id (in RemainHist)
+	// In this way, we read the old array only one time - complexity O(n) (n = R->num_tuples)
+	// We copy all the elements one by one, in the proper position of the new array
+	relation* RemainHist = malloc(sizeof(relation));
+	RemainHist->num_tuples = Hist->num_tuples;
+	RemainHist->tuples = malloc(RemainHist->num_tuples * sizeof(tuple));
+	for (int i = 0; i < Hist->num_tuples; i++) {
+		RemainHist->tuples[i].rowId = Hist->tuples[i].rowId;
+		RemainHist->tuples[i].value = Hist->tuples[i].value;
 	}
+	// Now copy the elements of old array to the new one by buckets (ordered)
+	for (int i = 0; i < R->num_tuples; i++) {
+		int32_t hashId = R->tuples[i].rowId;
+		int offset = Hist->tuples[hashId].value - RemainHist->tuples[hashId].value;		// Total hash items - hash items left
+		int ElementNewPosition = Psum->tuples[hashId].value + offset;									// Position = bucket's position + offset
+		RemainHist->tuples[hashId].value--;
+		ROrdered->tuples[ElementNewPosition].rowId = R->tuples[i].rowId; 							// Copy the element form old to new array
+		ROrdered->tuples[ElementNewPosition].value = R->tuples[i].value;
+	}
+	// Delete the RemainHist Array
+	deleteRelation(&RemainHist);
 	return ROrdered;
 }
-
