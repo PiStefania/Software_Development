@@ -7,10 +7,11 @@
 #define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
 #define R_ROWS 5							// Number of rows for R array
 #define S_ROWS 3							// Number of rows for S array
-#define COLUMNS 2							// Colums of arrays (for this program, only 2)
+#define COLUMNS 1							// Colums of arrays (for this program, only 1)
 
 
 int main(int argc, char* argv[]){
+	printf("------------------------------------------------------\n");
 	printf("START OF MAIN PROGRAM\n");
 	// Check the first hash functionality
 	int32_t out = hashFunction1(148);
@@ -51,37 +52,73 @@ int main(int argc, char* argv[]){
 	S[1][1] = 3;
 	*/
 
-	//get col
-	int* column = getColumnOfArray(R, R_ROWS, 0);
-	printf("COL\n");
+	// Get the requested column (for this implementation we need just one)
+	// That's why COLUMNS is set to 1 above (R, S have only one field, e.g: a)
+	int* Rcolumn = getColumnOfArray(R, R_ROWS, 0);
+	printf("R_COL\n");
 	for (int i = 0; i < R_ROWS; i++) {
-		printf("elem: %d\n",column[i]);
+		printf("Relem: %d\n",Rcolumn[i]);
 	}
 
 	//create relation
-	printf("---RELATION FROM 1 FIELD---\n");
-	relation* rel = createRelation(column, R_ROWS);
-	printRelation(rel);
+	printf("---RELATION FROM 1 FIELD - R---\n");
+	relation* Rrel = createRelation(Rcolumn, R_ROWS);
+	printRelation(Rrel);
 
 	//create relation with buckets
-	printf("---RELATION WITH BUCKETS---\n");
-	relation* RNotOrdered = createBucketsRelation(rel);
+	printf("---RELATION WITH BUCKETS - R---\n");
+	relation* RNotOrdered = createBucketsRelation(Rrel);
 	printRelation(RNotOrdered);
 
 	//create histogram
-	printf("---HIST---\n");
-	relation* Hist = createHistogram(RNotOrdered);
-	printRelation(Hist);
+	printf("---HIST - R---\n");
+	relation* RHist = createHistogram(RNotOrdered);
+	printRelation(RHist);
 
 	//create Psum
-	printf("---PSUM---\n");
-	relation* Psum = createPsum(Hist);
-	printRelation(Psum);
+	printf("---PSUM - R---\n");
+	relation* RPsum = createPsum(RHist);
+	printRelation(RPsum);
 
 	//create ordered R
-	printf("---RORDERED---\n");
-	relation* ROrdered = createROrdered(RNotOrdered, Hist, Psum);
+	printf("---REORDERED - R---\n");
+	relation* ROrdered = createROrdered(RNotOrdered, RHist, RPsum);
 	printRelation(ROrdered);
+
+	printf("------------------------------------------------------\n");
+
+	// Now the same procedure for S array
+	int* Scolumn = getColumnOfArray(S, S_ROWS, 0);
+	printf("S_COL\n");
+	for (int i = 0; i < S_ROWS; i++) {
+		printf("Selem: %d\n", Scolumn[i]);
+	}
+
+	//create relation
+	printf("---RELATION FROM 1 FIELD - S---\n");
+	relation* Srel = createRelation(Scolumn, S_ROWS);
+	printRelation(Srel);
+
+	//create relation with buckets
+	printf("---RELATION WITH BUCKETS - S---\n");
+	relation* SNotOrdered = createBucketsRelation(Srel);
+	printRelation(SNotOrdered);
+
+	//create histogram
+	printf("---HIST - S---\n");
+	relation* SHist = createHistogram(SNotOrdered);
+	printRelation(SHist);
+
+	//create Psum
+	printf("---PSUM - S---\n");
+	relation* SPsum = createPsum(SHist);
+	printRelation(SPsum);
+
+	//create ordered R
+	printf("---REORDERED - S---\n");
+	relation* SOrdered = createROrdered(SNotOrdered, SHist, SPsum);
+	printRelation(SOrdered);
+
 
 	// Delete all structure created by allocating memory dynamically
 	for (int i = 0; i < R_ROWS; i++) {
@@ -92,12 +129,22 @@ int main(int argc, char* argv[]){
 		free(S[i]);
 	}
 	free(S);
-	free(column);
-	deleteRelation(&rel);
+
+	free(Rcolumn);
+	deleteRelation(&Rrel);
 	deleteRelation(&RNotOrdered);
-	deleteRelation(&Hist);
-	deleteRelation(&Psum);
+	deleteRelation(&RHist);
+	deleteRelation(&RPsum);
 	deleteRelation(&ROrdered);
+
+	free(Scolumn);
+	deleteRelation(&Srel);
+	deleteRelation(&SNotOrdered);
+	deleteRelation(&SHist);
+	deleteRelation(&SPsum);
+	deleteRelation(&SOrdered);
+
+	printf("------------------------------------------------------\n");
 
 	return 0;
 }
