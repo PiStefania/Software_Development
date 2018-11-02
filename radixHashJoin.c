@@ -8,20 +8,17 @@
 //Create new node to add to list
 resultNode * createNode() {
     resultNode * newNode;
-    int i;
 
     if ((newNode = malloc(sizeof(resultNode))) == NULL) {
         return NULL;
     }
-
     //initialize newNode
     newNode->next = NULL;
     newNode->num_of_elems = 0;
-    for (i=0; i<ARRAYSIZE; i++) {
+    for (int i=0; i<ARRAYSIZE; i++) {
         newNode->array[i].rowId1 = -1;
         newNode->array[i].rowId2 = -1;
     }
-
     return newNode;
 }
 
@@ -31,12 +28,10 @@ result * createList() {
     if ((list = malloc(sizeof(result))) == NULL) {
         return NULL;
     }
-
     list->head = createNode();
 	if (list->head == NULL) {
 		return NULL;
 	}
-
 	return list;
 }
 
@@ -66,31 +61,28 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 }
 
 void printList(result * list) {
-  resultNode * curr = list->head;
-  printf("1st Relation's RowID--------2nd Relation's RowID\n");
-  while (curr != NULL) {
-    int i;
-    for (i=0; i < curr->num_of_elems; i++) {
-      printf("%8d %15d\n", curr->array[i].rowId1, curr->array[i].rowId2);
+    resultNode * curr = list->head;
+    printf("1st Relation's RowID--------2nd Relation's RowID\n");
+    while (curr != NULL) {
+        for (int i=0; i < curr->num_of_elems; i++) {
+            printf("%8d %27d\n", curr->array[i].rowId1, curr->array[i].rowId2);
+        }
+        curr = curr->next;
     }
-    curr = curr->next;
-  }
-
-  return;
+    return;
 }
 
 void deleteList(result * list) {
-  resultNode * curr = list->head;
-  resultNode * prev;
-  while (curr->next != NULL) {
-    prev = curr;
-    curr = curr->next;
-    free(prev);
-  }
-  free(curr);
-  free(list);
-
-  return;
+    resultNode * curr = list->head;
+    resultNode * prev;
+    while (curr->next != NULL) {
+        prev = curr;
+        curr = curr->next;
+        free(prev);
+    }
+    free(curr);
+    free(list);
+    return;
 }
 
 //H1 for bucket selection, get last 3 bits
@@ -120,7 +112,7 @@ void deleteRelation(relation** rel){
 
 void printRelation(relation* rel){
 	printf("Relation has %d tuples\n",rel->num_tuples);
-	for(int i=0;i<rel->num_tuples;i++){
+	for (int i=0;i<rel->num_tuples;i++){
 		printf("Row with rowId: %d and value: %d\n",rel->tuples[i].rowId,rel->tuples[i].value);
 	}
 }

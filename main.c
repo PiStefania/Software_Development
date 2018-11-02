@@ -4,9 +4,9 @@
 #include "auxMethods.h"
 #include "radixHashJoin.h"
 
-#define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
-#define R_ROWS 5							// Number of rows for R array
-#define S_ROWS 3							// Number of rows for S array
+#define RANGE 250							// Range of values for arrays initialization (1 to RANGE)
+#define R_ROWS 50000							// Number of rows for R array
+#define S_ROWS 30000							// Number of rows for S array
 #define COLUMNS 1							// Colums of arrays (for this program, only 1)
 
 
@@ -55,59 +55,70 @@ int main(int argc, char* argv[]){
 	// Get the requested column (for this implementation we need just one)
 	// That's why COLUMNS is set to 1 above (R, S have only one field, e.g: a)
 	int* Rcolumn = getColumnOfArray(R, R_ROWS, 0);
-	printf("R_COL\n");
+	/*printf("R_COL\n");
 	for (int i = 0; i < R_ROWS; i++) {
 		printf("Relem: %d\n",Rcolumn[i]);
-	}
+	}*/
 
 	//create relation
 	printf("---RELATION FROM 1 FIELD - R---\n");
 	relation* Rrel = createRelation(Rcolumn, R_ROWS);
-	printRelation(Rrel);
+	//printRelation(Rrel);
 
 	//create histogram
 	printf("---HIST - R---\n");
 	relation* RHist = createHistogram(Rrel);
-	printRelation(RHist);
+	//printRelation(RHist);
 
 	//create Psum
 	printf("---PSUM - R---\n");
 	relation* RPsum = createPsum(RHist);
-	printRelation(RPsum);
+	//printRelation(RPsum);
 
 	//create ordered R
 	printf("---REORDERED - R---\n");
 	relation* ROrdered = createROrdered(Rrel, RHist, RPsum);
-	printRelation(ROrdered);
+	//printRelation(ROrdered);
+
+	printf("---Create List---\n");
+	result* Rlist = createList();
+	for (int i = 0; i < 20000; i++) {
+		if (insertToList(Rlist, (rand() % RANGE) + 1, (rand() % RANGE) + 1)) {
+			printf("Error\n");
+		}
+	}
+	//printList(Rlist);
+	printf("---Delete List---\n");
+	deleteList(Rlist);
 
 	printf("------------------------------------------------------\n");
 
 	// Now the same procedure for S array
 	int* Scolumn = getColumnOfArray(S, S_ROWS, 0);
-	printf("S_COL\n");
+	/*printf("S_COL\n");
 	for (int i = 0; i < S_ROWS; i++) {
 		printf("Selem: %d\n", Scolumn[i]);
-	}
+	}*/
 
 	//create relation
 	printf("---RELATION FROM 1 FIELD - S---\n");
 	relation* Srel = createRelation(Scolumn, S_ROWS);
-	printRelation(Srel);
+	//printRelation(Srel);
 
 	//create histogram
 	printf("---HIST - S---\n");
 	relation* SHist = createHistogram(Srel);
-	printRelation(SHist);
+	//printRelation(SHist);
 
 	//create Psum
 	printf("---PSUM - S---\n");
 	relation* SPsum = createPsum(SHist);
-	printRelation(SPsum);
+	//printRelation(SPsum);
 
 	//create ordered R
 	printf("---REORDERED - S---\n");
 	relation* SOrdered = createROrdered(Srel, SHist, SPsum);
-	printRelation(SOrdered);
+	//printRelation(SOrdered);
 
 
 	// Delete all structure created by allocating memory dynamically
