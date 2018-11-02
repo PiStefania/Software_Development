@@ -67,10 +67,11 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 
 void printList(result * list) {
   resultNode * curr = list->head;
+  printf("1st Relation's RowID--------2nd Relation's RowID\n");
   while (curr != NULL) {
     int i;
     for (i=0; i < curr->num_of_elems; i++) {
-      printf("1st Relation's RowID: %d\n2nd Relation's RowID: %d\n\n", curr->array[i].rowId1, curr->array[i].rowId2);
+      printf("%8d %15d\n", curr->array[i].rowId1, curr->array[i].rowId2);
     }
     curr = curr->next;
   }
