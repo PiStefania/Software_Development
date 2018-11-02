@@ -37,29 +37,19 @@ result * createList() {
 
 //Create result as a list of arrays
 int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
-  resultNode * temp = list->head;
-  while (temp->num_of_elems == ARRAYSIZE) {
-    temp = temp->next;
-  }
-	if (temp->num_of_elems < ARRAYSIZE) {
-		//insert to current node
-		temp->array[temp->num_of_elems].rowId1 = rowID1;
-		temp->array[temp->num_of_elems].rowId2 = rowID2;
-		temp->num_of_elems += 1;
-	}
-	else {
-		//create and add new node, then continue
-		temp->next = createNode();
-		if (temp->next == NULL) {
-			return -1;
-		}
-		temp = temp->next;
+    resultNode * temp = list->head;
+    while (temp->num_of_elems == ARRAYSIZE) {
+        if (temp->next == NULL) {
+            temp->next = createNode();
+        }
+        temp = temp->next;
+    }
 
-		//insert to current node (new node)
-		temp->array[temp->num_of_elems].rowId1 = rowID1;
-		temp->array[temp->num_of_elems].rowId2 = rowID2;
-		temp->num_of_elems += 1;
-	}
+	//insert to current node (new node)
+	temp->array[temp->num_of_elems].rowId1 = rowID1;
+	temp->array[temp->num_of_elems].rowId2 = rowID2;
+	temp->num_of_elems++;
+
 	return 0;
 }
 
