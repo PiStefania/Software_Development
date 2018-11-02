@@ -9,7 +9,7 @@ typedef struct node resultNode;
 
 //Type definition for a tuple
 typedef struct tuple{
-	int32_t key;
+	int32_t rowId;
 	int32_t value;
 }tuple;
 
@@ -21,8 +21,8 @@ typedef struct relation{
 }relation;
 
 typedef struct resultElement{
-	int32_t key1;
-	int32_t key2;
+	int32_t rowId1;
+	int32_t rowId2;
 }resultElement;
 
 struct node{

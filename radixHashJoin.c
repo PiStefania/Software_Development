@@ -7,32 +7,32 @@
 
 //Create new node to add to list
 resultNode * createNode() {
-  resultNode * newNode;
-  int i;
+    resultNode * newNode;
+    int i;
 
-  if ((newNode = malloc(sizeof(resultNode))) == NULL) {
-    return NULL;
-  }
+    if ((newNode = malloc(sizeof(resultNode))) == NULL) {
+        return NULL;
+    }
 
-	//initialize newNode
-  newNode->next = NULL;
-  newNode->num_of_elems = 0;
-  for (i=0; i<ARRAYSIZE; i++) {
-    newNode->array[i].key1 = -1;
-    newNode->array[i].key2 = -1;
-  }
+    //initialize newNode
+    newNode->next = NULL;
+    newNode->num_of_elems = 0;
+    for (i=0; i<ARRAYSIZE; i++) {
+        newNode->array[i].rowId1 = -1;
+        newNode->array[i].rowId2 = -1;
+    }
 
-  return newNode;
+    return newNode;
 }
 
 result * createList() {
 	result* list;
 
-  if ((list = malloc(sizeof(result))) == NULL) {
-    return NULL;
-  }
+    if ((list = malloc(sizeof(result))) == NULL) {
+        return NULL;
+    }
 
-  list->head = createNode();
+    list->head = createNode();
 	if (list->head == NULL) {
 		return NULL;
 	}
@@ -42,11 +42,11 @@ result * createList() {
 
 //Create result as a list of arrays
 int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
-  resultNode * temp = list->head;
+    resultNode * temp = list->head;
 	if (temp->num_of_elems < ARRAYSIZE) {
 		//insert to current node
-		temp->array[temp->num_of_elems].key1 = rowID1;
-		temp->array[temp->num_of_elems].key2 = rowID2;
+		temp->array[temp->num_of_elems].rowId1 = rowID1;
+		temp->array[temp->num_of_elems].rowId2 = rowID2;
 		temp->num_of_elems += 1;
 	}
 	else {
@@ -58,11 +58,10 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 		temp = temp->next;
 
 		//insert to current node (new node)
-		temp->array[temp->num_of_elems].key1 = rowID1;
-		temp->array[temp->num_of_elems].key2 = rowID2;
+		temp->array[temp->num_of_elems].rowId1 = rowID1;
+		temp->array[temp->num_of_elems].rowId2 = rowID2;
 		temp->num_of_elems += 1;
 	}
-
 	return 0;
 }
 
@@ -103,7 +102,7 @@ relation* createRelation(int* col, int noOfElems){
 	relation* rel = malloc(sizeof(relation));
 	rel->tuples = malloc(noOfElems*sizeof(tuple));
 	for(int i=0;i<noOfElems;i++){
-		rel->tuples[i].key = i;
+		rel->tuples[i].rowId = i;
 		rel->tuples[i].value = col[i];
 	}
 	rel->num_tuples = noOfElems;
@@ -121,19 +120,19 @@ void deleteRelation(relation** rel){
 void printRelation(relation* rel){
 	printf("Relation has %d tuples\n",rel->num_tuples);
 	for(int i=0;i<rel->num_tuples;i++){
-		printf("Row with key: %d and value: %d\n",rel->tuples[i].key,rel->tuples[i].value);
+		printf("Row with rowId: %d and value: %d\n",rel->tuples[i].rowId,rel->tuples[i].value);
 	}
 }
 
 // Create the first unordered array (R)
-// Here, tuples.key field indicates the hash value of each rel.value element
+// Here, tuples.rowId field indicates the hash value of each rel.value element
 relation* createBucketsRelation(relation* rel){
 	relation* R = malloc(sizeof(relation));
 	R->tuples = malloc(rel->num_tuples*sizeof(tuple));
 	R->num_tuples = rel->num_tuples;
 	for(int i=0;i<R->num_tuples;i++){
 		//check with hash, no of bucket
-		R->tuples[i].key = hashFunction1(rel->tuples[i].value);
+		R->tuples[i].rowId = hashFunction1(rel->tuples[i].value);
 		R->tuples[i].value = rel->tuples[i].value;
 	}
 	return R;
@@ -147,12 +146,12 @@ relation* createHistogram(relation* R){
 	Hist->tuples = malloc(BUCKETS * sizeof(tuple));
 	//initialize Hist
 	for(int i=0;i<Hist->num_tuples;i++){
-		Hist->tuples[i].key = i;
+		Hist->tuples[i].rowId = i;
 		Hist->tuples[i].value = 0;
 	}
 	//populate Hist
 	for(int i=0;i<R->num_tuples;i++){
-		int bucket = R->tuples[i].key;
+		int bucket = R->tuples[i].rowId;
 		Hist->tuples[bucket].value++;
 	}
 	return Hist;
@@ -166,7 +165,7 @@ relation* createPsum(relation* Hist){
 	Psum->tuples = malloc(BUCKETS * sizeof(tuple));
 	int32_t sum = 0;
 	for(int i=0;i<Psum->num_tuples;i++){
-		Psum->tuples[i].key = Hist->tuples[i].key;
+		Psum->tuples[i].rowId = Hist->tuples[i].rowId;
 		if (Hist->tuples[i].value == 0)
 			Psum->tuples[i].value = -1;				// If there is no item for a hash value, we write -1
 		else
@@ -191,16 +190,16 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 	RemainHist->num_tuples = Hist->num_tuples;
 	RemainHist->tuples = malloc(RemainHist->num_tuples * sizeof(tuple));
 	for (int i = 0; i < Hist->num_tuples; i++) {
-		RemainHist->tuples[i].key = Hist->tuples[i].key;
+		RemainHist->tuples[i].rowId = Hist->tuples[i].rowId;
 		RemainHist->tuples[i].value = Hist->tuples[i].value;
 	}
 	// Now copy the elements of old array to the new one by buckets (ordered)
 	for (int i = 0; i < R->num_tuples; i++) {
-		int32_t hashId = R->tuples[i].key;
+		int32_t hashId = R->tuples[i].rowId;
 		int offset = Hist->tuples[hashId].value - RemainHist->tuples[hashId].value;		// Total hash items - hash items left
-		int ElementNewPosition = Psum->tuples[hashId].value + offset;									// Position = bucket's position + offset
+		int ElementNewPosition = Psum->tuples[hashId].value + offset;					// Position = bucket's position + offset
 		RemainHist->tuples[hashId].value--;
-		ROrdered->tuples[ElementNewPosition].key = R->tuples[i].key; 							// Copy the element form old to new array
+		ROrdered->tuples[ElementNewPosition].rowId = R->tuples[i].rowId; 					// Copy the element form old to new array
 		ROrdered->tuples[ElementNewPosition].value = R->tuples[i].value;
 	}
 	// Delete the RemainHist Array
