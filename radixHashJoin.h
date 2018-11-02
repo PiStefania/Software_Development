@@ -35,11 +35,11 @@ typedef struct result{
 	resultNode* head;
 }result;
 
-struct node * createNode();
+resultNode * createNode();
 
-struct result * createList();
+result * createList();
 
-struct result * insertToList(int32_t rowID1, int32_t rowID2);
+int insertToList(result * list, int32_t rowID1, int32_t rowID2);
 
 //Radix Hash Join
 result* RadixHashJoin(relation *relR, relation *relS);
