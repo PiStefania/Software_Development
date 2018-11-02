@@ -41,6 +41,10 @@ result * createList();
 
 int insertToList(result * list, int32_t rowID1, int32_t rowID2);
 
+void printList(result * list);
+
+void deleteList(result * list);
+
 //Radix Hash Join
 result* RadixHashJoin(relation *relR, relation *relS);
 

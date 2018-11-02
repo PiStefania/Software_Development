@@ -66,6 +66,33 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 	return 0;
 }
 
+void printList(result * list) {
+  resultNode * curr = list->head;
+  while (curr != NULL) {
+    int i;
+    for (i=0; i < curr->num_of_elems; i++) {
+      printf("1st Relation's RowID: %d\n2nd Relation's RowID: %d\n\n", curr->array[i].rowId1, curr->array[i].rowId2);
+    }
+    curr = curr->next;
+  }
+
+  return;
+}
+
+void deleteList(result * list) {
+  resultNode * curr = list->head;
+  resultNode * prev;
+  while (curr->next != NULL) {
+    prev = curr;
+    curr = curr->next;
+    free(prev);
+  }
+  free(curr);
+  free(list);
+
+  return;
+}
+
 //H1 for bucket selection, get last 3 bits
 int32_t hashFunction1(int32_t value){
 	return value & 0x7;
