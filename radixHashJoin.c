@@ -7,32 +7,32 @@
 
 //Create new node to add to list
 resultNode * createNode() {
-  resultNode * newNode;
-  int i;
+    resultNode * newNode;
+    int i;
 
-  if ((newNode = malloc(sizeof(resultNode))) == NULL) {
-    return NULL;
-  }
+    if ((newNode = malloc(sizeof(resultNode))) == NULL) {
+        return NULL;
+    }
 
-	//initialize newNode
-  newNode->next = NULL;
-  newNode->num_of_elems = 0;
-  for (i=0; i<ARRAYSIZE; i++) {
-    newNode->array[i].key1 = -1;
-    newNode->array[i].key2 = -1;
-  }
+    //initialize newNode
+    newNode->next = NULL;
+    newNode->num_of_elems = 0;
+    for (i=0; i<ARRAYSIZE; i++) {
+        newNode->array[i].key1 = -1;
+        newNode->array[i].key2 = -1;
+    }
 
-  return newNode;
+    return newNode;
 }
 
 result * createList() {
 	result* list;
 
-  if ((list = malloc(sizeof(result))) == NULL) {
-    return NULL;
-  }
+    if ((list = malloc(sizeof(result))) == NULL) {
+        return NULL;
+    }
 
-  list->head = createNode();
+    list->head = createNode();
 	if (list->head == NULL) {
 		return NULL;
 	}
@@ -42,7 +42,7 @@ result * createList() {
 
 //Create result as a list of arrays
 int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
-  resultNode * temp = list->head;
+    resultNode * temp = list->head;
 	if (temp->num_of_elems < ARRAYSIZE) {
 		//insert to current node
 		temp->array[temp->num_of_elems].key1 = rowID1;
@@ -62,7 +62,6 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 		temp->array[temp->num_of_elems].key2 = rowID2;
 		temp->num_of_elems += 1;
 	}
-
 	return 0;
 }
 

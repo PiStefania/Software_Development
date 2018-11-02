@@ -23,11 +23,11 @@ int main(int argc, char* argv[]){
 	for (int i = 0; i < R_ROWS; i++) {
 		R[i] = malloc(COLUMNS * sizeof(int));
 	}
-  for (int i = 0; i < R_ROWS; i++) {
-    for (int j = 0; j < COLUMNS; j++) {
-      R[i][j] = (rand() % RANGE) + 1;
-    }
-  }
+  	for (int i = 0; i < R_ROWS; i++) {
+    	for (int j = 0; j < COLUMNS; j++) {
+      		R[i][j] = (rand() % RANGE) + 1;
+    	}
+  	}
 	/*
 	R[0][0] = 1;
 	R[0][1] = 3;
@@ -41,10 +41,10 @@ int main(int argc, char* argv[]){
 		S[i] = malloc(COLUMNS * sizeof(int));
 	}
 	for (int i = 0; i < S_ROWS; i++) {
-    for (int j = 0; j < COLUMNS; j++) {
-      S[i][j] = (rand() % RANGE) + 1;
-    }
-  }
+	    for (int j = 0; j < COLUMNS; j++) {
+	      	S[i][j] = (rand() % RANGE) + 1;
+	    }
+  	}
 	/*
 	S[0][0] = 1;
 	S[0][1] = 3;
