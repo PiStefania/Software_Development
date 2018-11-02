@@ -42,7 +42,10 @@ result * createList() {
 
 //Create result as a list of arrays
 int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
-    resultNode * temp = list->head;
+  resultNode * temp = list->head;
+  while (temp->num_of_elems == ARRAYSIZE) {
+    temp = temp->next;
+  }
 	if (temp->num_of_elems < ARRAYSIZE) {
 		//insert to current node
 		temp->array[temp->num_of_elems].rowId1 = rowID1;
