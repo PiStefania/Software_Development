@@ -28,11 +28,18 @@ typedef struct resultElement{
 struct node{
 	struct node* next;
 	resultElement array[ARRAYSIZE];
+	int num_of_elems; //max == 16384
 }node;
 
 typedef struct result{
 	resultNode* head;
 }result;
+
+struct node * createNode();
+
+struct result * createList();
+
+struct result * insertToList(int32_t rowID1, int32_t rowID2);
 
 //Radix Hash Join
 result* RadixHashJoin(relation *relR, relation *relS);

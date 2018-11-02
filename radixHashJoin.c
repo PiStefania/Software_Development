@@ -4,6 +4,69 @@
 
 #define BUCKETS 8				// Number of buckets is 2^n, where n = num of last bits for hashing
 
+#define ARRAYSIZE ((1024 * 1024) / 64)
+
+//Create new node to add to list
+resultNode * createNode() {
+  resultNode * newNode;
+  int i;
+
+  if (newNode = malloc(sizeof(struct Node))) {
+    return NULL;
+  }
+
+	//initialize newNode
+  newNode->next = NULL;
+  newNode->num_of_elems = 0;
+  for (i=0; i<ARRAYSIZE; i++) {
+    newNode->array[i].key1 = -1;
+    newNode->array[i].key2 = -1;
+  }
+
+  return newNode;
+}
+
+struct result * createList() {
+	struct resultList * list;
+
+  if (list = malloc(sizeof(struct resultList))) {
+    return NULL;
+  }
+
+  list->head = createNode();
+	if (list->head == NULL) {
+		return NULL;
+	}
+
+	return list;
+}
+
+//Create result as a list of arrays
+int insertToList(struct result * list, int32_t rowID1, int32_t rowID2) {
+  struct Node * temp = list->head;
+	if (temp->num_of_elems < ARRAYSIZE) {
+		//insert to current node
+		temp->array[temp->num_of_elems].key1 = rowID1;
+		temp->array[temp->num_of_elems].key2 = rowID2;
+		temp->num_of_elems += 1;
+	}
+	else {
+		//create and add new node, then continue
+		temp->next = createNode();
+		if (temp->next == NULL) {
+			return -1;
+		}
+		temp = temp->next;
+
+		//insert to current node (new node)
+		temp->array[temp->num_of_elems].key1 = rowID1;
+		temp->array[temp->num_of_elems].key2 = rowID2;
+		temp->num_of_elems += 1;
+	}
+
+	return 0;
+}
+
 //H1 for bucket selection, get last 3 bits
 int32_t hashFunction1(int32_t value){
 	return value & 0x7;
