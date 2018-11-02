@@ -97,20 +97,6 @@ void printRelation(relation* rel){
 	}
 }
 
-// Create the first unordered array (R)
-// Here, tuples.rowId field indicates the hash value of each rel.value element
-relation* createBucketsRelation(relation* rel){
-	relation* R = malloc(sizeof(relation));
-	R->tuples = malloc(rel->num_tuples*sizeof(tuple));
-	R->num_tuples = rel->num_tuples;
-	for(int i=0;i<R->num_tuples;i++){
-		//check with hash, no of bucket
-		R->tuples[i].rowId = hashFunction1(rel->tuples[i].value);
-		R->tuples[i].value = rel->tuples[i].value;
-	}
-	return R;
-}
-
 // Create the Histogram, where we store the number of elements corresponding with each hash value
 // The size of tuples array is the number of buckets (one position for each hash value)
 relation* createHistogram(relation* R){
@@ -124,7 +110,7 @@ relation* createHistogram(relation* R){
 	}
 	//populate Hist
 	for(int i=0;i<R->num_tuples;i++){
-		int bucket = R->tuples[i].rowId;
+		int bucket = hashFunction1(R->tuples[i].value);
 		Hist->tuples[bucket].value++;
 	}
 	return Hist;
@@ -168,7 +154,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 	}
 	// Now copy the elements of old array to the new one by buckets (ordered)
 	for (int i = 0; i < R->num_tuples; i++) {
-		int32_t hashId = R->tuples[i].rowId;
+		int32_t hashId = hashFunction1(R->tuples[i].value);
 		int offset = Hist->tuples[hashId].value - RemainHist->tuples[hashId].value;		// Total hash items - hash items left
 		int ElementNewPosition = Psum->tuples[hashId].value + offset;					// Position = bucket's position + offset
 		RemainHist->tuples[hashId].value--;

@@ -65,14 +65,9 @@ int main(int argc, char* argv[]){
 	relation* Rrel = createRelation(Rcolumn, R_ROWS);
 	printRelation(Rrel);
 
-	//create relation with buckets
-	printf("---RELATION WITH BUCKETS - R---\n");
-	relation* RNotOrdered = createBucketsRelation(Rrel);
-	printRelation(RNotOrdered);
-
 	//create histogram
 	printf("---HIST - R---\n");
-	relation* RHist = createHistogram(RNotOrdered);
+	relation* RHist = createHistogram(Rrel);
 	printRelation(RHist);
 
 	//create Psum
@@ -82,7 +77,7 @@ int main(int argc, char* argv[]){
 
 	//create ordered R
 	printf("---REORDERED - R---\n");
-	relation* ROrdered = createROrdered(RNotOrdered, RHist, RPsum);
+	relation* ROrdered = createROrdered(Rrel, RHist, RPsum);
 	printRelation(ROrdered);
 
 	printf("------------------------------------------------------\n");
@@ -99,14 +94,9 @@ int main(int argc, char* argv[]){
 	relation* Srel = createRelation(Scolumn, S_ROWS);
 	printRelation(Srel);
 
-	//create relation with buckets
-	printf("---RELATION WITH BUCKETS - S---\n");
-	relation* SNotOrdered = createBucketsRelation(Srel);
-	printRelation(SNotOrdered);
-
 	//create histogram
 	printf("---HIST - S---\n");
-	relation* SHist = createHistogram(SNotOrdered);
+	relation* SHist = createHistogram(Srel);
 	printRelation(SHist);
 
 	//create Psum
@@ -116,7 +106,7 @@ int main(int argc, char* argv[]){
 
 	//create ordered R
 	printf("---REORDERED - S---\n");
-	relation* SOrdered = createROrdered(SNotOrdered, SHist, SPsum);
+	relation* SOrdered = createROrdered(Srel, SHist, SPsum);
 	printRelation(SOrdered);
 
 
@@ -132,14 +122,12 @@ int main(int argc, char* argv[]){
 
 	free(Rcolumn);
 	deleteRelation(&Rrel);
-	deleteRelation(&RNotOrdered);
 	deleteRelation(&RHist);
 	deleteRelation(&RPsum);
 	deleteRelation(&ROrdered);
 
 	free(Scolumn);
 	deleteRelation(&Srel);
-	deleteRelation(&SNotOrdered);
 	deleteRelation(&SHist);
 	deleteRelation(&SPsum);
 	deleteRelation(&SOrdered);

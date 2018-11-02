@@ -56,9 +56,6 @@ void deleteRelation(relation** rel);
 //print relation
 void printRelation(relation* rel);
 
-//create relation with buckets
-relation* createBucketsRelation(relation* rel);
-
 //create Histogram from R
 relation* createHistogram(relation* R);
 
