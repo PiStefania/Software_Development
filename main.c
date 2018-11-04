@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
 	// Create the list of joined values
 	printf("---Create List---\n");
 	result* ResultList = createList();
-	// Index (R), compare and join by bucket
+	// Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
 	if (indexCompareJoin(ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
 		printf("Error\n");
 	}

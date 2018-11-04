@@ -54,10 +54,10 @@ int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
 
 void printList(result * list) {
     resultNode * curr = list->head;
-    printf("1st Relation's RowID--------2nd Relation's RowID\n");
+    printf("1st Relation's RowID (R)--------2nd Relation's RowID (S)\n");
     while (curr != NULL) {
         for (int i=0; i < curr->num_of_elems; i++) {
-            printf("%8d %27d\n", curr->array[i].rowId1, curr->array[i].rowId2);
+            printf("%8d %31d\n", curr->array[i].rowId1, curr->array[i].rowId2);
         }
         curr = curr->next;
     }
@@ -247,7 +247,16 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 				do {
 					int itemSmallOrderedOffset = smallPsum->tuples[i].value + currentInChain;
 					if (smallOrdered->tuples[itemSmallOrderedOffset].value == bigOrdered->tuples[itemBigOrderedOffset].value) {
-						if (insertToList(ResultList, smallOrdered->tuples[itemSmallOrderedOffset].rowId, bigOrdered->tuples[itemBigOrderedOffset].rowId)) {
+                        int itemROrderedOffset, itemSOrderedOffset;
+                        if (RHist->tuples[i].value < SHist->tuples[i].value) {
+                            itemROrderedOffset = itemSmallOrderedOffset;
+                            itemSOrderedOffset = itemBigOrderedOffset;
+                        }                                                       // First field of result tuples is for R's rowId while second for S's rowId
+                        else {
+                            itemROrderedOffset = itemBigOrderedOffset;
+                            itemSOrderedOffset = itemSmallOrderedOffset;
+                        }
+						if (insertToList(ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
