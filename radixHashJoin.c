@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "radixHashJoin.h"
 
-#define BUCKETS 8				// Number of buckets is 2^n, where n = num of last bits for hashing
-
 
 //Create new node to add to list
 resultNode * createNode() {
@@ -78,9 +76,14 @@ void deleteList(result * list) {
     return;
 }
 
-//H1 for bucket selection, get last 3 bits
+//H1 for bucket selection, get last 2 bits
 int32_t hashFunction1(int32_t value){
-	return value & 0x7;
+	return value & HEXBUCKETS;
+}
+
+//H2 for indexing in buckets, get last 3 bits
+int32_t hashFunction2(int32_t value){
+	return value & HEXHASH2;
 }
 
 //create relation array for field
@@ -177,4 +180,58 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 	// Delete the RemainHist Array
 	deleteRelation(&RemainHist);
 	return ROrdered;
+}
+
+
+//Create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum) {
+    // We create indexes for each bucket, one by one
+    for (int i = 0; i < BUCKETS; i++) {
+		// Create the index for Array R with a second hash value
+		int itemsInRBucket = RHist->tuples[i].value;
+		int32_t chain[itemsInRBucket];
+		int32_t bucket[HASH2];
+		for (int j = 0; j < HASH2; j++) {             // Initialize bucket array with -1
+			bucket[j] = -1;
+		}
+		for (int j = 0; j < itemsInRBucket; j++){
+			int itemROrderedOffset = RPsum->tuples[i].value + j;
+			int32_t hash2Id = hashFunction2(ROrdered->tuples[itemROrderedOffset].value);
+			if (bucket[hash2Id] == -1)
+				chain[j] = -1;                      // The first item hashed (2) with current value, is set to -1
+			else chain[j] = bucket[hash2Id];        // Write the last position to chain and current to bucket
+			bucket[hash2Id] = j;
+		}
+        // Print Chain and Bucket arrays (indexing on R)
+        if (PRINT) {
+    		printf("----Chain Array - Bucket %d----\n", i);
+    		for (int j = 0; j < itemsInRBucket; j++) {
+    			printf("%d\n", chain[j]);
+    		}
+    		printf("----Bucket Array - Bucket %d----\n", i);
+    		for (int j = 0; j < HASH2; j++) {
+    			printf("%d\n", bucket[j]);
+    		}
+        }
+		// Search all the items from unindexed S array in the same bucket and compare them with R's
+		int itemsInSBucket = SHist->tuples[i].value;
+		for (int j = 0; j < itemsInSBucket; j++){
+			int itemSOrderedOffset = SPsum->tuples[i].value + j;
+			int32_t hash2Id = hashFunction2(SOrdered->tuples[itemSOrderedOffset].value);
+			if (bucket[hash2Id] != -1) {
+				int currentInChain = bucket[hash2Id];       // Search each item from S to the similarly hashed ones from R (help from bucket and chain)
+				do {
+					int itemROrderedOffset = RPsum->tuples[i].value + currentInChain;
+					if (ROrdered->tuples[itemROrderedOffset].value == SOrdered->tuples[itemSOrderedOffset].value) {
+						if (insertToList(ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
+							printf("Error\n");
+                            return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
+						}
+					}
+					currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of R with the current one from S
+				} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from R left
+			}
+		}
+	}
+    return 0;
 }

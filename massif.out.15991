@@ -1,0 +1,768 @@
+desc: (none)
+cmd: ./joinProgram
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=143091
+mem_heap_B=1024
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=162408
+mem_heap_B=1064
+mem_heap_extra_B=24
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=162449
+mem_heap_B=1068
+mem_heap_extra_B=44
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=162489
+mem_heap_B=1072
+mem_heap_extra_B=64
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=162529
+mem_heap_B=1076
+mem_heap_extra_B=84
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=162569
+mem_heap_B=1080
+mem_heap_extra_B=104
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=162609
+mem_heap_B=1084
+mem_heap_extra_B=124
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=164086
+mem_heap_B=1108
+mem_heap_extra_B=140
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=164127
+mem_heap_B=1112
+mem_heap_extra_B=160
+mem_stacks_B=0
+heap_tree=detailed
+n5: 1112 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n0: 40 0x40072E: main (main.c:22)
+ n0: 24 0x4007E8: main (main.c:39)
+ n0: 20 0x40075A: main (main.c:24)
+ n0: 4 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=10
+#-----------
+time=164167
+mem_heap_B=1116
+mem_heap_extra_B=180
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=164207
+mem_heap_B=1120
+mem_heap_extra_B=200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=164533
+mem_heap_B=1140
+mem_heap_extra_B=220
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=169704
+mem_heap_B=1156
+mem_heap_extra_B=228
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=169739
+mem_heap_B=1196
+mem_heap_extra_B=244
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=177836
+mem_heap_B=1212
+mem_heap_extra_B=252
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=177870
+mem_heap_B=1276
+mem_heap_extra_B=260
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=190070
+mem_heap_B=1292
+mem_heap_extra_B=268
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=190104
+mem_heap_B=1356
+mem_heap_extra_B=276
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=19
+#-----------
+time=202649
+mem_heap_B=1372
+mem_heap_extra_B=284
+mem_stacks_B=0
+heap_tree=detailed
+n13: 1372 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n1: 64 0x4010B8: createHistogram (radixHashJoin.c:118)
+  n0: 64 0x400937: main (main.c:70)
+ n1: 64 0x40119F: createPsum (radixHashJoin.c:137)
+  n0: 64 0x40095D: main (main.c:75)
+ n0: 40 0x40072E: main (main.c:22)
+ n1: 40 0x400F4A: createRelation (radixHashJoin.c:89)
+  n0: 40 0x400911: main (main.c:65)
+ n0: 24 0x4007E8: main (main.c:39)
+ n0: 20 0x40075A: main (main.c:24)
+ n1: 20 0x4014BA: getColumnOfArray (auxMethods.c:6)
+  n0: 20 0x4008AE: main (main.c:57)
+ n1: 16 0x400F35: createRelation (radixHashJoin.c:88)
+  n0: 16 0x400911: main (main.c:65)
+ n1: 16 0x40109F: createHistogram (radixHashJoin.c:116)
+  n0: 16 0x400937: main (main.c:70)
+ n1: 16 0x401186: createPsum (radixHashJoin.c:135)
+  n0: 16 0x40095D: main (main.c:75)
+ n1: 16 0x401290: createROrdered (radixHashJoin.c:153)
+  n0: 16 0x40098E: main (main.c:80)
+ n0: 12 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=20
+#-----------
+time=202689
+mem_heap_B=1412
+mem_heap_extra_B=300
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=202723
+mem_heap_B=1428
+mem_heap_extra_B=308
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=202764
+mem_heap_B=1492
+mem_heap_extra_B=316
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=204497
+mem_heap_B=1492
+mem_heap_extra_B=316
+mem_stacks_B=0
+heap_tree=detailed
+n11: 1492 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n0: 92 in 6 places, all below massif's threshold (1.00%)
+ n1: 64 0x4010B8: createHistogram (radixHashJoin.c:118)
+  n0: 64 0x400937: main (main.c:70)
+ n1: 64 0x40119F: createPsum (radixHashJoin.c:137)
+  n0: 64 0x40095D: main (main.c:75)
+ n1: 64 0x4012F6: createROrdered (radixHashJoin.c:163)
+  n0: 64 0x40098E: main (main.c:80)
+ n0: 40 0x40072E: main (main.c:22)
+ n1: 40 0x400F4A: createRelation (radixHashJoin.c:89)
+  n0: 40 0x400911: main (main.c:65)
+ n1: 40 0x4012B7: createROrdered (radixHashJoin.c:155)
+  n0: 40 0x40098E: main (main.c:80)
+ n0: 24 0x4007E8: main (main.c:39)
+ n0: 20 0x40075A: main (main.c:24)
+ n1: 20 0x4014BA: getColumnOfArray (auxMethods.c:6)
+  n0: 20 0x4008AE: main (main.c:57)
+#-----------
+snapshot=24
+#-----------
+time=204497
+mem_heap_B=1428
+mem_heap_extra_B=308
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=204530
+mem_heap_B=1412
+mem_heap_extra_B=300
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=212526
+mem_heap_B=1420
+mem_heap_extra_B=316
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=212565
+mem_heap_B=132508
+mem_heap_extra_B=324
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=434794
+mem_heap_B=132508
+mem_heap_extra_B=324
+mem_stacks_B=0
+heap_tree=peak
+n2: 132508 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 131088 0x400CC8: createNode (radixHashJoin.c:12)
+  n1: 131088 0x400D61: createList (radixHashJoin.c:31)
+   n0: 131088 0x4009B8: main (main.c:84)
+ n0: 1420 in 17 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=29
+#-----------
+time=434794
+mem_heap_B=1420
+mem_heap_extra_B=316
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=434823
+mem_heap_B=1412
+mem_heap_extra_B=300
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=435488
+mem_heap_B=1424
+mem_heap_extra_B=312
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=438937
+mem_heap_B=1440
+mem_heap_extra_B=320
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=438972
+mem_heap_B=1464
+mem_heap_extra_B=336
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=444335
+mem_heap_B=1480
+mem_heap_extra_B=344
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=444369
+mem_heap_B=1544
+mem_heap_extra_B=352
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=456493
+mem_heap_B=1560
+mem_heap_extra_B=360
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=456527
+mem_heap_B=1624
+mem_heap_extra_B=368
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=469198
+mem_heap_B=1640
+mem_heap_extra_B=376
+mem_stacks_B=0
+heap_tree=detailed
+n14: 1640 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n2: 128 0x4010B8: createHistogram (radixHashJoin.c:118)
+  n0: 64 0x400937: main (main.c:70)
+  n0: 64 0x400B15: main (main.c:110)
+ n2: 128 0x40119F: createPsum (radixHashJoin.c:137)
+  n0: 64 0x40095D: main (main.c:75)
+  n0: 64 0x400B44: main (main.c:115)
+ n2: 64 0x400F4A: createRelation (radixHashJoin.c:89)
+  n0: 40 0x400911: main (main.c:65)
+  n0: 24 0x400AE6: main (main.c:105)
+ n0: 40 0x40072E: main (main.c:22)
+ n1: 40 0x4012B7: createROrdered (radixHashJoin.c:155)
+  n0: 40 0x40098E: main (main.c:80)
+ n1: 32 0x400F35: createRelation (radixHashJoin.c:88)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x40109F: createHistogram (radixHashJoin.c:116)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x401186: createPsum (radixHashJoin.c:135)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x401290: createROrdered (radixHashJoin.c:153)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n2: 32 0x4014BA: getColumnOfArray (auxMethods.c:6)
+  n0: 20 0x4008AE: main (main.c:57)
+  n0: 12 in 1 place, below massif's threshold (1.00%)
+ n0: 24 0x4007E8: main (main.c:39)
+ n0: 20 0x40075A: main (main.c:24)
+ n0: 12 in 5 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=39
+#-----------
+time=469238
+mem_heap_B=1664
+mem_heap_extra_B=392
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=469272
+mem_heap_B=1680
+mem_heap_extra_B=400
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=469313
+mem_heap_B=1744
+mem_heap_extra_B=408
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=469902
+mem_heap_B=1680
+mem_heap_extra_B=400
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=43
+#-----------
+time=469935
+mem_heap_B=1664
+mem_heap_extra_B=392
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=474825
+mem_heap_B=1660
+mem_heap_extra_B=372
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=474862
+mem_heap_B=1656
+mem_heap_extra_B=352
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=474899
+mem_heap_B=1652
+mem_heap_extra_B=332
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=474936
+mem_heap_B=1648
+mem_heap_extra_B=312
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=474973
+mem_heap_B=1644
+mem_heap_extra_B=292
+mem_stacks_B=0
+heap_tree=detailed
+n13: 1644 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n2: 128 0x4010B8: createHistogram (radixHashJoin.c:118)
+  n0: 64 0x400937: main (main.c:70)
+  n0: 64 0x400B15: main (main.c:110)
+ n2: 128 0x40119F: createPsum (radixHashJoin.c:137)
+  n0: 64 0x40095D: main (main.c:75)
+  n0: 64 0x400B44: main (main.c:115)
+ n2: 64 0x400F4A: createRelation (radixHashJoin.c:89)
+  n0: 40 0x400911: main (main.c:65)
+  n0: 24 0x400AE6: main (main.c:105)
+ n2: 64 0x4012B7: createROrdered (radixHashJoin.c:155)
+  n0: 40 0x40098E: main (main.c:80)
+  n0: 24 0x400B84: main (main.c:120)
+ n0: 40 0x40072E: main (main.c:22)
+ n1: 32 0x400F35: createRelation (radixHashJoin.c:88)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x40109F: createHistogram (radixHashJoin.c:116)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x401186: createPsum (radixHashJoin.c:135)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n1: 32 0x401290: createROrdered (radixHashJoin.c:153)
+  n0: 32 in 2 places, all below massif's threshold (1.00%)
+ n2: 32 0x4014BA: getColumnOfArray (auxMethods.c:6)
+  n0: 20 0x4008AE: main (main.c:57)
+  n0: 12 in 1 place, below massif's threshold (1.00%)
+ n0: 24 0x4007E8: main (main.c:39)
+ n0: 12 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=49
+#-----------
+time=475005
+mem_heap_B=1604
+mem_heap_extra_B=276
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=50
+#-----------
+time=475043
+mem_heap_B=1600
+mem_heap_extra_B=256
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=51
+#-----------
+time=475080
+mem_heap_B=1596
+mem_heap_extra_B=236
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=52
+#-----------
+time=475117
+mem_heap_B=1592
+mem_heap_extra_B=216
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=53
+#-----------
+time=475149
+mem_heap_B=1568
+mem_heap_extra_B=200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=54
+#-----------
+time=475178
+mem_heap_B=1548
+mem_heap_extra_B=180
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=55
+#-----------
+time=475216
+mem_heap_B=1508
+mem_heap_extra_B=164
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=56
+#-----------
+time=475249
+mem_heap_B=1492
+mem_heap_extra_B=156
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=57
+#-----------
+time=475292
+mem_heap_B=1428
+mem_heap_extra_B=148
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=58
+#-----------
+time=475325
+mem_heap_B=1412
+mem_heap_extra_B=140
+mem_stacks_B=0
+heap_tree=detailed
+n10: 1412 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n2: 128 0x40119F: createPsum (radixHashJoin.c:137)
+  n0: 64 0x40095D: main (main.c:75)
+  n0: 64 0x400B44: main (main.c:115)
+ n2: 64 0x4010B8: createHistogram (radixHashJoin.c:118)
+  n0: 64 0x400B15: main (main.c:110)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 64 0x4012B7: createROrdered (radixHashJoin.c:155)
+  n0: 40 0x40098E: main (main.c:80)
+  n0: 24 0x400B84: main (main.c:120)
+ n2: 32 0x401186: createPsum (radixHashJoin.c:135)
+  n0: 16 0x40095D: main (main.c:75)
+  n0: 16 0x400B44: main (main.c:115)
+ n2: 32 0x401290: createROrdered (radixHashJoin.c:153)
+  n0: 16 0x40098E: main (main.c:80)
+  n0: 16 0x400B84: main (main.c:120)
+ n2: 24 0x400F4A: createRelation (radixHashJoin.c:89)
+  n0: 24 0x400AE6: main (main.c:105)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 16 0x400F35: createRelation (radixHashJoin.c:88)
+  n0: 16 0x400AE6: main (main.c:105)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 16 0x40109F: createHistogram (radixHashJoin.c:116)
+  n0: 16 0x400B15: main (main.c:110)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n0: 12 in 9 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=59
+#-----------
+time=475368
+mem_heap_B=1348
+mem_heap_extra_B=132
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=60
+#-----------
+time=475401
+mem_heap_B=1332
+mem_heap_extra_B=124
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=61
+#-----------
+time=475444
+mem_heap_B=1292
+mem_heap_extra_B=108
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=62
+#-----------
+time=475477
+mem_heap_B=1276
+mem_heap_extra_B=100
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=63
+#-----------
+time=475511
+mem_heap_B=1264
+mem_heap_extra_B=88
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=64
+#-----------
+time=475549
+mem_heap_B=1240
+mem_heap_extra_B=72
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=65
+#-----------
+time=475582
+mem_heap_B=1224
+mem_heap_extra_B=64
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=66
+#-----------
+time=475625
+mem_heap_B=1160
+mem_heap_extra_B=56
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=67
+#-----------
+time=475658
+mem_heap_B=1144
+mem_heap_extra_B=48
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=68
+#-----------
+time=475701
+mem_heap_B=1080
+mem_heap_extra_B=40
+mem_stacks_B=0
+heap_tree=detailed
+n5: 1080 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 1024 0x4E9FB9A: _IO_file_doallocate (in /lib64/libc-2.26.so)
+  n1: 1024 0x4EAEC57: _IO_doallocbuf (in /lib64/libc-2.26.so)
+   n1: 1024 0x4EAD816: _IO_file_overflow@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+    n1: 1024 0x4EAC88D: _IO_file_xsputn@@GLIBC_2.2.5 (in /lib64/libc-2.26.so)
+     n1: 1024 0x4EA21DD: puts (in /lib64/libc-2.26.so)
+      n0: 1024 0x4006E8: main (main.c:14)
+ n2: 24 0x4012B7: createROrdered (radixHashJoin.c:155)
+  n0: 24 0x400B84: main (main.c:120)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 16 0x401186: createPsum (radixHashJoin.c:135)
+  n0: 16 0x400B44: main (main.c:115)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 16 0x401290: createROrdered (radixHashJoin.c:153)
+  n0: 16 0x400B84: main (main.c:120)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n0: 0 in 14 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=69
+#-----------
+time=475734
+mem_heap_B=1064
+mem_heap_extra_B=32
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=70
+#-----------
+time=475777
+mem_heap_B=1040
+mem_heap_extra_B=16
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=71
+#-----------
+time=475810
+mem_heap_B=1024
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=72
+#-----------
+time=479541
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty

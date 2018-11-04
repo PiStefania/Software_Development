@@ -3,7 +3,19 @@
 
 #include <stdint.h>
 
+#define BUCKETS 4							// Number of buckets is 2^n, where n = num of last bits for hashing
+#define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
+#define HASH2 8
+#define HEXHASH2 0x7						// Second hash number for indexing in buckets
 #define ARRAYSIZE ((1024 * 1024) / 64)
+
+#define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
+#define R_ROWS 7							// Number of rows for R array
+#define S_ROWS 5							// Number of rows for S array
+#define COLUMNS 1							// Colums of arrays (for this program, only 1)
+
+#define PRINT 1				// Print results and arrays throughout process (suggested for debbuging and with small data)
+
 
 typedef struct node resultNode;
 
@@ -48,8 +60,9 @@ void deleteList(result * list);
 //Radix Hash Join
 result* RadixHashJoin(relation *relR, relation *relS);
 
-//H1 Function - return no of bucket
+//Hash Functions - return no of bucket
 int32_t hashFunction1(int32_t value);
+int32_t hashFunction2(int32_t value);
 
 //create relation for field
 relation* createRelation(int* col, int noOfElems);
@@ -68,5 +81,8 @@ relation* createPsum(relation* Hist);
 
 //create relation with ordered buckets
 relation* createROrdered(relation* R, relation* Hist, relation* Psum);
+
+//create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum);
 
 #endif
