@@ -36,7 +36,13 @@ result * createList() {
 
 //Create result as a list of arrays
 int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
+
+    if (list == NULL) {
+      list = createList();
+    }
+
     resultNode * temp = list->head;
+
     while (temp->num_of_elems == ARRAYSIZE) {
         if (temp->next == NULL) {
             temp->next = createNode();
