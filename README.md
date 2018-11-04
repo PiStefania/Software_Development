@@ -22,7 +22,7 @@ sudo apt install gcc-6
 3. Εκτέλεση εντολής `make`.
 
 ## Running - Εκτέλεση
-Για την εκτέλεση, απλώς εκτελέστε την εντολή `./joinProgram`.
+Για την εκτέλεση, απλώς τρέξτε την εντολή `./joinProgram`.
 
 ## Unit Testing
 Για το unit testing χρησιμοποιήθηκε το framework [CuTest](https://github.com/ennorehling/cutest).
@@ -34,7 +34,7 @@ sudo apt install gcc-6
 3. Εκτέλεση εντολής `make`.
 
 ### Εκτέλεση Unit Testing
-Για την εκτέλεση, απλώς εκτελέστε την εντολή `./test`.
+Για την εκτέλεση, απλώς τρέξτε την εντολή `./test`.
 
 ## Authors - Συγγραφείς
 - [Στεφανία Πάτσου](https://github.com/PiStefania)
