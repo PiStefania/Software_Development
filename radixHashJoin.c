@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "radixHashJoin.h"
 
 
@@ -174,7 +175,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 		int offset = Hist->tuples[hashId].value - RemainHist->tuples[hashId].value;		// Total hash items - hash items left
 		int ElementNewPosition = Psum->tuples[hashId].value + offset;					// Position = bucket's position + offset
 		RemainHist->tuples[hashId].value--;
-		ROrdered->tuples[ElementNewPosition].rowId = R->tuples[i].rowId; 					// Copy the element form old to new array
+		ROrdered->tuples[ElementNewPosition].rowId = R->tuples[i].rowId; 				// Copy the element form old to new array
 		ROrdered->tuples[ElementNewPosition].value = R->tuples[i].value;
 	}
 	// Delete the RemainHist Array
@@ -183,53 +184,75 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 }
 
 
-//Create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
+//Create indexes for each bucket in the smaller one, compare the items of bigger with smaller's and finally join the same values (return in the list rowIds)
 int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum) {
-    // We create indexes for each bucket, one by one
+    // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
     for (int i = 0; i < BUCKETS; i++) {
-		// Create the index for Array R with a second hash value
-		int itemsInRBucket = RHist->tuples[i].value;
-		int32_t chain[itemsInRBucket];
+		// Find which of the 2 buckets (from R and S array) is the smaller one, in order to create the index in that one
+        relation *smallOrdered, *smallHist, *smallPsum, *bigOrdered, *bigHist, *bigPsum;
+        if (RHist->tuples[i].value < SHist->tuples[i].value) {
+            smallOrdered = ROrdered;
+            smallHist    = RHist;
+            smallPsum    = RPsum;
+            bigOrdered   = SOrdered;
+            bigHist      = SHist;
+            bigPsum      = SPsum;
+        }
+        else {
+            smallOrdered = SOrdered;
+            smallHist    = SHist;
+            smallPsum    = SPsum;
+            bigOrdered   = ROrdered;
+            bigHist      = RHist;
+            bigPsum      = RPsum;
+        }
+		int itemsInSmallBucket = smallHist->tuples[i].value;
+		int32_t chain[itemsInSmallBucket];
 		int32_t bucket[HASH2];
 		for (int j = 0; j < HASH2; j++) {             // Initialize bucket array with -1
 			bucket[j] = -1;
 		}
-		for (int j = 0; j < itemsInRBucket; j++){
-			int itemROrderedOffset = RPsum->tuples[i].value + j;
-			int32_t hash2Id = hashFunction2(ROrdered->tuples[itemROrderedOffset].value);
+        // Create the index for smaller bucket with a second hash value
+		for (int j = 0; j < itemsInSmallBucket; j++){
+			int itemSmallOrderedOffset = smallPsum->tuples[i].value + j;
+			int32_t hash2Id = hashFunction2(smallOrdered->tuples[itemSmallOrderedOffset].value);
 			if (bucket[hash2Id] == -1)
 				chain[j] = -1;                      // The first item hashed (2) with current value, is set to -1
-			else chain[j] = bucket[hash2Id];        // Write the last position to chain and current to bucket
+			else chain[j] = bucket[hash2Id];        // Write the last position to chain and current to bucket array
 			bucket[hash2Id] = j;
 		}
-        // Print Chain and Bucket arrays (indexing on R)
+        // Print Chain and Bucket arrays (indexing on smaller bucket)
         if (PRINT) {
-    		printf("----Chain Array - Bucket %d----\n", i);
-    		for (int j = 0; j < itemsInRBucket; j++) {
+            char arrayStr[3];
+            if (RHist->tuples[i].value < SHist->tuples[i].value)
+                strcpy(arrayStr, "R");
+            else strcpy(arrayStr, "S");
+    		printf("----Chain Array - Bucket %d (from %s)----\n", i, arrayStr);
+    		for (int j = 0; j < itemsInSmallBucket; j++) {
     			printf("%d\n", chain[j]);
     		}
-    		printf("----Bucket Array - Bucket %d----\n", i);
+    		printf("----Bucket Array - Bucket %d (from %s)----\n", i, arrayStr);
     		for (int j = 0; j < HASH2; j++) {
     			printf("%d\n", bucket[j]);
     		}
         }
-		// Search all the items from unindexed S array in the same bucket and compare them with R's
-		int itemsInSBucket = SHist->tuples[i].value;
-		for (int j = 0; j < itemsInSBucket; j++){
-			int itemSOrderedOffset = SPsum->tuples[i].value + j;
-			int32_t hash2Id = hashFunction2(SOrdered->tuples[itemSOrderedOffset].value);
+		// Search all the items from unindexed bigger bucket in the same bucket and compare them with smaller's
+		int itemsInBigBucket = bigHist->tuples[i].value;
+		for (int j = 0; j < itemsInBigBucket; j++){
+			int itemBigOrderedOffset = bigPsum->tuples[i].value + j;
+			int32_t hash2Id = hashFunction2(bigOrdered->tuples[itemBigOrderedOffset].value);
 			if (bucket[hash2Id] != -1) {
-				int currentInChain = bucket[hash2Id];       // Search each item from S to the similarly hashed ones from R (help from bucket and chain)
+				int currentInChain = bucket[hash2Id];       // Search each item from bigger to the similarly hashed ones from smaller (help from bucket and chain)
 				do {
-					int itemROrderedOffset = RPsum->tuples[i].value + currentInChain;
-					if (ROrdered->tuples[itemROrderedOffset].value == SOrdered->tuples[itemSOrderedOffset].value) {
-						if (insertToList(ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
+					int itemSmallOrderedOffset = smallPsum->tuples[i].value + currentInChain;
+					if (smallOrdered->tuples[itemSmallOrderedOffset].value == bigOrdered->tuples[itemBigOrderedOffset].value) {
+						if (insertToList(ResultList, smallOrdered->tuples[itemSmallOrderedOffset].rowId, bigOrdered->tuples[itemBigOrderedOffset].rowId)) {
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
 					}
-					currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of R with the current one from S
-				} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from R left
+					currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of smaller with the current one from bigger
+				} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from smaller left
 			}
 		}
 	}

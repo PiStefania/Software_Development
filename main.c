@@ -23,14 +23,7 @@ int main(int argc, char* argv[]){
       		R[i][j] = (rand() % RANGE) + 1;
     	}
   	}
-	/*
-	R[0][0] = 1;
-	R[0][1] = 3;
-	R[1][0] = 1;
-	R[1][1] = 4;
-	R[2][0] = 2;
-	R[2][1] = 5;
-	*/
+
 	int32_t** S = malloc(S_ROWS * sizeof(int*));
 	for (int i = 0; i < S_ROWS; i++) {
 		S[i] = malloc(COLUMNS * sizeof(int));
@@ -40,12 +33,6 @@ int main(int argc, char* argv[]){
 	      	S[i][j] = (rand() % RANGE) + 1;
 	    }
   	}
-	/*
-	S[0][0] = 1;
-	S[0][1] = 3;
-	S[1][0] = 2;
-	S[1][1] = 3;
-	*/
 
 	// Get the requested column (for this implementation we need just one)
 	// That's why COLUMNS is set to 1 above (R, S have only one field, e.g: a)
