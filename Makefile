@@ -6,7 +6,7 @@ HEADERS = radixHashJoin.h auxMethods.h
 
 all: $(OBJECTS) $(HEADERS)
 	$(CC) -o $(OUT) $(FILES)
-	make clean
+	make clean_some
 
 main.o: main.c
 	$(CC) -c main.c
@@ -17,5 +17,8 @@ radixHashJoin.o: radixHashJoin.c
 auxMethods.o: auxMethods.c
 	$(CC) -c auxMethods.c
 
-clean:
+clean_some:
 	rm -f $(OBJECTS)
+
+clean:
+	rm -f $(OBJECTS) $(OUT)
