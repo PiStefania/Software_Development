@@ -6,17 +6,17 @@ HEADERS = CuTest.h CuTestAuxMethods.h CuTestRadixHashJoin.h ../auxMethods.h ../r
 
 all: $(OBJECTS) $(HEADERS)
 	$(CC) -o $(OUT) $(FILES) -lm
-	make clean
+	make clean_some
 
 AllTests.o: AllTests.c
 	$(CC) -c AllTests.c
-	
+
 CuTest.o: CuTest.c
-	$(CC) -c CuTest.c	
+	$(CC) -c CuTest.c
 
 CuTestAuxMethods.o: CuTestAuxMethods.c
-	$(CC) -c CuTestAuxMethods.c	
-	
+	$(CC) -c CuTestAuxMethods.c
+
 CuTestRadixHashJoin.o: CuTestRadixHashJoin.c
 	$(CC) -c CuTestRadixHashJoin.c
 
@@ -26,6 +26,8 @@ auxMethods.o: ../auxMethods.c
 radixHashJoin.o: ../radixHashJoin.c
 	$(CC) -c ../radixHashJoin.c
 
-clean:
+clean_some:
 	rm -f $(OBJECTS)
 
+clean:
+	rm -f $(OBJECTS) $(OUT)

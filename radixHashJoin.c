@@ -64,8 +64,8 @@ void printList(result * list) {
     return;
 }
 
-void deleteList(result * list) {
-    resultNode * curr = list->head;
+void deleteList(result ** list) {
+    resultNode * curr = (*list)->head;
     resultNode * prev;
     while (curr->next != NULL) {
         prev = curr;
@@ -73,7 +73,8 @@ void deleteList(result * list) {
         free(prev);
     }
     free(curr);
-    free(list);
+    free(*list);
+    *list = NULL;
     return;
 }
 

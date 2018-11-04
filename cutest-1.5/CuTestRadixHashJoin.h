@@ -4,6 +4,8 @@
 #include "../radixHashJoin.h"
 
 void TestHashFunction1(CuTest *tc);
+void TestHashFunction2(CuTest *tc);
+void TestcreateNode(CuTest *tc);
 
 CuSuite* RadixHashJoinGetSuite();
 

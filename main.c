@@ -105,7 +105,7 @@ int main(int argc, char* argv[]){
 	}
 	if (PRINT) printList(ResultList);
 	printf("---Delete List---\n");
-	deleteList(ResultList);
+	deleteList(&ResultList);
 
 
 	// Delete all structure created by allocating memory dynamically
