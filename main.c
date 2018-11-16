@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <unistd.h>
 #include "auxMethods.h"
 #include "radixHashJoin.h"
 
@@ -11,7 +13,48 @@ int main(int argc, char* argv[]){
 	// Check the first hash functionality
 	int32_t out = hashFunction1(148);
 	printf("HASH: %d\n",out);
-
+	
+	// Check arguments
+	char* init = NULL;
+	char* work = NULL;
+	if(argc == 5){
+		for(int i=0; i<argc; i++){
+			if(strcmp(argv[i],"-i")==0)
+				init=argv[i+1];			
+			if(strcmp(argv[i],"-w")==0)
+				work=argv[i+1];
+		}
+	}
+	else if(argc == 3){
+		for(int i=0; i<argc; i++){
+			if(strcmp(argv[i],"-i")==0)
+				init=argv[i+1];		
+			else if(strcmp(argv[i],"-w")==0)
+				work=argv[i+1];
+		}
+	}else{
+		printf("Wrong number of arguments, init & work file are NULL\n");
+	}
+	
+	printf("Init: %s, work: %s\n",init,work);
+	if(init == NULL){
+		printf("Please input init files:\n");
+		// TODO insert function for reading stdin
+	}else{
+		// Open init file and read lines
+	}
+	
+	printf("Done\n");
+	// Wait 1 sec
+	sleep(1);
+	
+	if(work == NULL){
+		printf("Please input queries:\n");
+		// TODO insert function for reading stdin queries
+	}else{
+		// Open work file and read lines
+	}
+	
 	// Create randomly filled arrays
 	srand(time(NULL));
 	int32_t** R = malloc(R_ROWS * sizeof(int*));
