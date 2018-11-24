@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "auxMethods.h"
 #include "radixHashJoin.h"
+#include "queryMethods.h"
 
 
 int main(int argc, char* argv[]){
@@ -48,15 +49,18 @@ int main(int argc, char* argv[]){
 	// Wait 1 sec
 	sleep(1);
 	
-	if(work == NULL){
-		printf("Please input queries:\n");
-		// TODO insert function for reading stdin queries
-	}else{
-		// Open work file and read lines
+	// Get query lines
+	FILE* workFile = NULL;
+	if(work != NULL){
+		workFile = fopen(work,"r");
+	}
+	int query = getQueryLines(workFile);
+	if(!query){
+		printf("FAILED\n");
 	}
 	
 	// Create randomly filled arrays
-	srand(time(NULL));
+	/*srand(time(NULL));
 	int32_t** R = malloc(R_ROWS * sizeof(int*));
 	for (int i = 0; i < R_ROWS; i++) {
 		R[i] = malloc(COLUMNS * sizeof(int));
@@ -173,7 +177,7 @@ int main(int argc, char* argv[]){
 	deleteRelation(&SPsum);
 	deleteRelation(&SOrdered);
 
-	printf("------------------------------------------------------\n");
+	printf("------------------------------------------------------\n");*/
 
 	return 0;
 }
