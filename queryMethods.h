@@ -3,8 +3,23 @@
 
 #include "radixHashJoin.h"
 
+typedef struct predicate{
+	tuple* leftSide;
+	tuple* rightSide;
+	char comparator;
+	int kind;				// kind:0 filter predicate - kind:1 join predicate
+}predicate;
+
+// For query input
 int getQueryLines(FILE* file);
 int* getRelationsFromLine(char* relationsStr, int* relationsSize);
 tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize);
+predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize);
+void setPredicate(char* str, predicate* p);
+
+// For predicate struct
+predicate** createPredicate(int size);
+void deletePredicate(predicate** p);
+
 
 #endif
