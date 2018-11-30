@@ -10,16 +10,16 @@ int getQueryLines(FILE* file){
 	size_t len = 0;
 	int read;
 	int failed = 0;
-	
+
 	// If file is not provided as an argument, get lines from stdin
 	if (file == NULL){
 		printf("Please input queries:\n");
 		file = stdin;
 	}
-		
+
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
-		char* lineStr = strtok(line,"\n");;
+		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
 		char* projectionsStr = strtok(NULL,"");
@@ -56,7 +56,7 @@ int getQueryLines(FILE* file){
 				}
 			}
 		}
-		
+
 		// Get predicates
 		predicate** predicates = NULL;
 		int predicatesSize = 0;
@@ -76,7 +76,7 @@ int getQueryLines(FILE* file){
 				}
 			}
 		}
-		
+
 		// Get projections
 		tuple* projections = NULL;
 		int projectionsSize = 0;
@@ -91,7 +91,7 @@ int getQueryLines(FILE* file){
 				}
 			}
 		}
-		
+
 		// Free vars for each line
 		if(relations){
 			free(relations);
@@ -108,21 +108,21 @@ int getQueryLines(FILE* file){
 			free(projections);
 			projections=NULL;
 		}
-		
+
 		if(failed)
 			break;
 	}
-	
+
 	// Free vars
 	if(line){
 		free(line);
 		line=NULL;
 	}
-	
+
 	// Close file
 	if (file != NULL)
 		fclose(file);
-	
+
 	if(failed)
 		return 0;
 	return 1;
@@ -140,13 +140,13 @@ int* getRelationsFromLine(char* relationsStr, int* relationsSize){
 			counter++;
 		}
 	}
-	
-	// Free temporary variable used for counter 
+
+	// Free temporary variable used for counter
 	free(tempRelations);
 	tempRelations = NULL;
 
 	int* relations = NULL;
-	
+
 	*relationsSize = counter;
 	// Convert str to int
 	int position = 0;
@@ -157,7 +157,7 @@ int* getRelationsFromLine(char* relationsStr, int* relationsSize){
 	}else{
 		return NULL;
 	}
-	
+
 	position++;
 	while(position<counter){
 		if(position==counter-1){
@@ -192,11 +192,11 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 			counter++;
 		}
 	}
-	
-	// Free temporary variable used for counter 
+
+	// Free temporary variable used for counter
 	free(tempProjections);
 	tempProjections = NULL;
-	
+
 	// Create return variable
 	tuple* projections = NULL;
 	*projectionsSize = counter;
@@ -216,7 +216,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 	}else{
 		return NULL;
 	}
-	
+
 	position++;
 	while(position<counter){
 		if(position==counter-1){
@@ -233,7 +233,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 				projections = NULL;
 				return NULL;
 			}
-		
+
 			projections[position].rowId = atoi(rel);
 			char* col = strtok(NULL,"");
 			// Check if column is NULL or not a number
@@ -261,25 +261,25 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 			counter++;
 		}
 	}
-	
-	// Free temporary variable used for counter 
+
+	// Free temporary variable used for counter
 	free(tempPredicates);
 	tempPredicates = NULL;
 
 	predicate** predicates = NULL;
-	
+
 	// Create returned variable
 	*predicatesSize = counter;
 	int position = 0;
 	predicates = createPredicate(counter);
-	
+
 	// Get first predicate
 	token = strtok(predicatesStr,"&");
 	char* remainingLine = strtok(NULL,"");
 	if(token == NULL){
 		return NULL;
 	}
-	
+
 	// Set approriate predicate
 	setPredicate(token, predicates[position]);
 	position++;
@@ -343,9 +343,9 @@ void setPredicate(char* str, predicate* p){
 		free(strTemp1);
 		return;
 	}
-	
+
 	free(strTemp1);
-	
+
 	// Check for '<'
 	char* strTemp2 = malloc((strlen(str)+1)*sizeof(char));
 	strcpy(strTemp2,str);
@@ -362,9 +362,9 @@ void setPredicate(char* str, predicate* p){
 		free(strTemp2);
 		return;
 	}
-	
+
 	free(strTemp2);
-	
+
 	// Check for '='
 	char* strTemp3 = malloc((strlen(str)+1)*sizeof(char));
 	strcpy(strTemp3,str);
@@ -395,7 +395,3 @@ void setPredicate(char* str, predicate* p){
 	}
 	free(strTemp3);
 }
-
-
-
-

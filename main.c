@@ -6,6 +6,7 @@
 #include "auxMethods.h"
 #include "radixHashJoin.h"
 #include "queryMethods.h"
+#include "relationMethods.h"
 
 
 int main(int argc, char* argv[]){
@@ -14,14 +15,14 @@ int main(int argc, char* argv[]){
 	// Check the first hash functionality
 	int32_t out = hashFunction1(148);
 	printf("HASH: %d\n",out);
-	
+
 	// Check arguments
 	char* init = NULL;
 	char* work = NULL;
 	if(argc == 5){
 		for(int i=0; i<argc; i++){
 			if(strcmp(argv[i],"-i")==0)
-				init=argv[i+1];			
+				init=argv[i+1];
 			if(strcmp(argv[i],"-w")==0)
 				work=argv[i+1];
 		}
@@ -29,36 +30,42 @@ int main(int argc, char* argv[]){
 	else if(argc == 3){
 		for(int i=0; i<argc; i++){
 			if(strcmp(argv[i],"-i")==0)
-				init=argv[i+1];		
+				init=argv[i+1];
 			else if(strcmp(argv[i],"-w")==0)
 				work=argv[i+1];
 		}
 	}else{
 		printf("Wrong number of arguments, init & work file are NULL\n");
 	}
-	
-	printf("Init: %s, work: %s\n",init,work);
-	if(init == NULL){
-		printf("Please input init files:\n");
-		// TODO insert function for reading stdin
-	}else{
-		// Open init file and read lines
+
+	// Read binary data from init file
+	printf("Init: %s, work: %s\n", init, work);
+	FILE* initFile = NULL;
+	if (init != NULL) {
+		initFile = fopen(init, "r");
 	}
-	
+	relationsInfo* initRelations = NULL;
+	int num_of_initRelations = 0;
+	initRelations = getRelationsData(initFile, &num_of_initRelations);
+	if (initRelations == NULL) printf("INIT FAILED\n");
+
+	for (int i = 0; i < num_of_initRelations; i++) {
+		printf("File:%s, Rows:%ld, Columns:%ld\n", initRelations[i].relName, initRelations[i].num_of_rows, initRelations[i].num_of_columns);
+	}
+	deleteRelationsData(initRelations, num_of_initRelations);
+
 	printf("Done\n");
 	// Wait 1 sec
 	sleep(1);
-	
+
 	// Get query lines
 	FILE* workFile = NULL;
 	if(work != NULL){
 		workFile = fopen(work,"r");
 	}
 	int query = getQueryLines(workFile);
-	if(!query){
-		printf("FAILED\n");
-	}
-	
+	if (!query) printf(" WORK FAILED\n");
+
 	// Create randomly filled arrays
 	/*srand(time(NULL));
 	int32_t** R = malloc(R_ROWS * sizeof(int*));
