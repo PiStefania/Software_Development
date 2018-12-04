@@ -60,6 +60,9 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			}
 		}
 
+        // List to store the rowIds of all predicates found
+        rowIdsList* rList = NULL;
+
 		// Get predicates
 		predicate** predicates = NULL;
 		int predicatesSize = 0;
@@ -68,12 +71,43 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			if(predicates == NULL){
 				printf("Predicates are incorrect!\n");
 				failed = 1;
-			}else{
+			} else {
+                rList = malloc(predicatesSize * sizeof(rowIdsList));
 				for(int i=0;i<predicatesSize;i++){
+                    // Create the list to store the rowIds that satisfy each predicates
+                    rList[i].rowIds = createRowIdList();
 					// Compare
 					if(predicates[i]->kind == 0){
 						printf("predicate: %d.%d %c %d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId);
+                        int relationId1 = relations[predicates[i]->leftSide->rowId];
+                        int relColumn = predicates[i]->leftSide->value;
+                        for (int j = 0; j < initRelations[relationId1].num_of_rows; j++) {
+                            if (predicates[i]->comparator == '=') {
+                                if (initRelations[relationId1].Rarray[relColumn][j] == predicates[i]->rightSide->rowId) {
+                                    if (insertIntoRowIdList(rList[i].rowIds, j) == 0) return 0;
+                                    rList[i].relationId1 = relationId1;
+                                    rList[i].relationId2 = -1;
+                                    //printf("Row: %d, Value: %ld\n", j, initRelations[relationId1].Rarray[relColumn][j]);
+                                }
+                            }
+                            else if (predicates[i]->comparator == '>') {
+                                if (initRelations[relationId1].Rarray[relColumn][j] > predicates[i]->rightSide->rowId) {
+                                    if (insertIntoRowIdList(rList[i].rowIds, j) == 0) return 0;
+                                    rList[i].relationId1 = relationId1;
+                                    rList[i].relationId2 = -1;
+                                    //printf("Row: %d, Value: %ld\n", j, initRelations[relationId1].Rarray[relColumn][j]);
+                                }
+                            }
+                            if (predicates[i]->comparator == '<') {
+                                if (initRelations[relationId1].Rarray[relColumn][j] < predicates[i]->rightSide->rowId) {
+                                    if (insertIntoRowIdList(rList[i].rowIds, j) == 0) return 0;
+                                    rList[i].relationId1 = relationId1;
+                                    rList[i].relationId2 = -1;
+                                    //printf("Row: %d, Value: %ld\n", j, initRelations[relationId1].Rarray[relColumn][j]);
+                                }
+                            }
+                        }
 					}else{	// Join
 						printf("predicate: %d.%d %c %d.%d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
@@ -81,6 +115,17 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				}
 			}
 		}
+        // Print rowIds found
+        /*for (int i = 0; i < predicatesSize; i++) {
+            rowIdNode* current;
+            current = rList[i].rowIds;
+            do {
+                if (current->isEmptyList == 0) {
+                    printf("Rel1: %d, Rel2: %d, RowId: %d\n", rList[i].relationId1, rList[i].relationId2, current->rowId);
+                }
+                current = current->next;
+            } while (current != NULL) ;
+        }*/
 
 		// Get projections
 		tuple* projections = NULL;
@@ -105,9 +150,11 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		if(predicates){
 			for(int i=0;i<predicatesSize;i++){
 				deletePredicate(&predicates[i]);
+                deleteRowIdList(rList[i].rowIds);
 			}
 			free(predicates);
 			predicates = NULL;
+            free(rList);
 		}
 		if(projections){
 			free(projections);
@@ -131,4 +178,47 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	if(failed)
 		return 0;
 	return 1;
+}
+
+
+
+// Create a list in rowIdsList to store the rowIds found to satisfy the predicates
+rowIdNode* createRowIdList() {
+	rowIdNode* list;
+	if ((list = malloc(sizeof(rowIdNode))) == NULL) return NULL;
+	list->isEmptyList = 1;
+	list->next = NULL;
+	return list;
+}
+
+// Insert strings into the list (helps while reading files)
+int insertIntoRowIdList(rowIdNode* list, int rowId) {
+	rowIdNode *currentNode, *newNode;
+	if (list->isEmptyList == 1){
+		list->rowId = rowId;
+		list->isEmptyList = 0;
+		return 1;
+	}
+	currentNode = list;
+	while (currentNode->next != NULL) {
+		currentNode = currentNode->next;
+	}
+	if ((newNode = malloc(sizeof(rowIdNode))) == NULL) return 0;
+	newNode->rowId = rowId;
+    newNode->isEmptyList = 0;
+	newNode->next = NULL;
+	currentNode->next = newNode;
+	return 1;
+}
+
+
+// Delete above list
+void deleteRowIdList(rowIdNode* list) {
+	rowIdNode *currentNode;
+	while (list->next != NULL){
+		currentNode = list;
+		list = list->next;
+		free(currentNode);
+	}
+	free(list);
 }

@@ -42,7 +42,6 @@ int main(int argc, char* argv[]){
 	for (int i = 0; i < num_of_initRelations; i++) {
 		printf("File:%s, Rows:%ld, Columns:%ld\n", initRelations[i].relName, initRelations[i].num_of_rows, initRelations[i].num_of_columns);
 	}
-	deleteRelationsData(initRelations, num_of_initRelations);
 
 	printf("--------------------------------------------------\n");
 	printf("   Reading data files done! Now read queries!!\n");
@@ -57,6 +56,8 @@ int main(int argc, char* argv[]){
 	}
 	int query = queriesImplementation(workFile, initRelations);
 	if (!query) printf(" WORK FAILED\n");
+
+	deleteRelationsData(initRelations, num_of_initRelations);
 
 	// Create randomly filled arrays
 	/*srand(time(NULL));
