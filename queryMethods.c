@@ -13,7 +13,8 @@ int getQueryLines(FILE* file){
 
 	// If file is not provided as an argument, get lines from stdin
 	if (file == NULL){
-		printf("Please input queries:\n");
+		printf("Please input queries (End input with letter 'F'):\n");
+		fflush(stdin);
 		file = stdin;
 	}
 
@@ -69,9 +70,11 @@ int getQueryLines(FILE* file){
 				for(int i=0;i<predicatesSize;i++){
 					// Compare
 					if(predicates[i]->kind == 0){
-						printf("predicate: %d.%d %c %d\n",predicates[i]->leftSide->rowId,predicates[i]->leftSide->value,predicates[i]->comparator,predicates[i]->rightSide->rowId);
+						printf("predicate: %d.%d %c %d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
+									predicates[i]->comparator, predicates[i]->rightSide->rowId);
 					}else{	// Join
-						printf("predicate: %d.%d %c %d.%d\n",predicates[i]->leftSide->rowId,predicates[i]->leftSide->value,predicates[i]->comparator,predicates[i]->rightSide->rowId,predicates[i]->rightSide->value);
+						printf("predicate: %d.%d %c %d.%d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
+									predicates[i]->comparator, predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
 					}
 				}
 			}
@@ -120,7 +123,7 @@ int getQueryLines(FILE* file){
 	}
 
 	// Close file
-	if (file != NULL)
+	if (file != NULL  && file != stdin)
 		fclose(file);
 
 	if(failed)

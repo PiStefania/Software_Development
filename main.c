@@ -19,23 +19,12 @@ int main(int argc, char* argv[]){
 	// Check arguments
 	char* init = NULL;
 	char* work = NULL;
-	if(argc == 5){
-		for(int i=0; i<argc; i++){
-			if(strcmp(argv[i],"-i")==0)
-				init=argv[i+1];
-			if(strcmp(argv[i],"-w")==0)
-				work=argv[i+1];
-		}
-	}
-	else if(argc == 3){
-		for(int i=0; i<argc; i++){
-			if(strcmp(argv[i],"-i")==0)
-				init=argv[i+1];
-			else if(strcmp(argv[i],"-w")==0)
-				work=argv[i+1];
-		}
-	}else{
-		printf("Wrong number of arguments, init & work file are NULL\n");
+
+	for (int i=0; i<argc; i++){
+		if (strcmp(argv[i],"-i") == 0)
+			init=argv[i+1];
+		if (strcmp(argv[i],"-w") == 0)
+			work=argv[i+1];
 	}
 
 	// Read binary data from init file
@@ -54,7 +43,9 @@ int main(int argc, char* argv[]){
 	}
 	deleteRelationsData(initRelations, num_of_initRelations);
 
-	printf("Done\n");
+	printf("--------------------------------------------------\n");
+	printf("   Reading data files done! Now read queries!!\n");
+	printf("--------------------------------------------------\n");
 	// Wait 1 sec
 	sleep(1);
 

@@ -12,7 +12,7 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
     // If file is not provided as an argument, get lines from stdin
 	if (file == NULL){
-		printf("Please input init files:\n");
+		printf("Please input init files (End input with the word 'Done'):\n");
 		file = stdin;
 	}
     stringNode *filenamesList = createNameList();
@@ -20,6 +20,8 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     while ((read = getline(&line, &len, file)) != -1) {
         // Get the binary files, as each of them is a relation
         char* lineStr = strtok(line,"\n");
+        if (lineStr == NULL) continue;
+        if (strcmp(lineStr, "Done") == 0) break;
         if (insertIntoNameList(filenamesList, lineStr) == 0) return NULL;
         (*num_of_initRelations)++;
     }
@@ -59,7 +61,7 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     // Free dynamically allocated structures
     deleteNameList(filenamesList);
 	if (line) free(line);
-	if (file != NULL) fclose(file);            // Close file
+	if (file != NULL && file != stdin) fclose(file);            // Close file
 
     return initRelations;
 }
