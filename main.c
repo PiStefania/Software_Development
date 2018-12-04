@@ -7,6 +7,7 @@
 #include "radixHashJoin.h"
 #include "queryMethods.h"
 #include "relationMethods.h"
+#include "implementation.h"
 
 
 int main(int argc, char* argv[]){
@@ -54,7 +55,7 @@ int main(int argc, char* argv[]){
 	if(work != NULL){
 		workFile = fopen(work,"r");
 	}
-	int query = getQueryLines(workFile);
+	int query = queriesImplementation(workFile, initRelations);
 	if (!query) printf(" WORK FAILED\n");
 
 	// Create randomly filled arrays

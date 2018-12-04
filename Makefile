@@ -1,8 +1,8 @@
 CC = gcc -Wall -g
-FILES = main.c radixHashJoin.c auxMethods.c queryMethods.c relationMethods.c
-OBJECTS = main.o radixHashJoin.o auxMethods.o queryMethods.o relationMethods.o
+FILES = main.c radixHashJoin.c auxMethods.c queryMethods.c relationMethods.c implementation.c
+OBJECTS = main.o radixHashJoin.o auxMethods.o queryMethods.o relationMethods.o implementation.o
 OUT = joinProgram
-HEADERS = radixHashJoin.h auxMethods.h queryMethods.h relationMethods.h
+HEADERS = radixHashJoin.h auxMethods.h queryMethods.h relationMethods.h implementation.h
 
 all: $(OBJECTS) $(HEADERS)
 	$(CC) -o $(OUT) $(FILES)
@@ -22,6 +22,9 @@ queryMethods.o: queryMethods.c
 
 relationMethods.o: relationMethods.c
 	$(CC) -c relationMethods.c
+
+implementation.o: implementation.c
+	$(CC) -c implementation.c
 
 clean_some:
 	rm -f $(OBJECTS)
