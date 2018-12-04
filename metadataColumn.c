@@ -63,13 +63,13 @@ int getNumOfRows(metadataCol * md) {
   return (int)md->num_of_rows;
 }
 
-void deleteMDCol(metadataCol * md) {
-  md->min = -1;
-  md->max = -1;
-  md->num_of_rows = -1;
-  md->discrete_values = -1;
-  md->column = NULL
+void deleteMDCol(metadataCol ** md) {
+  (*md)->min = -1;
+  (*md)->max = -1;
+  (*md)->num_of_rows = -1;
+  (*md)->discrete_values = -1;
+  (*md)->column = NULL
 
-  free(md);
-  md = NULL;
+  free(*md);
+  *md = NULL;
 }

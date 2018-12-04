@@ -19,4 +19,4 @@ int getMaxValue(metadataCol * md);
 
 int getNumOfRows(metadataCol * md);
 
-void deleteMDCol(metadataCol * md);
+void deleteMDCol(metadataCol ** md);
