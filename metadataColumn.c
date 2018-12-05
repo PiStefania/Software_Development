@@ -13,7 +13,7 @@ metadataCol * initializeMDCol(relation * rel) {
 
   //find min,max and discrete_values
   int i,j;
-  int32_t min, max;
+  uint32_t min, max;
   uint32_t discrete_values;
 
   min = rel->tuples[0];
@@ -21,6 +21,7 @@ metadataCol * initializeMDCol(relation * rel) {
   discrete_values = 1;
 
   for (i = 1; i < rel->num_tuples; i++) {
+      //TODO: get metadata from fread, del this function
     //calculate min,max
     if (rel->tuples[i] > max) {
       max = rel->tuples[i];
@@ -31,7 +32,7 @@ metadataCol * initializeMDCol(relation * rel) {
 
     //calculate discrete_values
     for (j = 1; j < i; j++) {
-      if (rel->tupls[i] == rel->tupls[j]) {
+      if (rel->tuples[i] == rel->tuples[j]) {
         break;
       }
     }

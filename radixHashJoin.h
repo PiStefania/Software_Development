@@ -14,7 +14,7 @@
 #define S_ROWS 5							// Number of rows for S array
 #define COLUMNS 1							// Colums of arrays (for this program, only 1)
 
-#define PRINT 1				// Print results and arrays throughout process (suggested for debbuging and with small data)
+#define PRINT 0				// Print results and arrays throughout process (suggested for debbuging and with small data)
 
 
 typedef struct node resultNode;
@@ -65,7 +65,7 @@ int32_t hashFunction1(int32_t value);
 int32_t hashFunction2(int32_t value);
 
 //create relation for field
-relation* createRelation(int* col, int noOfElems);
+relation* createRelation(uint64_t* col, uint64_t noOfElems);
 
 //delete specific relation
 void deleteRelation(relation** rel);

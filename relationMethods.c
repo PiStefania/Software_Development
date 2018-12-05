@@ -45,6 +45,8 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
         fread(&initRelations[i].num_of_columns, sizeof(uint64_t), 1, relFile);
         //printf("%ld\n", initRelations[i].num_of_columns);
 
+        //TODO: malloc num_of_columns for MDCols
+
         // Fill in the arrays with the values from relation File
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {

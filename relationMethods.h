@@ -11,6 +11,7 @@ typedef struct relationsInfo {
     uint64_t num_of_columns;
     uint64_t num_of_rows;
     uint64_t** Rarray;
+    //metadataCol * MDCols;
 } relationsInfo;
 
 

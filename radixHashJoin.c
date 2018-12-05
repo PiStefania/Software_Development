@@ -95,7 +95,7 @@ int32_t hashFunction2(int32_t value){
 }
 
 //create relation array for field
-relation* createRelation(int* col, int noOfElems){
+relation* createRelation(uint64_t* col, uint64_t noOfElems){
 	relation* rel = malloc(sizeof(relation));
 	rel->tuples = malloc(noOfElems*sizeof(tuple));
 	for(int i=0;i<noOfElems;i++){
