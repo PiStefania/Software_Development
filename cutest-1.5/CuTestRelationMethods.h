@@ -3,7 +3,7 @@
 #include "CuTest.h"
 #include "../relationMethods.h"
 
-void TestR(CuTest *tc);
+void TestR(CuTest *tc); 
 
 CuSuite* RelationMethodsGetSuite();
 
