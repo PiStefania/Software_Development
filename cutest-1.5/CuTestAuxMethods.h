@@ -4,6 +4,7 @@
 #include "../auxMethods.h"
 
 void TestGetColumnOfArray(CuTest *tc);
+void TestIsNumeric(CuTest *tc);
 
 CuSuite* AuxMethodsGetSuite();
 

@@ -56,11 +56,50 @@ void TestGetColumnOfArray(CuTest *tc){
 	free(RcolumnOutNegative);
 }
 
+void TestIsNumeric(CuTest *tc){
+	//if string is actually a number
+	int result;
+	char* number = malloc(5*sizeof(char));
+	strcpy(number,"2012");
+	result = isNumeric(number);
+	CuAssertTrue(tc,result);
+	//if string is not a number
+	char* notANumber = malloc(5*sizeof(char));
+	strcpy(notANumber,"etct");
+	result = isNumeric(notANumber);
+	CuAssertTrue(tc,!result);
+	//if string is partially a number (2 cases)
+	char* partiallyANumber1 = malloc(5*sizeof(char));
+	strcpy(partiallyANumber1,"etc1");
+	result = isNumeric(partiallyANumber1);
+	CuAssertTrue(tc,!result);
+	char* partiallyANumber2 = malloc(5*sizeof(char));
+	strcpy(partiallyANumber2,"13et");
+	result = isNumeric(partiallyANumber2);
+	CuAssertTrue(tc,!result);
+	//if string is null
+	result = isNumeric(NULL);
+	CuAssertTrue(tc,!result);
+	//if string is a number with scaling zeros
+	char* scaling = malloc(5*sizeof(char));
+	strcpy(scaling,"0012");
+	result = isNumeric(scaling);
+	CuAssertTrue(tc,result);
+	//free arrays
+	free(number);
+	free(notANumber);
+	free(partiallyANumber1);
+	free(partiallyANumber2);
+	free(scaling);
+}
+
+
 CuSuite* AuxMethodsGetSuite() {		//adding TestAuxMethods Functions into suite
     CuSuite* suite = CuSuiteNew();
     
     SUITE_ADD_TEST(suite, TestGetColumnOfArray);
-    
+    SUITE_ADD_TEST(suite, TestIsNumeric);
+
     return suite;
 }
 

@@ -38,7 +38,7 @@ CuSuite* RadixHashJoinGetSuite() {		//adding TestAuxMethods Functions into suite
 
     SUITE_ADD_TEST(suite, TestHashFunction1);
     SUITE_ADD_TEST(suite, TestHashFunction2);
-		SUITE_ADD_TEST(suite, TestcreateNode);
+	SUITE_ADD_TEST(suite, TestcreateNode);
 
     return suite;
 }

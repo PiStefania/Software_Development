@@ -9,18 +9,18 @@ metadataCol * initializeMDCol(relation * rel) {
 
   //initialize each metadata value
   mdCol->num_of_rows = rel->num_tuples;
-  mdCol->column = rel->tuples;
+  //mdCol->column = rel->tuples;
 
   //find min,max and discrete_values
   int i,j;
   uint32_t min, max;
   uint32_t discrete_values;
 
-  min = rel->tuples[0];
+  //min = rel->tuples[0];
   max = min;
   discrete_values = 1;
 
-  for (i = 1; i < rel->num_tuples; i++) {
+  /*for (i = 1; i < rel->num_tuples; i++) {
       //TODO: get metadata from fread, del this function
     //calculate min,max
     if (rel->tuples[i] > max) {
@@ -39,7 +39,7 @@ metadataCol * initializeMDCol(relation * rel) {
     if (i == j) {
       discrete_values++;
     }
-  }
+  }*/
 
   mdCol->min = min;
   mdCol->max = max;
@@ -69,7 +69,7 @@ void deleteMDCol(metadataCol ** md) {
   (*md)->max = -1;
   (*md)->num_of_rows = -1;
   (*md)->discrete_values = -1;
-  (*md)->column = NULL
+  //(*md)->column = NULL
 
   free(*md);
   *md = NULL;

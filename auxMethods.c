@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "auxMethods.h"
 
 #define COLUMNS 1							// Columns of arrays (for this program, only 1)
@@ -18,9 +19,13 @@ int* getColumnOfArray(int** array, int rows, int col){
 
 // Check whether a string is number or not, return 0 if not
 int isNumeric(char* s){
-	int number = atoi(s);
-	if (number == 0 && s[0] != '0')
+	if(s == NULL)
 		return 0;
-	else
-		return 1;
+	if(s[0] == '\0' || isspace(s[0]))
+		return 0;
+	for(int i = 0; i < strlen(s)-1; i++){
+        if (isdigit(s[i]) == 0) 
+            return 0; 
+	}
+    return 1; 
 }
