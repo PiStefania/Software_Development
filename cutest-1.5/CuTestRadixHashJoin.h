@@ -6,6 +6,15 @@
 void TestHashFunction1(CuTest *tc);
 void TestHashFunction2(CuTest *tc);
 void TestCreateNode(CuTest *tc);
+void TestCreateList(CuTest *tc);
+void TestInsertToList(CuTest *tc);
+void TestDeleteList(CuTest *tc);
+void TestCreateRelation(CuTest *tc);
+void TestDeleteRelation(CuTest *tc);
+void TestCreateHistogram(CuTest *tc);
+void TestCreatePsum(CuTest *tc);
+void TestCreateROrdered(CuTest *tc);
+void TestIndexCompareJoin(CuTest *tc);
 
 CuSuite* RadixHashJoinGetSuite();
 

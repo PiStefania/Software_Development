@@ -51,7 +51,7 @@ resultNode * createNode();
 
 result * createList();
 
-int insertToList(result * list, int32_t rowID1, int32_t rowID2);
+int insertToList(result** list, int32_t rowID1, int32_t rowID2);
 
 void printList(result * list);
 
