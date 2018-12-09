@@ -20,7 +20,7 @@ void TestHashFunction2(CuTest *tc) {
 	CuAssertIntEquals(tc,3,result);
 }
 
-void TestcreateNode(CuTest *tc) {
+void TestCreateNode(CuTest *tc) {
 	struct node * newNode = createNode();
 	CuAssertPtrNotNull(tc, newNode);
 	CuAssertPtrEquals(tc, NULL, newNode->next);
@@ -33,12 +33,12 @@ void TestcreateNode(CuTest *tc) {
 	free(newNode);
 }
 
-CuSuite* RadixHashJoinGetSuite() {		//adding TestAuxMethods Functions into suite
+CuSuite* RadixHashJoinGetSuite() {
     CuSuite* suite = CuSuiteNew();
 
     SUITE_ADD_TEST(suite, TestHashFunction1);
     SUITE_ADD_TEST(suite, TestHashFunction2);
-	SUITE_ADD_TEST(suite, TestcreateNode);
+	SUITE_ADD_TEST(suite, TestCreateNode);
 
     return suite;
 }
