@@ -202,6 +202,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if(rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
     	uint64_t* array = setRowIdsToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1);
     	Rrel = createRelation(array, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
+    	free(array);
     }else {
     	Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], initRelations[relationId1].num_of_rows);
     }
@@ -226,6 +227,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if(rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds != 0) {
     	uint64_t* array = setRowIdsToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2);
     	Srel = createRelation(array, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
+    	free(array);
     }else {
     	Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], initRelations[relationId2].num_of_rows);
     }
