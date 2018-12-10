@@ -82,7 +82,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                     rList[i].num_of_rowIds = 0;
 				}
 				for (int i = 0; i < predicatesSize; i++) {
-					// Compare
+					// Compare column with a number
 					if(predicates[i]->kind == 0){
 						printf("predicate: %d.%d %c %d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId);

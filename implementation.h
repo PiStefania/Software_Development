@@ -4,7 +4,7 @@
 #include "queryMethods.h"
 #include "relationMethods.h"
 
-
+// TODO: alter rowIdsList to an array of ids
 typedef struct rowIdNode {
     int32_t rowId;
     char isEmptyList;
