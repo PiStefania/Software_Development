@@ -75,7 +75,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				printf("Predicates are incorrect!\n");
 				failed = 1;
 			} else {
-                // Create the list to store the rowIds that satisfy each predicates
+                // Create the list to store the rowIds that satisfy each predicate
                 rList = malloc(relationsSize * sizeof(rowIdsList));
                 for (int i = 0; i < relationsSize; i++) {
 					rList[i].rowIds = createRowIdList();
@@ -125,17 +125,6 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				}
 			}
 		}
-        // Print rowIds found
-        /*for (int i = 0; i < relationsSize; i++) {
-            rowIdNode* current;
-            current = rList[i].rowIds;
-            do {
-                if (current->isEmptyList == 0) {
-                    printf("Rel: %d, RowId: %d\n", rList[i].relationId, current->rowId);
-                }
-                current = current->next;
-            } while (current != NULL) ;
-        }*/
 
 		// Get projections
 		tuple* projections = NULL;
@@ -147,7 +136,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				failed = 1;
 			}else{
 				for(int i=0;i<projectionsSize;i++){
-					printf("rel: %d, col: %d\n", projections[i].rowId, projections[i].value);
+					printf("projection rel: %d, col: %d\n", projections[i].rowId, projections[i].value);
 				}
 			}
 		}
@@ -204,53 +193,43 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate) {
     //create relation
-    printf("---RELATION FROM 1 FIELD - R---\n");
     int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
     relation* Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], initRelations[relationId1].num_of_rows);
     if (PRINT) printRelation(Rrel);
 
     //create histogram
-    printf("---HIST - R---\n");
     relation* RHist = createHistogram(Rrel);
     if (PRINT) printRelation(RHist);
 
     //create Psum
-    printf("---PSUM - R---\n");
     relation* RPsum = createPsum(RHist);
     if (PRINT) printRelation(RPsum);
 
     //create ordered R
-    printf("---REORDERED - R---\n");
     relation* ROrdered = createROrdered(Rrel, RHist, RPsum);
     if (PRINT) printRelation(ROrdered);
 
-    printf("------------------------------------------------------\n");
 
     // Now the same procedure for S array
-    printf("---RELATION FROM 1 FIELD - S---\n");
     int relationId2 = relations[predicates[currentPredicate]->rightSide->rowId];
     int relColumn2 = predicates[currentPredicate]->rightSide->value;
     relation* Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], initRelations[relationId2].num_of_rows);
     if (PRINT) printRelation(Srel);
 
     //create histogram
-    printf("---HIST - S---\n");
     relation* SHist = createHistogram(Srel);
     if (PRINT) printRelation(SHist);
 
     //create Psum
-    printf("---PSUM - S---\n");
     relation* SPsum = createPsum(SHist);
     if (PRINT) printRelation(SPsum);
 
     //create ordered R
-    printf("---REORDERED - S---\n");
     relation* SOrdered = createROrdered(Srel, SHist, SPsum);
     if (PRINT) printRelation(SOrdered);
 
     // Create the list of joined values
-    printf("---Create List---\n");
     result* ResultList = createList();
     // Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
     if (indexCompareJoin(ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
@@ -261,7 +240,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
     // Copy result list's item to our local rowIdList
     resultNode* curr = ResultList->head;
-    printf("1st Relation's RowID (R)--------2nd Relation's RowID (S)\n");
     while (curr != NULL) {
         for (int j = 0; j < curr->num_of_elems; j++) {
             //printf("%8d %31d\n", curr->array[j].rowId1, curr->array[j].rowId2);
@@ -274,9 +252,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
         }
         curr = curr->next;
     }
-    printf("---Delete List---\n");
     deleteList(&ResultList);
-
 
     // Delete all structure created by allocating memory dynamically
     deleteRelation(&Rrel);
