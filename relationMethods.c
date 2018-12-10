@@ -55,32 +55,34 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
-            long int min = -1 , max = -1, discrete_values = -1, y;
+            long int min, max, discrete_values, y;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
                 //if (i == 0) printf("%ld\n", initRelations[i].Rarray[j][k]);
 
                 //find min,max and discrete_values
-                if (min == -1) {
+                if (!k) { //first element of current column
                   min = initRelations[i].Rarray[j][k];
                   max = min;
                   discrete_values = 1;
                 }
-                else if (min > initRelations[i].Rarray[j][k]) {
-                  min = initRelations[i].Rarray[j][k];
-                }
-                else if (max < initRelations[i].Rarray[j][k]) {
-                  max = initRelations[i].Rarray[j][k];
-                }
-
-                //calculate discrete_values
-                for (y = 1; y < k; y++) {
-                  if (initRelations[i].Rarray[j][k] == initRelations[i].Rarray[j][y]) {
-                    break;
+                else { //every other element of current column
+                  if (min > initRelations[i].Rarray[j][k]) {
+                    min = initRelations[i].Rarray[j][k];
                   }
-                }
-                if (k == y) {
-                  discrete_values++;
+                  else if (max < initRelations[i].Rarray[j][k]) {
+                    max = initRelations[i].Rarray[j][k];
+                  }
+
+                  //calculate discrete_values
+                  for (y = 0; y < k; y++) {
+                    if (initRelations[i].Rarray[j][k] == initRelations[i].Rarray[j][y]) {
+                      break;
+                    }
+                  }
+                  if (k == y) {
+                    discrete_values++;
+                  }
                 }
             }
             initRelations[i].MDCols[j].num_of_rows = initRelations[i].num_of_rows;
