@@ -86,13 +86,18 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 					if(predicates[i]->kind == 0){
 						printf("predicate: %d.%d %c %d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId);
+						// Get relation from line of predicate
                         int relationId1 = relations[predicates[i]->leftSide->rowId];
+                        // Get column that we need to compare, from predicate
                         int relColumn = predicates[i]->leftSide->value;
+                        //for each row of current relation, compare column, j is number of row aka id
                         for (int j = 0; j < initRelations[relationId1].num_of_rows; j++) {
                             if (predicates[i]->comparator == '=') {
+                            	// Check if are equal
                                 if (initRelations[relationId1].Rarray[relColumn][j] == predicates[i]->rightSide->rowId) {
+                                	// Insert row id of predicare into rList of specific relation id
                                     if (insertIntoRowIdList(rList[predicates[i]->leftSide->rowId].rowIds, j) == 0) return 0;
-                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;
+                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;		// -> ??
                                     rList[predicates[i]->leftSide->rowId].num_of_rowIds++;
                                 }
                             }
