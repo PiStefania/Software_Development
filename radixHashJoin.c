@@ -35,13 +35,13 @@ result * createList() {
 }
 
 //Create result as a list of arrays
-int insertToList(result * list, int32_t rowID1, int32_t rowID2) {
+int insertToList(result** list, int32_t rowID1, int32_t rowID2) {
 
-    if (list == NULL) {
-      list = createList();
+    if (*list == NULL) {
+      *list = createList();
     }
 
-    resultNode * temp = list->head;
+    resultNode * temp = (*list)->head;
 
     while (temp->num_of_elems == ARRAYSIZE) {
         if (temp->next == NULL) {
@@ -71,7 +71,11 @@ void printList(result * list) {
 }
 
 void deleteList(result ** list) {
+	if(list == NULL || *list == NULL)
+		return;
     resultNode * curr = (*list)->head;
+    if(curr == NULL)
+    	return;
     resultNode * prev;
     while (curr->next != NULL) {
         prev = curr;
@@ -106,8 +110,14 @@ relation* createRelation(uint64_t* col, uint64_t noOfElems){
 	return rel;
 }
 
-
 void deleteRelation(relation** rel){
+	if(*rel == NULL)
+		return;
+	if((*rel)->tuples == NULL){
+		free(*rel);
+		*rel = NULL;
+		return;
+	}
 	free((*rel)->tuples);
 	(*rel)->tuples = NULL;
 	free(*rel);
@@ -124,6 +134,10 @@ void printRelation(relation* rel){
 // Create the Histogram, where we store the number of elements corresponding with each hash value
 // The size of tuples array is the number of buckets (one position for each hash value)
 relation* createHistogram(relation* R){
+	if(R == NULL)
+		return NULL;
+	if(R->tuples == NULL || R->num_tuples == 0)
+		return NULL;
 	relation* Hist = malloc(sizeof(relation));
 	Hist->num_tuples = BUCKETS;
 	Hist->tuples = malloc(BUCKETS * sizeof(tuple));
@@ -143,6 +157,10 @@ relation* createHistogram(relation* R){
 // Create Psum just like histogram, but for different purpose
 // We calculate the position of the first element from each bucket in the new ordered array
 relation* createPsum(relation* Hist){
+	if(Hist == NULL)
+		return NULL;
+	if(Hist->tuples == NULL || Hist->num_tuples == 0)
+		return NULL;
 	relation* Psum = malloc(sizeof(relation));
 	Psum->num_tuples = BUCKETS;
 	Psum->tuples = malloc(BUCKETS * sizeof(tuple));
@@ -160,6 +178,21 @@ relation* createPsum(relation* Hist){
 
 // Create the new ordered array (R')
 relation* createROrdered(relation* R, relation* Hist, relation* Psum){
+	if(R == NULL || Hist == NULL || Psum == NULL)
+		return NULL;
+	if(R != NULL){
+		if(R->tuples == NULL)
+			return NULL;
+	}
+	if(Hist != NULL){
+		if(Hist->tuples == NULL)
+			return NULL;
+	}
+	if(Psum != NULL){
+		if(Psum->tuples == NULL)
+			return NULL;
+	}
+	
 	// Allocate a relation array same as R
 	relation* ROrdered = malloc(sizeof(relation));
 	ROrdered->num_tuples = R->num_tuples;
@@ -262,7 +295,7 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
                             itemROrderedOffset = itemBigOrderedOffset;
                             itemSOrderedOffset = itemSmallOrderedOffset;
                         }
-						if (insertToList(ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
+						if (insertToList(&ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
