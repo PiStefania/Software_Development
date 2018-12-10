@@ -126,6 +126,9 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			}
 		}
 
+		// Print all results
+		printRowIdsList(rList, relationsSize);
+
 		// Get projections
 		tuple* projections = NULL;
 		int projectionsSize = 0;
@@ -148,7 +151,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                 valueSummary = valueSummary + initRelations[relations[projections[i].rowId]].Rarray[projections[i].value][j];
                 //printf("rel: %d, col: %d, Summary:%ld\n", projections[i].rowId, projections[i].value, valueSummary);
             }
-            printf("Final rel: %d, col: %d, Summary:%ld\n", projections[i].rowId, projections[i].value, valueSummary);
+            printf("%ld\n", valueSummary);
         }
 
 		// Free vars for each line
@@ -310,4 +313,15 @@ void deleteRowIdList(rowIdNode* list) {
 		free(currentNode);
 	}
 	free(list);
+}
+
+void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
+	for(int i=0;i<noOfRelations;i++){
+		printf("----Relation: %d----\n",rowIdsList[i].relationId);
+		rowIdNode* temp = rowIdsList[i].rowIds;
+		while(temp != NULL){
+			printf("%d ",temp->rowId);
+			temp = temp->next;
+		}
+	}
 }

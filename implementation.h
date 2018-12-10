@@ -26,6 +26,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 rowIdNode* createRowIdList();
 int insertIntoRowIdList(rowIdNode* list, int rowId);
 void deleteRowIdList(rowIdNode* list);
+void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations);
 
 
 #endif
