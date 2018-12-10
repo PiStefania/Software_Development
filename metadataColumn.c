@@ -1,14 +1,15 @@
 #include <stdlib.h>
 #include "metadataColumn.h"
 
-metadataCol * initializeMDCol(relation * rel) {
+//Commented-out code is obsolete
+/*metadataCol * initializeMDCol(relation * rel) {
   metadataCol * mdCol = malloc(sizeof(metadataCol));
   if (mdCol == NULL) {
     return NULL;
   }
 
   //initialize each metadata value
-  mdCol->num_of_rows = rel->num_tuples;
+  //mdCol->num_of_rows = rel->num_tuples;
   //mdCol->column = rel->tuples;
 
   //find min,max and discrete_values
@@ -20,7 +21,7 @@ metadataCol * initializeMDCol(relation * rel) {
   max = min;
   discrete_values = 1;
 
-  /*for (i = 1; i < rel->num_tuples; i++) {
+  for (i = 1; i < rel->num_tuples; i++) {
       //TODO: get metadata from fread, del this function
     //calculate min,max
     if (rel->tuples[i] > max) {
@@ -39,14 +40,14 @@ metadataCol * initializeMDCol(relation * rel) {
     if (i == j) {
       discrete_values++;
     }
-  }*/
+  }
 
   mdCol->min = min;
   mdCol->max = max;
   mdCol->discrete_values = discrete_values;
 
   return mdCol;
-}
+}*/
 
 int getDiscreteValues(metadataCol * md) {
   return (int)md->discrete_values;
@@ -64,13 +65,12 @@ int getNumOfRows(metadataCol * md) {
   return (int)md->num_of_rows;
 }
 
-void deleteMDCol(metadataCol ** md) {
+/*void deleteMDCol(metadataCol ** md) {
   (*md)->min = -1;
   (*md)->max = -1;
   (*md)->num_of_rows = -1;
   (*md)->discrete_values = -1;
-  //(*md)->column = NULL
 
   free(*md);
   *md = NULL;
-}
+}*/

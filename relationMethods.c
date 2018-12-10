@@ -46,15 +46,47 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
         //printf("%ld\n", initRelations[i].num_of_columns);
 
         //TODO: malloc num_of_columns for MDCols
+        if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
+          //critical error, not enough memory for metadata
+          return NULL;
+        }
 
         // Fill in the arrays with the values from relation File
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
+            long int min = -1 , max = -1, discrete_values = -1, y;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
                 //if (i == 0) printf("%ld\n", initRelations[i].Rarray[j][k]);
+
+                //find min,max and discrete_values
+                if (min == -1) {
+                  min = initRelations[i].Rarray[j][k];
+                  max = min;
+                  discrete_values = 1;
+                }
+                else if (min > initRelations[i].Rarray[j][k]) {
+                  min = initRelations[i].Rarray[j][k];
+                }
+                else if (max < initRelations[i].Rarray[j][k]) {
+                  max = initRelations[i].Rarray[j][k];
+                }
+
+                //calculate discrete_values
+                for (y = 1; y < k; y++) {
+                  if (initRelations[i].Rarray[j][k] == initRelations[i].Rarray[j][y]) {
+                    break;
+                  }
+                }
+                if (k == y) {
+                  discrete_values++;
+                }
             }
+            initRelations[i].MDCols[j].num_of_rows = initRelations[i].num_of_rows;
+            initRelations[i].MDCols[j].min = (uint32_t)min;
+            initRelations[i].MDCols[j].max = (uint32_t)max;
+            initRelations[i].MDCols[j].discrete_values = (uint32_t)discrete_values;
         }
         fclose(relFile);
     }
@@ -75,6 +107,7 @@ void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations)
             free(initRelations[i].Rarray[j]);
         }
         free(initRelations[i].Rarray);
+        free(initRelations[i].MDCols);
     }
     free(initRelations);
 }

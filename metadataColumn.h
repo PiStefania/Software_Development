@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include "radixHashJoin.h"
 
 typedef struct metadataCol {
   uint32_t num_of_rows;
@@ -9,7 +8,7 @@ typedef struct metadataCol {
   //tuple * column; //this points to an array of tuples
 } metadataCol;
 
-metadataCol * initializeMDCol(relation * rel);
+//metadataCol * initializeMDCol(relation * rel);
 
 int getDiscreteValues(metadataCol * md);
 
@@ -19,4 +18,4 @@ int getMaxValue(metadataCol * md);
 
 int getNumOfRows(metadataCol * md);
 
-void deleteMDCol(metadataCol ** md);
+//void deleteMDCol(metadataCol ** md);

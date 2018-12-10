@@ -2,6 +2,7 @@
 #define _RELATION_METHODS_H_
 
 #include <stdint.h>
+#include "metadataColumn.h"
 
 #define STRINGLEN 5
 
@@ -11,7 +12,7 @@ typedef struct relationsInfo {
     uint64_t num_of_columns;
     uint64_t num_of_rows;
     uint64_t** Rarray;
-    //metadataCol * MDCols;
+    metadataCol * MDCols; //metadata about each column goes here
 } relationsInfo;
 
 
