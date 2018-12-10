@@ -2,3 +2,4 @@
 // TODO 2: Implement delete previous results and recreate array for specific predicate
 // TODO 3: Complete CuTests
 // TODO 4: Update ReadMe
+// TODO 5: PriorityQueue for predicates with metadata & compare with each others kind
