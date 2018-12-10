@@ -267,14 +267,6 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
             if (RHist->tuples[i].value < SHist->tuples[i].value)
                 strcpy(arrayStr, "R");
             else strcpy(arrayStr, "S");
-    		printf("----Chain Array - Bucket %d (from %s)----\n", i, arrayStr);
-    		for (int j = 0; j < itemsInSmallBucket; j++) {
-    			printf("%d\n", chain[j]);
-    		}
-    		printf("----Bucket Array - Bucket %d (from %s)----\n", i, arrayStr);
-    		for (int j = 0; j < HASH2; j++) {
-    			printf("%d\n", bucket[j]);
-    		}
         }
 		// Search all the items from unindexed bigger bucket in the same bucket and compare them with smaller's
 		int itemsInBigBucket = bigHist->tuples[i].value;

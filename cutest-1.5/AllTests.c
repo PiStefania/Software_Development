@@ -6,7 +6,6 @@
 #include "CuTestQueryMethods.h"
 #include "CuTestRelationMethods.h"
 #include "CuTestImplementation.h"
-#include "CuTestMetadataColumn.h"
 
 CuSuite* CuGetSuite();
 CuSuite* CuStringGetSuite();
@@ -44,12 +43,6 @@ void RunAllTests(void){
 	CuSuiteAddSuite(suite, implementationSuite);
 	free(implementationSuite);
 	implementationSuite=NULL;
-
-	//metadataColumn
-	CuSuite* metadataColumnSuite =  MetadataColumnGetSuite();
-	CuSuiteAddSuite(suite, metadataColumnSuite);
-	free(metadataColumnSuite);
-	metadataColumnSuite=NULL;
 
 	CuSuiteRun(suite);
 	CuSuiteSummary(suite, output);

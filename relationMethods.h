@@ -2,10 +2,14 @@
 #define _RELATION_METHODS_H_
 
 #include <stdint.h>
-#include "metadataColumn.h"
 
 #define STRINGLEN 5
 
+typedef struct metadataCol {
+  uint32_t num_of_rows;
+  uint32_t min, max;
+  uint32_t discrete_values;
+} metadataCol;
 
 typedef struct relationsInfo {
     char relName[STRINGLEN];
@@ -15,12 +19,13 @@ typedef struct relationsInfo {
     metadataCol * MDCols; //metadata about each column goes here
 } relationsInfo;
 
-
 typedef struct stringNode {
     char isEmptyList;               // 1 true, 0 false
     char name[STRINGLEN];
     struct stringNode* next;
 } stringNode;
+
+
 
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations);

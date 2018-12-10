@@ -40,12 +40,8 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
         // Read the number of rows and columns of current relation
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
-        //printf("%ld\n", initRelations[i].num_of_rows);
         //fseek(relFile, sizeof(uint64_t), SEEK_SET);
         fread(&initRelations[i].num_of_columns, sizeof(uint64_t), 1, relFile);
-        //printf("%ld\n", initRelations[i].num_of_columns);
-
-        //TODO: malloc num_of_columns for MDCols
         if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
           //critical error, not enough memory for metadata
           return NULL;
@@ -58,7 +54,6 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
             long int min, max, discrete_values, y;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
-                //if (i == 0) printf("%ld\n", initRelations[i].Rarray[j][k]);
 
                 //find min,max and discrete_values
                 if (!k) { //first element of current column

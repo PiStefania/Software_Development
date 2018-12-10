@@ -1,11 +1,11 @@
 CC = gcc -g
-FILESTEST = AllTests.c CuTest.c CuTestAuxMethods.c CuTestRadixHashJoin.c CuTestQueryMethods.c CuTestRelationMethods.c CuTestImplementation.c CuTestMetadataColumn.c
-FILESMAIN = ../auxMethods.c ../radixHashJoin.c ../queryMethods.c ../relationMethods.c ../implementation.c ../metadataColumn.c
-OBJECTSTEST = AllTests.o CuTest.o CuTestAuxMethods.o CuTestRadixHashJoin.o CuTestQueryMethods.o CuTestRelationMethods.o CuTestImplementation.o CuTestMetadataColumn.o
-OBJECTSMAIN = auxMethods.o radixHashJoin.o queryMethods.o relationMethods.o implementation.o metadataColumn.o
+FILESTEST = AllTests.c CuTest.c CuTestAuxMethods.c CuTestRadixHashJoin.c CuTestQueryMethods.c CuTestRelationMethods.c CuTestImplementation.c
+FILESMAIN = ../auxMethods.c ../radixHashJoin.c ../queryMethods.c ../relationMethods.c ../implementation.c
+OBJECTSTEST = AllTests.o CuTest.o CuTestAuxMethods.o CuTestRadixHashJoin.o CuTestQueryMethods.o CuTestRelationMethods.o CuTestImplementation.o
+OBJECTSMAIN = auxMethods.o radixHashJoin.o queryMethods.o relationMethods.o implementation.o
 OUT = test
-HEADERSTEST = CuTest.h CuTestAuxMethods.h CuTestRadixHashJoin.h CuTestQueryMethods.h CuTestRelationMethods.h CuTestImplementation.h CuTestMetadataColumn.h
-HEADERSMAIN = ../auxMethods.h ../radixHashJoin.h ../queryMethods.h ../relationMethods.h ../implementation.h ../metadataColumn.h 
+HEADERSTEST = CuTest.h CuTestAuxMethods.h CuTestRadixHashJoin.h CuTestQueryMethods.h CuTestRelationMethods.h CuTestImplementation.h
+HEADERSMAIN = ../auxMethods.h ../radixHashJoin.h ../queryMethods.h ../relationMethods.h ../implementation.h
 
 all: $(OBJECTS) $(HEADERSTEST) $(HEADERSMAIN)
 	$(CC) -o $(OUT) $(FILESTEST) $(FILESMAIN) -lm
@@ -38,8 +38,6 @@ relationMethods.o: ../relationMethods.c
 implementation.o: ../implementation.c
 	$(CC) -c ../implementation.c
 
-metadataColumn.o: ../metadataColumn.c
-	$(CC) -c ../metadataColumn.c
 
 clean_some:
 	rm -f $(OBJECTSTEST) $(OBJECTSMAIN)

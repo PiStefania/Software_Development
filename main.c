@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -13,10 +15,6 @@
 int main(int argc, char* argv[]){
 	printf("------------------------------------------------------\n");
 	printf("START OF MAIN PROGRAM\n");
-	// Check the first hash functionality
-	int32_t out = hashFunction1(148);
-	printf("HASH: %d\n",out);
-
 	// Check arguments
 	char* init = NULL;
 	char* work = NULL;
@@ -38,10 +36,6 @@ int main(int argc, char* argv[]){
 	int num_of_initRelations = 0;
 	initRelations = getRelationsData(initFile, &num_of_initRelations);
 	if (initRelations == NULL) printf("INIT FAILED\n");
-
-	for (int i = 0; i < num_of_initRelations; i++) {
-		printf("File:%s, Rows:%ld, Columns:%ld\n", initRelations[i].relName, initRelations[i].num_of_rows, initRelations[i].num_of_columns);
-	}
 
 	printf("--------------------------------------------------\n");
 	printf("   Reading data files done! Now read queries!!\n");
