@@ -51,12 +51,12 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
-            long int min, max, discrete_values, y;
+            //long int min, max, discrete_values, y;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
 
                 //find min,max and discrete_values
-                if (!k) { //first element of current column
+                /*if (!k) { //first element of current column
                   min = initRelations[i].Rarray[j][k];
                   max = min;
                   discrete_values = 1;
@@ -78,12 +78,12 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
                   if (k == y) {
                     discrete_values++;
                   }
-                }
+              }*/
             }
-            initRelations[i].MDCols[j].num_of_rows = initRelations[i].num_of_rows;
+            /*initRelations[i].MDCols[j].num_of_rows = initRelations[i].num_of_rows;
             initRelations[i].MDCols[j].min = (uint32_t)min;
             initRelations[i].MDCols[j].max = (uint32_t)max;
-            initRelations[i].MDCols[j].discrete_values = (uint32_t)discrete_values;
+            initRelations[i].MDCols[j].discrete_values = (uint32_t)discrete_values;*/
         }
         fclose(relFile);
     }

@@ -94,7 +94,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                                 	// Insert row id of predicare into rList of specific relation id
                                 	int result = insertIntoRowIdList(rList[predicates[i]->leftSide->rowId].rowIds, j);
                                     if (result == -1) return 0;
-                                    else if(result == 1){
+                                    else if (result == 1){
 	                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;
 	                                    rList[predicates[i]->leftSide->rowId].num_of_rowIds++;
 	                                }
@@ -147,10 +147,15 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
         for (int i = 0; i < projectionsSize; i++) {
             uint64_t valueSummary = 0;
             //projections[i].rowId = number of relation, projections[i].value = column
+			//uint64_t* array = setRowIdsToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1);
+			rowIdNode* currentRowId;
+			currentRowId = rList[projections[i].rowId].rowIds;
             for (int j = 0; j < rList[projections[i].rowId].num_of_rowIds; j++) {
-                valueSummary += initRelations[relations[projections[i].rowId]].Rarray[projections[i].value][j];
+                valueSummary += initRelations[relations[projections[i].rowId]].Rarray[projections[i].value][currentRowId->rowId];
+				currentRowId = currentRowId->next;
             }
             printf("%ld ", valueSummary);
+			//free(array);
         }
         printf("\n");
 
@@ -200,11 +205,13 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
     relation* Rrel = NULL;
     if(rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
-    	uint64_t* array = setRowIdsToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1);
-    	Rrel = createRelation(array, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
-    	free(array);
+		uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1);
+		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 0);
+    	Rrel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
+		free(arrayValues);
+		free(arrayRowIds);
     }else {
-    	Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], initRelations[relationId1].num_of_rows);
+    	Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], NULL, initRelations[relationId1].num_of_rows);
     }
     if (PRINT) printRelation(Rrel);
 
@@ -225,11 +232,13 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int relColumn2 = predicates[currentPredicate]->rightSide->value;
     relation* Srel = NULL;
     if(rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds != 0) {
-    	uint64_t* array = setRowIdsToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2);
-    	Srel = createRelation(array, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
-    	free(array);
+    	uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1);
+		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 0);
+    	Srel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
+    	free(arrayValues);
+		free(arrayRowIds);
     }else {
-    	Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], initRelations[relationId2].num_of_rows);
+    	Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], NULL, initRelations[relationId2].num_of_rows);
     }
     if (PRINT) printRelation(Srel);
 
@@ -253,6 +262,14 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
         return 0;
     }
     if (PRINT) printList(ResultList);
+
+	// Delete the the (left & right) relation's current data in rList and replace it with the values found after radix join
+	deleteRowIdList(rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
+	rList[predicates[currentPredicate]->leftSide->rowId].rowIds = createRowIdList();
+	rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = 0;
+	deleteRowIdList(rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
+	rList[predicates[currentPredicate]->rightSide->rowId].rowIds = createRowIdList();
+	rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = 0;
 
     // Copy result list's item to our local rowIdList
     resultNode* curr = ResultList->head;
@@ -344,17 +361,24 @@ void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
 	}
 }
 
-uint64_t* setRowIdsToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn1){
-	uint64_t* returnedArray = malloc(rList[position].num_of_rowIds*sizeof(uint64_t));
+
+uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type) {
+	uint64_t* returnedArray = malloc(rList[position].num_of_rowIds * sizeof(uint64_t));
 	rowIdNode* temp = rList[position].rowIds;
 	int index = 0;
 	while(temp != NULL){
-		returnedArray[index] = initRelations[relationId].Rarray[relColumn1][temp->rowId];
+		if (type == 1) {
+			returnedArray[index] = initRelations[relationId].Rarray[relColumn][temp->rowId];
+		} else {
+			returnedArray[index] = temp->rowId;
+		}
 		temp = temp->next;
 		index++;
 	}
 	return returnedArray;
 }
+
+
 
 int existsInrList(rowIdsList* rList, int position, int rowId){
 	rowIdNode* temp = rList[position].rowIds;

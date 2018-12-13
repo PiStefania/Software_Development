@@ -65,7 +65,7 @@ int32_t hashFunction1(int32_t value);
 int32_t hashFunction2(int32_t value);
 
 //create relation for field
-relation* createRelation(uint64_t* col, uint64_t noOfElems);
+relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems);
 
 //delete specific relation
 void deleteRelation(relation** rel);

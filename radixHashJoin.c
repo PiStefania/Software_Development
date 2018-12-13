@@ -99,11 +99,15 @@ int32_t hashFunction2(int32_t value){
 }
 
 //create relation array for field
-relation* createRelation(uint64_t* col, uint64_t noOfElems){
+relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems){
 	relation* rel = malloc(sizeof(relation));
 	rel->tuples = malloc(noOfElems*sizeof(tuple));
-	for(int i=0;i<noOfElems;i++){
-		rel->tuples[i].rowId = i;
+	for (int i = 0; i < noOfElems; i++){
+        if (rowIds == NULL) {
+            rel->tuples[i].rowId = i;
+        } else {
+            rel->tuples[i].rowId = rowIds[i];
+        }
 		rel->tuples[i].value = col[i];
 	}
 	rel->num_tuples = noOfElems;
@@ -192,7 +196,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 		if(Psum->tuples == NULL)
 			return NULL;
 	}
-	
+
 	// Allocate a relation array same as R
 	relation* ROrdered = malloc(sizeof(relation));
 	ROrdered->num_tuples = R->num_tuples;
