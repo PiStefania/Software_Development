@@ -90,13 +90,14 @@ void TestDeleteList(CuTest *tc) {
 }
 
 void TestCreateRelation(CuTest *tc) {
+	//create relation with NULL rowIds
 	uint64_t* col = malloc(5*sizeof(uint64_t));
 	col[0] = 2;
 	col[1] = 3;
 	col[2] = 5;
 	col[3] = 45;
 	col[4] = 34;
-	relation* rel = createRelation(col,5);
+	relation* rel = createRelation(col,NULL,5);
 	CuAssertPtrNotNull(tc, rel);
 	CuAssertPtrNotNull(tc, rel->tuples);
 	CuAssertIntEquals(tc, 5, rel->num_tuples);
@@ -105,7 +106,24 @@ void TestCreateRelation(CuTest *tc) {
 		CuAssertIntEquals(tc, col[i], rel->tuples[i].value);
 	}
 	deleteRelation(&rel);
+	//create relation with default rowIds
+	uint64_t* rowIds = malloc(5*sizeof(uint64_t));
+	rowIds[0] = 2;
+	rowIds[1] = 3;
+	rowIds[2] = 5;
+	rowIds[3] = 9;
+	rowIds[4] = 1;
+	rel = createRelation(col,rowIds,5);
+	CuAssertPtrNotNull(tc, rel);
+	CuAssertPtrNotNull(tc, rel->tuples);
+	CuAssertIntEquals(tc, 5, rel->num_tuples);
+	for (int i=0; i < 5; i++) {
+		CuAssertIntEquals(tc, rowIds[i], rel->tuples[i].rowId);
+		CuAssertIntEquals(tc, col[i], rel->tuples[i].value);
+	}
 	free(col);
+	free(rowIds);
+	deleteRelation(&rel);
 }
 
 void TestDeleteRelation(CuTest *tc) {
@@ -116,7 +134,7 @@ void TestDeleteRelation(CuTest *tc) {
 	col[2] = 5;
 	col[3] = 45;
 	col[4] = 34;
-	relation* rel = createRelation(col,5);
+	relation* rel = createRelation(col,NULL,5);
 	deleteRelation(&rel);
 	CuAssertPtrEquals(tc, NULL, rel);
 	//delete NULL relation
@@ -134,7 +152,7 @@ void TestCreateHistogram(CuTest *tc) {
 	col[2] = 5;
 	col[3] = 45;
 	col[4] = 34;
-	relation* rel = createRelation(col,5);
+	relation* rel = createRelation(col,NULL,5);
 	relation* Hist = createHistogram(rel);
 	CuAssertPtrNotNull(tc, Hist);
 	CuAssertIntEquals(tc, BUCKETS, Hist->num_tuples);
@@ -170,7 +188,7 @@ void TestCreatePsum(CuTest *tc) {
 	col[2] = 5;
 	col[3] = 45;
 	col[4] = 34;
-	relation* rel = createRelation(col,5);
+	relation* rel = createRelation(col,NULL,5);
 	relation* Hist = createHistogram(rel);
 	relation* Psum = createPsum(Hist);
 	CuAssertPtrNotNull(tc, Psum);
@@ -208,7 +226,7 @@ void TestCreateROrdered(CuTest *tc) {
 	col[2] = 5;
 	col[3] = 45;
 	col[4] = 34;
-	relation* rel = createRelation(col,5);
+	relation* rel = createRelation(col,NULL,5);
 	relation* Hist = createHistogram(rel);
 	relation* Psum = createPsum(Hist);
 	relation* ROrdered = createROrdered(rel,Hist,Psum);
@@ -251,7 +269,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colR[2] = 5;
 	colR[3] = 45;
 	colR[4] = 34;
-	relation* relR = createRelation(colR,5);
+	relation* relR = createRelation(colR,NULL,5);
 	relation* RHist = createHistogram(relR);
 	relation* RPsum = createPsum(RHist);
 	relation* ROrdered = createROrdered(relR,RHist,RPsum);
@@ -261,7 +279,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colS[2] = 6;
 	colS[3] = 1;
 	colS[4] = 3;
-	relation* relS = createRelation(colS,5);
+	relation* relS = createRelation(colS,NULL,5);
 	relation* SHist = createHistogram(relS);
 	relation* SPsum = createPsum(SHist);
 	relation* SOrdered = createROrdered(relS,SHist,SPsum);
@@ -291,7 +309,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colR[2] = 5;
 	colR[3] = 45;
 	colR[4] = 34;
-	relR = createRelation(colR,5);
+	relR = createRelation(colR,NULL,5);
 	RHist = createHistogram(relR);
 	RPsum = createPsum(RHist);
 	ROrdered = createROrdered(relR,RHist,RPsum);
@@ -300,7 +318,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colS[2] = 88;
 	colS[3] = 35;
 	colS[4] = 98;
-	relS = createRelation(colS,5);
+	relS = createRelation(colS,NULL,5);
 	SHist = createHistogram(relS);
 	SPsum = createPsum(SHist);
 	SOrdered = createROrdered(relS,SHist,SPsum);
@@ -326,7 +344,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colR[2] = 5;
 	colR[3] = 45;
 	colR[4] = 34;
-	relR = createRelation(colR,5);
+	relR = createRelation(colR,NULL,5);
 	RHist = createHistogram(relR);
 	RPsum = createPsum(RHist);
 	ROrdered = createROrdered(relR,RHist,RPsum);
@@ -335,7 +353,7 @@ void TestIndexCompareJoin(CuTest *tc) {
 	colS[2] = 5;
 	colS[3] = 2;
 	colS[4] = 34;
-	relS = createRelation(colS,5);
+	relS = createRelation(colS,NULL,5);
 	SHist = createHistogram(relS);
 	SPsum = createPsum(SHist);
 	SOrdered = createROrdered(relS,SHist,SPsum);
