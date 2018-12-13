@@ -7,6 +7,10 @@
 
 
 int* getRelationsFromLine(char* relationsStr, int* relationsSize){
+	if(relationsStr == NULL){
+		*relationsSize = 0;
+		return NULL;
+	}
 	char* tempRelations = malloc((strlen(relationsStr)+1)*sizeof(char));
 	strcpy(tempRelations,relationsStr);
 	// Count number of relations
@@ -33,6 +37,7 @@ int* getRelationsFromLine(char* relationsStr, int* relationsSize){
 		relations = malloc(counter*sizeof(int));
 		relations[position] = atoi(token);
 	}else{
+		*relationsSize = 0;
 		return NULL;
 	}
 
@@ -48,6 +53,7 @@ int* getRelationsFromLine(char* relationsStr, int* relationsSize){
 				relations[position] = atoi(token);
 			}else{
 				free(relations);
+				*relationsSize = 0;
 				relations = NULL;
 				return NULL;
 			}
@@ -59,6 +65,10 @@ int* getRelationsFromLine(char* relationsStr, int* relationsSize){
 
 
 tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
+	if(projectionsStr == NULL){
+		*projectionsSize = 0;
+		return NULL;
+	}
 	char* tempProjections = malloc((strlen(projectionsStr)+1)*sizeof(char));
 	strcpy(tempProjections,projectionsStr);
 	// Count number of projections
@@ -84,6 +94,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 	char* rel = strtok(token,".");
 	char* col = strtok(NULL,"");
 	if(rel == NULL || col == NULL){
+		*projectionsSize = 0;
 		return NULL;
 	}
 	// Check if relation and column are numeric values
@@ -92,6 +103,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 		projections[position].rowId = atoi(rel);
 		projections[position].value = atoi(col);
 	}else{
+		*projectionsSize = 0;
 		return NULL;
 	}
 
@@ -109,6 +121,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 			if(rel == NULL || !isNumeric(rel)){
 				free(projections);
 				projections = NULL;
+				*projectionsSize = 0;
 				return NULL;
 			}
 
@@ -118,6 +131,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 			if(col == NULL || !isNumeric(col)){
 				free(projections);
 				projections = NULL;
+				*projectionsSize = 0;
 				return NULL;
 			}
 			projections[position].value = atoi(col);
@@ -128,6 +142,10 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 }
 
 predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
+	if(predicatesStr == NULL){
+		*predicatesSize = 0;
+		return NULL;
+	}
 	char* tempPredicates = malloc((strlen(predicatesStr)+1)*sizeof(char));
 	strcpy(tempPredicates,predicatesStr);
 	// Count number of relations
@@ -155,6 +173,7 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 	token = strtok(predicatesStr,"&");
 	char* remainingLine = strtok(NULL,"");
 	if(token == NULL){
+		*predicatesSize = 0;
 		return NULL;
 	}
 
@@ -178,6 +197,8 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 
 // Create predicate struct for query handling
 predicate** createPredicate(int size){
+	if(size <= 0)
+		return NULL;
 	predicate** p = malloc(size*sizeof(predicate*));
 	for(int i=0;i<size;i++){
 		p[i] = malloc(sizeof(predicate));
@@ -221,7 +242,6 @@ void setPredicate(char* str, predicate* p){
 		free(strTemp1);
 		return;
 	}
-
 	free(strTemp1);
 
 	// Check for '<'

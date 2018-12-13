@@ -23,7 +23,7 @@ int isNumeric(char* s){
 		return 0;
 	if(s[0] == '\0' || isspace(s[0]))
 		return 0;
-	for(int i = 0; i < strlen(s)-1; i++){
+	for(int i = 0; i < strlen(s) ; i++){
         if (isdigit(s[i]) == 0) 
             return 0; 
 	}

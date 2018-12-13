@@ -3,7 +3,12 @@
 #include "CuTest.h"
 #include "../queryMethods.h"
 
-void TestQ(CuTest *tc);
+void TestGetRelationsFromLine(CuTest *tc);
+void TestGetProjectionsFromLine(CuTest *tc);
+void TestGetPredicatesFromLine(CuTest *tc);
+void TestCreatePredicate(CuTest *tc);
+void TestDeletePredicate(CuTest *tc);
+void TestSetPredicate(CuTest *tc);
 
 CuSuite* QueryMethodsGetSuite();
 
