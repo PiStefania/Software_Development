@@ -6,14 +6,14 @@
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     char *line = NULL;
-	size_t len = 0;
+	  size_t len = 0;
     int read;
 
     // If file is not provided as an argument, get lines from stdin
-	if (file == NULL){
-		printf("Please input init files (End input with the word 'Done'):\n");
-		file = stdin;
-	}
+  	if (file == NULL){
+    		printf("Please input init files (End input with the word 'Done'):\n");
+    		file = stdin;
+  	}
     stringNode *filenamesList = createNameList();
 
     while ((read = getline(&line, &len, file)) != -1) {
@@ -30,21 +30,20 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
     for (int i = 0; i < *num_of_initRelations; i++) {
         // Read all relations and their data
-        strcpy(initRelations[i].relName, findNameByIndex(filenamesList, i));
+        char* tempStr = findNameByIndex(filenamesList, i);
+        initRelations[i].relName = malloc((strlen(tempStr)+1)*sizeof(char));
+        strcpy(initRelations[i].relName, tempStr);
 
         // Open the relation binary file
-        char filePath[32];
-        sprintf(filePath, "./workloads/%s", initRelations[i].relName);
-        FILE* relFile;
-    	relFile = fopen(filePath, "rb");
-
+        FILE* relFile = NULL;
+    	  relFile = fopen(initRelations[i].relName, "rb");
         // Read the number of rows and columns of current relation
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
         //fseek(relFile, sizeof(uint64_t), SEEK_SET);
         fread(&initRelations[i].num_of_columns, sizeof(uint64_t), 1, relFile);
         if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
-          //critical error, not enough memory for metadata
-          return NULL;
+            //critical error, not enough memory for metadata
+            return NULL;
         }
 
         // Fill in the arrays with the values from relation File
@@ -90,8 +89,8 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
     // Free dynamically allocated structures
     deleteNameList(filenamesList);
-	if (line) free(line);
-	if (file != NULL && file != stdin) fclose(file);            // Close file
+  	if (line) free(line);
+  	if (file != NULL && file != stdin) fclose(file);            // Close file
 
     return initRelations;
 }
@@ -103,6 +102,7 @@ void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations)
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             free(initRelations[i].Rarray[j]);
         }
+        free(initRelations[i].relName);
         free(initRelations[i].Rarray);
         free(initRelations[i].MDCols);
     }
@@ -112,53 +112,56 @@ void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations)
 
 // Create a list to store the names of data files
 stringNode* createNameList() {
-	stringNode* nameList;
-	if ((nameList = malloc(sizeof(stringNode))) == NULL) return NULL;
-	nameList->isEmptyList = 1;
-	nameList->next = NULL;
-	return nameList;
+  	stringNode* nameList;
+  	if ((nameList = malloc(sizeof(stringNode))) == NULL) return NULL;
+  	nameList->isEmptyList = 1;
+  	nameList->next = NULL;
+  	return nameList;
 }
 
 // Insert strings into the list (helps while reading files)
 int insertIntoNameList(stringNode* nameList, char* name) {
-	stringNode *currentNode, *newNode;
-	if (nameList->isEmptyList == 1){
-		strcpy(nameList->name, name);
-		nameList->isEmptyList = 0;
-		return 1;
-	}
-	currentNode = nameList;
-	while (currentNode->next != NULL) {
-		currentNode = currentNode->next;
-	}
-	if ((newNode = malloc(sizeof(stringNode))) == NULL) return 0;
-	strcpy(newNode->name, name);
-	newNode->next = NULL;
-	currentNode->next = newNode;
-	return 1;
+  	stringNode *currentNode, *newNode;
+  	if (nameList->isEmptyList == 1){
+        nameList->name = malloc((strlen(name)+1)*sizeof(char));
+    		strcpy(nameList->name, name);
+    		nameList->isEmptyList = 0;
+    		return 1;
+  	}
+  	currentNode = nameList;
+  	while (currentNode->next != NULL) {
+  		  currentNode = currentNode->next;
+  	}
+  	if ((newNode = malloc(sizeof(stringNode))) == NULL) return 0;
+    newNode->name = malloc((strlen(name)+1)*sizeof(char));
+  	strcpy(newNode->name, name);
+  	newNode->next = NULL;
+  	currentNode->next = newNode;
+  	return 1;
 }
 
 // Look for the "index" node and retrieve the name value
 char* findNameByIndex(stringNode* nameList, int index) {
-	stringNode *currentNode = nameList;
-	int currentIndex = 0;
-	do {
-		if (currentIndex == index) {
-			return currentNode->name;
-		}
-		currentNode = currentNode->next;
-		currentIndex++;
-	} while (currentNode != NULL);
-	return NULL;
+  	stringNode *currentNode = nameList;
+  	int currentIndex = 0;
+  	do {
+    		if (currentIndex == index) {
+    			return currentNode->name;
+    		}
+    		currentNode = currentNode->next;
+    		currentIndex++;
+  	} while (currentNode != NULL);
+  	return NULL;
 }
 
 // Delete above list
 void deleteNameList(stringNode* nameList) {
-	stringNode *currentNode;
-	while (nameList->next != NULL){
-		currentNode = nameList;
-		nameList = nameList->next;
-		free(currentNode);
-	}
-	free(nameList);
+  	stringNode *currentNode = nameList;
+    stringNode *tempNode;
+  	while (currentNode != NULL){
+  		tempNode = currentNode;
+  		currentNode = currentNode->next;
+      free(tempNode->name);
+  		free(tempNode);
+  	}
 }

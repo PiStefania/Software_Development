@@ -3,16 +3,14 @@
 
 #include <stdint.h>
 
-#define STRINGLEN 5
-
 typedef struct metadataCol {
-  uint32_t num_of_rows;
-  uint32_t min, max;
-  uint32_t discrete_values;
+    uint32_t num_of_rows;
+    uint32_t min, max;
+    uint32_t discrete_values;
 } metadataCol;
 
 typedef struct relationsInfo {
-    char relName[STRINGLEN];
+    char* relName;
     uint64_t num_of_columns;
     uint64_t num_of_rows;
     uint64_t** Rarray;
@@ -21,11 +19,9 @@ typedef struct relationsInfo {
 
 typedef struct stringNode {
     char isEmptyList;               // 1 true, 0 false
-    char name[STRINGLEN];
+    char* name;
     struct stringNode* next;
 } stringNode;
-
-
 
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations);
