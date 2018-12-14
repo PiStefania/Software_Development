@@ -178,7 +178,7 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 	}
 
 	// Set approriate predicate
-	setPredicate(token, predicates[position]);
+	setPredicate(token, &predicates[position]);
 	position++;
 	while(position<counter){
 		if(position==counter-1){
@@ -188,7 +188,7 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 		}
 		remainingLine = strtok(NULL,"");
 		if(token != NULL){
-			setPredicate(token, predicates[position]);
+			setPredicate(token, &predicates[position]);
 		}
 		position++;
 	}
@@ -224,21 +224,25 @@ void deletePredicate(predicate** p){
 	*p = NULL;
 }
 
-void setPredicate(char* str, predicate* p){
+void setPredicate(char* str, predicate** p){
+	if(str == NULL){
+		*p = NULL;
+		return;
+	}
 	// Check for all comparators
 	// Check for '>'
 	char* strTemp1 = malloc((strlen(str)+1)*sizeof(char));
 	strcpy(strTemp1,str);
 	char* token = strtok(strTemp1,">");
 	if(strcmp(str,token) != 0){
-		p->kind = 0;
+		(*p)->kind = 0;
 		char* remainingLine = strtok(NULL,"");
 		token = strtok(token,".");
-		p->leftSide->rowId = atoi(token);
+		(*p)->leftSide->rowId = atoi(token);
 		token = strtok(NULL,"");
-		p->leftSide->value = atoi(token);
-		p->comparator = '>';
-		p->rightSide->rowId = atoi(remainingLine);
+		(*p)->leftSide->value = atoi(token);
+		(*p)->comparator = '>';
+		(*p)->rightSide->rowId = atoi(remainingLine);
 		free(strTemp1);
 		return;
 	}
@@ -249,14 +253,14 @@ void setPredicate(char* str, predicate* p){
 	strcpy(strTemp2,str);
 	token = strtok(strTemp2,"<");
 	if(strcmp(str,token) != 0){
-		p->kind = 0;
+		(*p)->kind = 0;
 		char* remainingLine = strtok(NULL,"");
 		token = strtok(token,".");
-		p->leftSide->rowId = atoi(token);
+		(*p)->leftSide->rowId = atoi(token);
 		token = strtok(NULL,"");
-		p->leftSide->value = atoi(token);
-		p->comparator = '<';
-		p->rightSide->rowId = atoi(remainingLine);
+		(*p)->leftSide->value = atoi(token);
+		(*p)->comparator = '<';
+		(*p)->rightSide->rowId = atoi(remainingLine);
 		free(strTemp2);
 		return;
 	}
@@ -270,22 +274,22 @@ void setPredicate(char* str, predicate* p){
 	if(strcmp(str,token) != 0){
 		char* remainingLine = strtok(NULL,"");
 		token = strtok(token,".");
-		p->leftSide->rowId = atoi(token);
+		(*p)->leftSide->rowId = atoi(token);
 		token = strtok(NULL,"");
-		p->leftSide->value = atoi(token);
-		p->comparator = '=';
+		(*p)->leftSide->value = atoi(token);
+		(*p)->comparator = '=';
 		char* tempRemainingLine = malloc((strlen(remainingLine)+1)*sizeof(char));
 		strcpy(tempRemainingLine,remainingLine);
 		// Check for filer or join predicate
 		token = strtok(tempRemainingLine,".");
 		if(strcmp(token,remainingLine) == 0){
-			p->rightSide->rowId = atoi(remainingLine);
-			p->kind = 0;
+			(*p)->rightSide->rowId = atoi(remainingLine);
+			(*p)->kind = 0;
 		}else{
-			p->rightSide->rowId = atoi(token);
+			(*p)->rightSide->rowId = atoi(token);
 			token = strtok(NULL,"");
-			p->rightSide->value = atoi(token);
-			p->kind = 1;
+			(*p)->rightSide->value = atoi(token);
+			(*p)->kind = 1;
 		}
 		free(tempRemainingLine);
 		free(strTemp3);

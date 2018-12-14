@@ -14,7 +14,7 @@ typedef struct predicate{
 int* getRelationsFromLine(char* relationsStr, int* relationsSize);
 tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize);
 predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize);
-void setPredicate(char* str, predicate* p);
+void setPredicate(char* str, predicate** p);
 
 // For predicate struct
 predicate** createPredicate(int size);

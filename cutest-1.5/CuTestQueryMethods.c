@@ -131,13 +131,21 @@ void TestDeletePredicate(CuTest *tc){
 	free(p);
 }
 
-/*
+
 void TestSetPredicate(CuTest *tc){
 	// Set kind 1 predicate
-	predicate* pred = NULL;
+	predicate* pred = malloc(sizeof(predicate));
 	char* predicateStr = malloc((strlen("0.1=2.2")+1)*sizeof(char));
-	strcpy(predicateStr,"0.1=0.2");
-	setPredicate(predicateStr,pred);
+	pred->leftSide = malloc(sizeof(tuple));
+	pred->leftSide->rowId = -1;
+	pred->leftSide->value = -1;
+	pred->rightSide = malloc(sizeof(tuple));
+	pred->rightSide->rowId = -1;
+	pred->rightSide->value = -1;
+	pred->comparator = '0';
+	pred->kind = -1;
+	strcpy(predicateStr,"0.1=2.2");
+	setPredicate(predicateStr,&pred);
 	//CuAssertPtrNotNull(tc,pred);
 	CuAssertPtrNotNull(tc,pred->leftSide);
 	CuAssertIntEquals(tc,0,pred->leftSide->rowId);
@@ -152,7 +160,16 @@ void TestSetPredicate(CuTest *tc){
 	// Set kind 0 predicate
 	predicateStr = malloc((strlen("2.3>20")+1)*sizeof(char));
 	strcpy(predicateStr,"2.3>20");
-	setPredicate(predicateStr,pred);
+	pred = malloc(sizeof(predicate));
+	pred->leftSide = malloc(sizeof(tuple));
+	pred->leftSide->rowId = -1;
+	pred->leftSide->value = -1;
+	pred->rightSide = malloc(sizeof(tuple));
+	pred->rightSide->rowId = -1;
+	pred->rightSide->value = -1;
+	pred->comparator = '0';
+	pred->kind = -1;
+	setPredicate(predicateStr,&pred);
 	CuAssertPtrNotNull(tc,pred);
 	CuAssertPtrNotNull(tc,pred->leftSide);
 	CuAssertIntEquals(tc,2,pred->leftSide->rowId);
@@ -164,8 +181,10 @@ void TestSetPredicate(CuTest *tc){
 	CuAssertIntEquals(tc,0,pred->kind);
 	free(predicateStr);
 	deletePredicate(&pred);
-
-}*/
+	// Set NULL string
+	setPredicate(NULL,&pred);
+	CuAssertPtrEquals(tc,NULL,pred);
+}
 
 
 CuSuite* QueryMethodsGetSuite() {		
@@ -175,7 +194,7 @@ CuSuite* QueryMethodsGetSuite() {
     SUITE_ADD_TEST(suite, TestGetPredicatesFromLine);
     SUITE_ADD_TEST(suite, TestCreatePredicate);
     SUITE_ADD_TEST(suite, TestDeletePredicate);
-    //SUITE_ADD_TEST(suite, TestSetPredicate);
+    SUITE_ADD_TEST(suite, TestSetPredicate);
     return suite;
 }
 
