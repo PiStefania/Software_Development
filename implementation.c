@@ -264,12 +264,18 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printList(ResultList);
 
 	// Delete the the (left & right) relation's current data in rList and replace it with the values found after radix join
-	deleteRowIdList(rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
-	rList[predicates[currentPredicate]->leftSide->rowId].rowIds = createRowIdList();
-	rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = 0;
-	deleteRowIdList(rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
-	rList[predicates[currentPredicate]->rightSide->rowId].rowIds = createRowIdList();
-	rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = 0;
+	if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
+		deleteRowIdList(rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
+		rList[predicates[currentPredicate]->leftSide->rowId].rowIds = createRowIdList();
+		rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
+		rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = 0;
+	}
+	if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds != 0) {
+		deleteRowIdList(rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
+		rList[predicates[currentPredicate]->rightSide->rowId].rowIds = createRowIdList();
+		rList[predicates[currentPredicate]->rightSide->rowId].relationId = relationId2;
+		rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = 0;
+	}
 
     // Copy result list's item to our local rowIdList
     resultNode* curr = ResultList->head;
