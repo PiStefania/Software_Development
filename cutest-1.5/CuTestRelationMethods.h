@@ -3,7 +3,12 @@
 #include "CuTest.h"
 #include "../relationMethods.h"
 
-void TestGetRelationsData(CuTest *tc); 
+void TestGetRelationsData(CuTest *tc);
+void TestDeleteRelationsData(CuTest *tc);
+void TestCreateNameList(CuTest *tc);
+void TestInsertIntoNameList(CuTest *tc);
+void TestFindNameByIndex(CuTest *tc);
+void TestDeleteNameList(CuTest *tc);
 
 CuSuite* RelationMethodsGetSuite();
 

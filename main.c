@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
 	int query = queriesImplementation(workFile, initRelations);
 	if (!query) printf(" WORK FAILED\n");
 
-	deleteRelationsData(initRelations, num_of_initRelations);
+	deleteRelationsData(initRelations, &num_of_initRelations);
 
 	return 0;
 }

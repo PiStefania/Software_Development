@@ -88,7 +88,7 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     }
 
     // Free dynamically allocated structures
-    deleteNameList(filenamesList);
+    deleteNameList(&filenamesList);
   	if (line) free(line);
   	if (file != NULL && file != stdin) fclose(file);            // Close file
 
@@ -97,8 +97,11 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
 
 // Delete relations array
-void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations) {
-    for (int i = 0; i < num_of_initRelations; i++) {
+void deleteRelationsData(relationsInfo* initRelations, int* num_of_initRelations) {
+    if(initRelations == NULL || num_of_initRelations <= 0){
+      return;
+    } 
+    for (int i = 0; i < *num_of_initRelations; i++) {
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             free(initRelations[i].Rarray[j]);
         }
@@ -107,6 +110,8 @@ void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations)
         free(initRelations[i].MDCols);
     }
     free(initRelations);
+    *num_of_initRelations = -1;
+    initRelations = NULL;
 }
 
 
@@ -116,11 +121,15 @@ stringNode* createNameList() {
   	if ((nameList = malloc(sizeof(stringNode))) == NULL) return NULL;
   	nameList->isEmptyList = 1;
   	nameList->next = NULL;
+    nameList->name = NULL;
   	return nameList;
 }
 
 // Insert strings into the list (helps while reading files)
 int insertIntoNameList(stringNode* nameList, char* name) {
+    if(name == NULL || nameList == NULL){
+      return 0;
+    }
   	stringNode *currentNode, *newNode;
   	if (nameList->isEmptyList == 1){
         nameList->name = malloc((strlen(name)+1)*sizeof(char));
@@ -142,6 +151,9 @@ int insertIntoNameList(stringNode* nameList, char* name) {
 
 // Look for the "index" node and retrieve the name value
 char* findNameByIndex(stringNode* nameList, int index) {
+    if(nameList == NULL || index < 0){
+      return NULL;
+    }
   	stringNode *currentNode = nameList;
   	int currentIndex = 0;
   	do {
@@ -155,8 +167,8 @@ char* findNameByIndex(stringNode* nameList, int index) {
 }
 
 // Delete above list
-void deleteNameList(stringNode* nameList) {
-  	stringNode *currentNode = nameList;
+void deleteNameList(stringNode** nameList) {
+  	stringNode *currentNode = *nameList;
     stringNode *tempNode;
   	while (currentNode != NULL){
   		tempNode = currentNode;
@@ -164,4 +176,5 @@ void deleteNameList(stringNode* nameList) {
       free(tempNode->name);
   		free(tempNode);
   	}
+    *nameList = NULL;
 }

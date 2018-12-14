@@ -25,12 +25,12 @@ typedef struct stringNode {
 
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations);
-void deleteRelationsData(relationsInfo* initRelations, int num_of_initRelations);
+void deleteRelationsData(relationsInfo* initRelations, int* num_of_initRelations);
 
 // Functions for handling the list in which data files' names are stored
 stringNode* createNameList();
 int insertIntoNameList(stringNode* nameList, char* name);
 char* findNameByIndex(stringNode* nameList, int index);
-void deleteNameList(stringNode* nameList);
+void deleteNameList(stringNode** nameList);
 
 #endif
