@@ -21,20 +21,20 @@ typedef struct node resultNode;
 
 //Type definition for a tuple
 typedef struct tuple{
-	int32_t rowId;
-	int32_t value;
+	uint64_t rowId;
+	uint64_t value;
 }tuple;
 
 //Type definition for a relation.
 //It consists of an array of tuples and a size of the relation.
 typedef struct relation{
 	tuple *tuples;
-	uint32_t num_tuples;
+	uint64_t num_tuples;
 }relation;
 
 typedef struct resultElement{
-	int32_t rowId1;
-	int32_t rowId2;
+	uint64_t rowId1;
+	uint64_t rowId2;
 }resultElement;
 
 struct node{
@@ -51,7 +51,7 @@ resultNode * createNode();
 
 result * createList();
 
-int insertToList(result** list, int32_t rowID1, int32_t rowID2);
+int insertToList(result** list, uint64_t rowID1, uint64_t rowID2);
 
 void printList(result * list);
 
@@ -61,8 +61,8 @@ void deleteList(result ** list);
 result* RadixHashJoin(relation *relR, relation *relS);
 
 //Hash Functions - return no of bucket
-int32_t hashFunction1(int32_t value);
-int32_t hashFunction2(int32_t value);
+int hashFunction1(uint64_t value);
+int hashFunction2(uint64_t value);
 
 //create relation for field
 relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems);

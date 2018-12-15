@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "queryMethods.h"
-#include "auxMethods.h"
 #include "radixHashJoin.h"
 
 
@@ -192,7 +192,41 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 		}
 		position++;
 	}
-	return predicates;
+
+	// Find out the compare predicates and place them in the front, so as to be executed first
+	int comparePredicatesIndex = 0;
+	predicate** comparePredicates = createPredicate(*predicatesSize);
+	for (int i = 0; i < *predicatesSize; i++) {
+		if (predicates[i]->kind == 0) {
+			comparePredicates[comparePredicatesIndex]->kind = predicates[i]->kind;
+			comparePredicates[comparePredicatesIndex]->comparator = predicates[i]->comparator;
+			comparePredicates[comparePredicatesIndex]->leftSide->rowId = predicates[i]->leftSide->rowId;
+			comparePredicates[comparePredicatesIndex]->leftSide->value = predicates[i]->leftSide->value;
+			comparePredicates[comparePredicatesIndex]->rightSide->rowId = predicates[i]->rightSide->rowId;
+			comparePredicates[comparePredicatesIndex]->rightSide->value = predicates[i]->rightSide->value;
+			comparePredicatesIndex++;
+		}
+	}
+	// Now copy the rest of predicates (join) to the rest empty positions of comparePredicates array
+	for (int i = 0; i < *predicatesSize; i++) {
+		if (predicates[i]->kind != 0) {
+			comparePredicates[comparePredicatesIndex]->kind = predicates[i]->kind;
+			comparePredicates[comparePredicatesIndex]->comparator = predicates[i]->comparator;
+			comparePredicates[comparePredicatesIndex]->leftSide->rowId = predicates[i]->leftSide->rowId;
+			comparePredicates[comparePredicatesIndex]->leftSide->value = predicates[i]->leftSide->value;
+			comparePredicates[comparePredicatesIndex]->rightSide->rowId = predicates[i]->rightSide->rowId;
+			comparePredicates[comparePredicatesIndex]->rightSide->value = predicates[i]->rightSide->value;
+			comparePredicatesIndex++;
+		}
+	}
+	// Delete the old predicates array
+	for (int i = 0; i < *predicatesSize; i++) {
+		deletePredicate(&predicates[i]);
+	}
+	free(predicates);
+	predicates = NULL;
+
+	return comparePredicates;
 }
 
 // Create predicate struct for query handling
@@ -296,4 +330,18 @@ void setPredicate(char* str, predicate** p){
 		return;
 	}
 	free(strTemp3);
+}
+
+
+// Check whether a string is number or not, return 0 if not
+int isNumeric(char* s){
+	if(s == NULL)
+		return 0;
+	if(s[0] == '\0' || isspace(s[0]))
+		return 0;
+	for(int i = 0; i < strlen(s) ; i++){
+        if (isdigit(s[i]) == 0)
+            return 0;
+	}
+    return 1;
 }

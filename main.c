@@ -3,7 +3,6 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
-#include "auxMethods.h"
 #include "radixHashJoin.h"
 #include "queryMethods.h"
 #include "relationMethods.h"

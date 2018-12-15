@@ -6,7 +6,7 @@
 
 // TODO: alter rowIdsList to an array of ids
 typedef struct rowIdNode {
-    int32_t rowId;
+    uint64_t rowId;
     char isEmptyList;
     struct rowIdNode* next;
 } rowIdNode;

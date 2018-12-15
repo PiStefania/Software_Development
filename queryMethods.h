@@ -20,5 +20,6 @@ void setPredicate(char* str, predicate** p);
 predicate** createPredicate(int size);
 void deletePredicate(predicate** p);
 
+int isNumeric(char* s);
 
 #endif

@@ -4,7 +4,6 @@
 #include "implementation.h"
 #include "relationMethods.h"
 #include "queryMethods.h"
-#include "auxMethods.h"
 #include "radixHashJoin.h"
 
 
@@ -80,7 +79,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				for (int i = 0; i < predicatesSize; i++) {
 					// Compare column with a number
 					if(predicates[i]->kind == 0){
-						printf("predicate: %d.%d %c %d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
+						printf("predicate: %ld.%ld %c %ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId);
 						// Get relation from line of predicate
                         int relationId1 = relations[predicates[i]->leftSide->rowId];
@@ -122,7 +121,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                             }
                         }
 					} else {	// Join
-						printf("predicate: %d.%d %c %d.%d\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
+						printf("predicate: %ld.%ld %c %ld.%ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
                         // Call Radix Hash Join
                         if (joinColumns(relations, predicates, initRelations, rList, i) == 0) return 0;
@@ -361,7 +360,7 @@ void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
 		printf("----Relation: %d----\n",rowIdsList[i].relationId);
 		rowIdNode* temp = rowIdsList[i].rowIds;
 		while(temp != NULL){
-			printf("%d ",temp->rowId);
+			printf("%ld ",temp->rowId);
 			temp = temp->next;
 		}
 	}

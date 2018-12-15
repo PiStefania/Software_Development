@@ -6,13 +6,13 @@
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     char *line = NULL;
-	  size_t len = 0;
+	size_t len = 0;
     int read;
 
     // If file is not provided as an argument, get lines from stdin
   	if (file == NULL){
-    		printf("Please input init files (End input with the word 'Done'):\n");
-    		file = stdin;
+    	printf("Please input init files (End input with the word 'Done'):\n");
+    	file = stdin;
   	}
     stringNode *filenamesList = createNameList();
 
@@ -36,7 +36,7 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
         // Open the relation binary file
         FILE* relFile = NULL;
-    	  relFile = fopen(initRelations[i].relName, "rb");
+    	relFile = fopen(initRelations[i].relName, "rb");
         // Read the number of rows and columns of current relation
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
         //fseek(relFile, sizeof(uint64_t), SEEK_SET);
@@ -98,9 +98,9 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
 // Delete relations array
 void deleteRelationsData(relationsInfo* initRelations, int* num_of_initRelations) {
-    if(initRelations == NULL || num_of_initRelations <= 0){
+    if (initRelations == NULL || num_of_initRelations <= 0){
       return;
-    } 
+    }
     for (int i = 0; i < *num_of_initRelations; i++) {
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             free(initRelations[i].Rarray[j]);
@@ -157,11 +157,11 @@ char* findNameByIndex(stringNode* nameList, int index) {
   	stringNode *currentNode = nameList;
   	int currentIndex = 0;
   	do {
-    		if (currentIndex == index) {
-    			return currentNode->name;
-    		}
-    		currentNode = currentNode->next;
-    		currentIndex++;
+    	if (currentIndex == index) {
+    		return currentNode->name;
+    	}
+    	currentNode = currentNode->next;
+    	currentIndex++;
   	} while (currentNode != NULL);
   	return NULL;
 }
@@ -173,7 +173,7 @@ void deleteNameList(stringNode** nameList) {
   	while (currentNode != NULL){
   		tempNode = currentNode;
   		currentNode = currentNode->next;
-      free(tempNode->name);
+        free(tempNode->name);
   		free(tempNode);
   	}
     *nameList = NULL;
