@@ -3,7 +3,9 @@
 #include "CuTest.h"
 #include "../implementation.h"
 
-void TestI(CuTest *tc);
+void TestCreateRowIdList(CuTest *tc);
+void TestInsertIntoRowIdList(CuTest *tc);
+void TestDeleteRowIdList(CuTest *tc);
 
 CuSuite* ImplementationGetSuite();
 

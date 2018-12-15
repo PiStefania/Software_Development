@@ -166,7 +166,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		if(predicates){
 			for(int i=0;i<predicatesSize;i++){
 				deletePredicate(&predicates[i]);
-                deleteRowIdList(rList[i].rowIds);
+                deleteRowIdList(&rList[i].rowIds);
 			}
 			free(predicates);
 			predicates = NULL;
@@ -264,13 +264,13 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
 	// Delete the the (left & right) relation's current data in rList and replace it with the values found after radix join
 	if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
-		deleteRowIdList(rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
+		deleteRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
 		rList[predicates[currentPredicate]->leftSide->rowId].rowIds = createRowIdList();
 		rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
 		rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = 0;
 	}
 	if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds != 0) {
-		deleteRowIdList(rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
+		deleteRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
 		rList[predicates[currentPredicate]->rightSide->rowId].rowIds = createRowIdList();
 		rList[predicates[currentPredicate]->rightSide->rowId].relationId = relationId2;
 		rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = 0;
@@ -317,11 +317,15 @@ rowIdNode* createRowIdList() {
 	if ((list = malloc(sizeof(rowIdNode))) == NULL) return NULL;
 	list->isEmptyList = 1;
 	list->next = NULL;
+	list->rowId = -1;
 	return list;
 }
 
 // Insert strings into the list (helps while reading files)
 int insertIntoRowIdList(rowIdNode* list, int rowId) {
+	if(list == NULL || rowId < 0){
+		return -1;
+	}
 	rowIdNode *currentNode, *newNode;
 	if (list->isEmptyList == 1){
 		list->rowId = rowId;
@@ -329,10 +333,14 @@ int insertIntoRowIdList(rowIdNode* list, int rowId) {
 		return 1;
 	}
 	currentNode = list;
-	while (currentNode->next != NULL) {
+	while (currentNode != NULL) {
 		if(currentNode->rowId == rowId){
 			return 0;
 		}
+		currentNode = currentNode->next;
+	}
+	currentNode = list;
+	while (currentNode->next != NULL) {
 		currentNode = currentNode->next;
 	}
 	if ((newNode = malloc(sizeof(rowIdNode))) == NULL) return -1;
@@ -343,16 +351,16 @@ int insertIntoRowIdList(rowIdNode* list, int rowId) {
 	return 1;
 }
 
-
 // Delete above list
-void deleteRowIdList(rowIdNode* list) {
-	rowIdNode *currentNode;
-	while (list->next != NULL){
-		currentNode = list;
-		list = list->next;
-		free(currentNode);
+void deleteRowIdList(rowIdNode** list) {
+	rowIdNode* tempNode;
+	rowIdNode* currentNode = *list;
+	while (currentNode != NULL){
+		tempNode = currentNode;
+		currentNode = currentNode->next;
+		free(tempNode);
 	}
-	free(list);
+	*list = NULL;
 }
 
 void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
@@ -365,7 +373,6 @@ void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
 		}
 	}
 }
-
 
 uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type) {
 	uint64_t* returnedArray = malloc(rList[position].num_of_rowIds * sizeof(uint64_t));
@@ -382,8 +389,6 @@ uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo*
 	}
 	return returnedArray;
 }
-
-
 
 int existsInrList(rowIdsList* rList, int position, int rowId){
 	rowIdNode* temp = rList[position].rowIds;
