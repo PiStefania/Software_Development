@@ -9,6 +9,7 @@ void TestGetPredicatesFromLine(CuTest *tc);
 void TestCreatePredicate(CuTest *tc);
 void TestDeletePredicate(CuTest *tc);
 void TestSetPredicate(CuTest *tc);
+void TestIsNumeric(CuTest *tc);
 
 CuSuite* QueryMethodsGetSuite();
 

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "CuTest.h"
-#include "CuTestAuxMethods.h"
 #include "CuTestRadixHashJoin.h"
 #include "CuTestQueryMethods.h"
 #include "CuTestRelationMethods.h"
@@ -13,12 +12,6 @@ CuSuite* CuStringGetSuite();
 void RunAllTests(void){
 	CuString *output = CuStringNew();
 	CuSuite* suite = CuSuiteNew();
-	
-	//auxMethods
-	CuSuite* auxMethodsSuite =  AuxMethodsGetSuite();
-	CuSuiteAddSuite(suite, auxMethodsSuite);
-	free(auxMethodsSuite);
-	auxMethodsSuite=NULL;
 	
 	//radixHashJoin
 	CuSuite* radixHashJoinSuite =  RadixHashJoinGetSuite();
