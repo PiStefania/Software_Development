@@ -6,7 +6,7 @@
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     char *line = NULL;
-	size_t len = 0;
+	  size_t len = 0;
     int read;
 
     // If file is not provided as an argument, get lines from stdin
@@ -36,7 +36,7 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
 
         // Open the relation binary file
         FILE* relFile = NULL;
-    	relFile = fopen(initRelations[i].relName, "rb");
+    	  relFile = fopen(initRelations[i].relName, "rb");
         // Read the number of rows and columns of current relation
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
         //fseek(relFile, sizeof(uint64_t), SEEK_SET);

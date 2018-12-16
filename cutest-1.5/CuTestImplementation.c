@@ -193,63 +193,144 @@ void TestJoinColumns(CuTest *tc){
 	int relations[3] = {0,2,4};
 	// Create predicates
 	predicate** p = createPredicate(3);
-	setPredicate("0.1=1.0", &p[0]);
-	setPredicate("0.1=2.1", &p[1]);
+	setPredicate("0.0=1.0", &p[0]);
+	setPredicate("0.1=2.0", &p[1]);
 	setPredicate("0.2=1.2", &p[2]);
 	// Create initRelations
-	relationsInfo* initRelations = NULL;
-	int num_of_initRelations = 0;
-	FILE* initFile = fopen("./files_for_testing/test.init", "r");
-	initRelations = getRelationsData(initFile, &num_of_initRelations);
-	// Create rList
-	rowIdsList* rList = malloc(5*sizeof(rowIdsList));
-	rList[0].relationId = 0;
-	rList[0].num_of_rowIds = 10;
-	rList[0].rowIds = createRowIdList();
-	rList[1].num_of_rowIds = 12;
-	rList[1].relationId = 5;
-	rList[1].rowIds = createRowIdList();
-	rList[2].relationId = 1;
-	rList[2].num_of_rowIds = 2;
-	rList[2].rowIds = createRowIdList();
-	rList[3].relationId = 3;
-	rList[3].num_of_rowIds = 8;
-	rList[3].rowIds = createRowIdList();
-	rList[4].relationId = 4;
-	rList[4].num_of_rowIds = 5;
-	rList[4].rowIds = createRowIdList();
-	int rowIds1[10] = {0,3,4,1,7,9,8,100,55,99};
-	int rowIds2[12] = {98,3,4,10,72,90,8,120,50,91,87,66};
-	int rowIds3[2] = {67,87};
-	int rowIds4[8] = {94,10,72,90,8,126,50,87};
-	int rowIds5[5] = {87,44,55,2,1};
-	for(int i=0;i<10;i++){
-		insertIntoRowIdList(rList[0].rowIds, rowIds1[i]);
+	relationsInfo* initRelations = malloc(5 * sizeof(relationsInfo));
+	initRelations[0].relName = malloc((strlen("r0")+1)*sizeof(char));
+    strcpy(initRelations[0].relName, "r0");
+    initRelations[0].num_of_columns = 3;
+    initRelations[0].num_of_rows = 5;
+    initRelations[0].MDCols = NULL;
+    initRelations[1].relName = malloc((strlen("r0")+1)*sizeof(char));
+    strcpy(initRelations[1].relName, "r1");
+    initRelations[1].num_of_columns = 3;
+    initRelations[1].num_of_rows = 5;
+    initRelations[1].MDCols = NULL;
+    initRelations[2].relName = malloc((strlen("r2")+1)*sizeof(char));
+    strcpy(initRelations[2].relName, "r2");
+    initRelations[2].num_of_columns = 3;
+    initRelations[2].num_of_rows = 6;
+    initRelations[2].MDCols = NULL;
+    initRelations[3].relName = malloc((strlen("r0")+1)*sizeof(char));
+    strcpy(initRelations[3].relName, "r3");
+    initRelations[3].num_of_columns = 3;
+    initRelations[3].num_of_rows = 5;
+    initRelations[3].MDCols = NULL;
+    initRelations[4].relName = malloc((strlen("r4")+1)*sizeof(char));
+    strcpy(initRelations[4].relName, "r4");
+    initRelations[4].num_of_columns = 3;
+    initRelations[4].num_of_rows = 2;
+    initRelations[4].MDCols = NULL;
+    for(int i=0;i<5;i++){
+	    initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
+	    for (int j = 0; j < initRelations[i].num_of_columns; j++) {
+	    	initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
+	    }
 	}
-	for(int i=0;i<12;i++){
-		insertIntoRowIdList(rList[1].rowIds, rowIds2[i]);
-	}
-	for(int i=0;i<2;i++){
-		insertIntoRowIdList(rList[2].rowIds, rowIds3[i]);
-	}
-	for(int i=0;i<8;i++){
-		insertIntoRowIdList(rList[3].rowIds, rowIds4[i]);
-	}
-	for(int i=0;i<5;i++){
-		insertIntoRowIdList(rList[4].rowIds, rowIds5[i]);
-	}
+	// Set values to each initRelation
+	// Set initRelation 0
+	initRelations[0].Rarray[0][0] = 1;
+	initRelations[0].Rarray[0][1] = 1;
+	initRelations[0].Rarray[0][2] = 1;
+	initRelations[0].Rarray[0][3] = 1;
+	initRelations[0].Rarray[0][4] = 1;
+	initRelations[0].Rarray[1][0] = 1;
+	initRelations[0].Rarray[1][1] = 1;
+	initRelations[0].Rarray[1][2] = 1;
+	initRelations[0].Rarray[1][3] = 1;
+	initRelations[0].Rarray[1][4] = 1;
+	initRelations[0].Rarray[2][0] = 1;
+	initRelations[0].Rarray[2][1] = 1;
+	initRelations[0].Rarray[2][2] = 1;
+	initRelations[0].Rarray[2][3] = 1;
+	initRelations[0].Rarray[2][4] = 1;
+	// Set initRelation 2
+	initRelations[2].Rarray[0][0] = 1;
+	initRelations[2].Rarray[0][1] = 1;
+	initRelations[2].Rarray[0][2] = 1;
+	initRelations[2].Rarray[0][3] = 1;
+	initRelations[2].Rarray[0][4] = 1;
+	initRelations[2].Rarray[0][5] = 1;
+	initRelations[2].Rarray[1][0] = 1;
+	initRelations[2].Rarray[1][1] = 1;
+	initRelations[2].Rarray[1][2] = 1;
+	initRelations[2].Rarray[1][3] = 1;
+	initRelations[2].Rarray[1][4] = 1;
+	initRelations[2].Rarray[1][5] = 1;
+	initRelations[2].Rarray[2][0] = 1;
+	initRelations[2].Rarray[2][1] = 1;
+	initRelations[2].Rarray[2][2] = 1;
+	initRelations[2].Rarray[2][3] = 1;
+	initRelations[2].Rarray[2][4] = 1;
+	initRelations[2].Rarray[2][5] = 1;
+	// Set initRelation 4
+	initRelations[4].Rarray[0][0] = 1;
+	initRelations[4].Rarray[0][1] = 1;
+	initRelations[4].Rarray[1][0] = 1;
+	initRelations[4].Rarray[1][1] = 1;
+	initRelations[4].Rarray[2][0] = 1;
+	initRelations[4].Rarray[2][1] = 1;
 
-	// Delete vairables
+	// Create rList
+	rowIdsList* rList = malloc(3*sizeof(rowIdsList));
+	rList[0].relationId = 0;
+	rList[0].num_of_rowIds = 0;
+	rList[0].rowIds = createRowIdList();
+	rList[1].num_of_rowIds = 0;
+	rList[1].relationId = 2;
+	rList[1].rowIds = createRowIdList();
+	rList[2].relationId = 4;
+	rList[2].num_of_rowIds = 0;
+	rList[2].rowIds = createRowIdList();
+	// Join first predicate
+	int result = joinColumns(relations,p,initRelations,rList,0);
+	CuAssertIntEquals(tc,1,result);
+	int smaller = (rList[0].num_of_rowIds < rList[1].num_of_rowIds) ? rList[0].num_of_rowIds : rList[1].num_of_rowIds;
+	uint64_t* array1 = setRowIdsValuesToArray(rList,0,initRelations,0,1,1);
+	uint64_t* array2 = setRowIdsValuesToArray(rList,1,initRelations,2,0,1);
+	for(int i=0;i<smaller;i++){
+		CuAssertIntEquals(tc,array1[i],array2[i]);
+	}
+	free(array1);
+	free(array2);
+	printRowIdsList(rList, 3);
+	// Join second predicate
+	result = joinColumns(relations,p,initRelations,rList,1);
+	CuAssertIntEquals(tc,1,result);
+	smaller = (rList[0].num_of_rowIds < rList[2].num_of_rowIds) ? rList[0].num_of_rowIds : rList[2].num_of_rowIds;
+	array1 = setRowIdsValuesToArray(rList,0,initRelations,0,0,1);
+	array2 = setRowIdsValuesToArray(rList,2,initRelations,4,0,1);
+	for(int i=0;i<smaller;i++){
+		CuAssertIntEquals(tc,array1[i],array2[i]);
+	}
+	free(array1);
+	free(array2);
+	printRowIdsList(rList, 3);
+	// Join third predicate
+	result = joinColumns(relations,p,initRelations,rList,2);
+	CuAssertIntEquals(tc,1,result);
+	smaller = (rList[0].num_of_rowIds < rList[1].num_of_rowIds) ? rList[0].num_of_rowIds : rList[1].num_of_rowIds;
+	array1 = setRowIdsValuesToArray(rList,0,initRelations,0,2,1);
+	array2 = setRowIdsValuesToArray(rList,1,initRelations,2,2,1);
+	for(int i=0;i<smaller;i++){
+		CuAssertIntEquals(tc,array1[i],array2[i]);
+	}
+	free(array1);
+	free(array2);
+	printRowIdsList(rList, 3);
+	// Delete variables
 	for(int i=0;i<3;i++){
 		deletePredicate(&p[i]);
 	}
 	free(p);
-	for(int i=0;i<5;i++){
+	for(int i=0;i<3;i++){
 		deleteRowIdList(&rList[i].rowIds);
 	}
 	free(rList);
+	int num_of_initRelations = 5;
 	deleteRelationsData(initRelations, &num_of_initRelations);
-
 }
 
 CuSuite* ImplementationGetSuite() {

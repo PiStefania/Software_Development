@@ -262,7 +262,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     }
     if (PRINT) printList(ResultList);
 
-	// Delete the the (left & right) relation's current data in rList and replace it with the values found after radix join
+	// Delete the (left & right) relation's current data in rList and replace it with the values found after radix join
 	if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
 		deleteRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
 		rList[predicates[currentPredicate]->leftSide->rowId].rowIds = createRowIdList();
