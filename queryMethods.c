@@ -231,8 +231,9 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 
 // Create predicate struct for query handling
 predicate** createPredicate(int size){
-	if(size <= 0)
+	if (size <= 0) {
 		return NULL;
+	}
 	predicate** p = malloc(size*sizeof(predicate*));
 	for(int i=0;i<size;i++){
 		p[i] = malloc(sizeof(predicate));

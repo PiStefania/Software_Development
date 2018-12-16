@@ -6,7 +6,7 @@
 
 relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
     char *line = NULL;
-	  size_t len = 0;
+	size_t len = 0;
     int read;
 
     // If file is not provided as an argument, get lines from stdin

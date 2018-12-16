@@ -35,7 +35,7 @@ result * createList() {
 }
 
 //Create result as a list of arrays
-int insertToList(result** list, uint64_t rowID1, uint64_t rowID2) {
+int insertToList(result** list, uint32_t rowID1, uint32_t rowID2) {
 
     if (*list == NULL) {
       *list = createList();
@@ -63,7 +63,7 @@ void printList(result * list) {
     printf("1st Relation's RowID (R)--------2nd Relation's RowID (S)\n");
     while (curr != NULL) {
         for (int i=0; i < curr->num_of_elems; i++) {
-            printf("%8ld %31ld\n", curr->array[i].rowId1, curr->array[i].rowId2);
+            printf("%8d %31d\n", curr->array[i].rowId1, curr->array[i].rowId2);
         }
         curr = curr->next;
     }
@@ -129,7 +129,7 @@ void deleteRelation(relation** rel){
 }
 
 void printRelation(relation* rel){
-	printf("Relation has %ld tuples\n",rel->num_tuples);
+	printf("Relation has %d tuples\n",rel->num_tuples);
 	for (int i=0;i<rel->num_tuples;i++){
 		printf("Row with rowId: %ld and value: %ld\n",rel->tuples[i].rowId,rel->tuples[i].value);
 	}
@@ -168,7 +168,7 @@ relation* createPsum(relation* Hist){
 	relation* Psum = malloc(sizeof(relation));
 	Psum->num_tuples = BUCKETS;
 	Psum->tuples = malloc(BUCKETS * sizeof(tuple));
-	uint64_t sum = 0;
+	uint32_t sum = 0;
 	for(int i=0;i<Psum->num_tuples;i++){
 		Psum->tuples[i].rowId = Hist->tuples[i].rowId;
 		if (Hist->tuples[i].value == 0)
@@ -251,8 +251,8 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
             bigPsum      = RPsum;
         }
 		int itemsInSmallBucket = smallHist->tuples[i].value;
-		uint64_t chain[itemsInSmallBucket];
-		uint64_t bucket[HASH2];
+		int chain[itemsInSmallBucket];
+		int bucket[HASH2];
 		for (int j = 0; j < HASH2; j++) {             // Initialize bucket array with -1
 			bucket[j] = -1;
 		}
@@ -278,7 +278,7 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 			int itemBigOrderedOffset = bigPsum->tuples[i].value + j;
 			int hash2Id = hashFunction2(bigOrdered->tuples[itemBigOrderedOffset].value);
 			if (bucket[hash2Id] != -1) {
-				uint64_t currentInChain = bucket[hash2Id];       // Search each item from bigger to the similarly hashed ones from smaller (help from bucket and chain)
+				int currentInChain = bucket[hash2Id];       // Search each item from bigger to the similarly hashed ones from smaller (help from bucket and chain)
 				do {
 					int itemSmallOrderedOffset = smallPsum->tuples[i].value + currentInChain;
 					if (smallOrdered->tuples[itemSmallOrderedOffset].value == bigOrdered->tuples[itemBigOrderedOffset].value) {

@@ -29,12 +29,12 @@ typedef struct tuple{
 //It consists of an array of tuples and a size of the relation.
 typedef struct relation{
 	tuple *tuples;
-	uint64_t num_tuples;
+	uint32_t num_tuples;
 }relation;
 
 typedef struct resultElement{
-	uint64_t rowId1;
-	uint64_t rowId2;
+	uint32_t rowId1;
+	uint32_t rowId2;
 }resultElement;
 
 struct node{
@@ -51,7 +51,7 @@ resultNode * createNode();
 
 result * createList();
 
-int insertToList(result** list, uint64_t rowID1, uint64_t rowID2);
+int insertToList(result** list, uint32_t rowID1, uint32_t rowID2);
 
 void printList(result * list);
 
