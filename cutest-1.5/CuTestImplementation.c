@@ -187,12 +187,78 @@ void TestSetRowIdsValuesToArray(CuTest *tc){
 	free(array13);
 }
 
+void TestJoinColumns(CuTest *tc){
+	//int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate) {
+	// Create relations
+	int relations[3] = {0,2,4};
+	// Create predicates
+	predicate** p = createPredicate(3);
+	setPredicate("0.1=1.0", &p[0]);
+	setPredicate("0.1=2.1", &p[1]);
+	setPredicate("0.2=1.2", &p[2]);
+	// Create initRelations
+	relationsInfo* initRelations = NULL;
+	int num_of_initRelations = 0;
+	FILE* initFile = fopen("./files_for_testing/test.init", "r");
+	initRelations = getRelationsData(initFile, &num_of_initRelations);
+	// Create rList
+	rowIdsList* rList = malloc(5*sizeof(rowIdsList));
+	rList[0].relationId = 0;
+	rList[0].num_of_rowIds = 10;
+	rList[0].rowIds = createRowIdList();
+	rList[1].num_of_rowIds = 12;
+	rList[1].relationId = 5;
+	rList[1].rowIds = createRowIdList();
+	rList[2].relationId = 1;
+	rList[2].num_of_rowIds = 2;
+	rList[2].rowIds = createRowIdList();
+	rList[3].relationId = 3;
+	rList[3].num_of_rowIds = 8;
+	rList[3].rowIds = createRowIdList();
+	rList[4].relationId = 4;
+	rList[4].num_of_rowIds = 5;
+	rList[4].rowIds = createRowIdList();
+	int rowIds1[10] = {0,3,4,1,7,9,8,100,55,99};
+	int rowIds2[12] = {98,3,4,10,72,90,8,120,50,91,87,66};
+	int rowIds3[2] = {67,87};
+	int rowIds4[8] = {94,10,72,90,8,126,50,87};
+	int rowIds5[5] = {87,44,55,2,1};
+	for(int i=0;i<10;i++){
+		insertIntoRowIdList(rList[0].rowIds, rowIds1[i]);
+	}
+	for(int i=0;i<12;i++){
+		insertIntoRowIdList(rList[1].rowIds, rowIds2[i]);
+	}
+	for(int i=0;i<2;i++){
+		insertIntoRowIdList(rList[2].rowIds, rowIds3[i]);
+	}
+	for(int i=0;i<8;i++){
+		insertIntoRowIdList(rList[3].rowIds, rowIds4[i]);
+	}
+	for(int i=0;i<5;i++){
+		insertIntoRowIdList(rList[4].rowIds, rowIds5[i]);
+	}
+
+	// Delete vairables
+	for(int i=0;i<3;i++){
+		deletePredicate(&p[i]);
+	}
+	free(p);
+	for(int i=0;i<5;i++){
+		deleteRowIdList(&rList[i].rowIds);
+	}
+	free(rList);
+	deleteRelationsData(initRelations, &num_of_initRelations);
+
+}
+
 CuSuite* ImplementationGetSuite() {
     CuSuite* suite = CuSuiteNew();
     SUITE_ADD_TEST(suite, TestCreateRowIdList);
     SUITE_ADD_TEST(suite, TestInsertIntoRowIdList);
     SUITE_ADD_TEST(suite, TestDeleteRowIdList);
     SUITE_ADD_TEST(suite, TestSetRowIdsValuesToArray);
+    SUITE_ADD_TEST(suite, TestJoinColumns);
     return suite;
 }
 
