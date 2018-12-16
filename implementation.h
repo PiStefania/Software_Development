@@ -28,6 +28,5 @@ int insertIntoRowIdList(rowIdNode* list, int rowId);
 void deleteRowIdList(rowIdNode** list);
 void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations);
 uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type);
-int existsInrList(rowIdsList* rList, int position, int rowId);
 
 #endif

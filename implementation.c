@@ -374,7 +374,23 @@ void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
 	}
 }
 
+// params: rList: list of relations and found rowIds
+// params: position: position of relationId we want from rList
+// params: initRelations: helpful for getting values of specific rowIds
+// params: relationId: get values from initRelations from specific relationId
+// params: relColumn: column for getting value from initRelations
+// params: type: type of setting (rowId:0,value:1)
 uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type) {
+	if(rList == NULL || position < 0 || initRelations == NULL || relationId < 0 || relColumn < 0 || type < 0 || type > 1){
+		return NULL;
+	}
+	if(rList[position].num_of_rowIds == 0  || rList[position].rowIds == NULL){
+		return NULL;
+	}
+	if(rList[position].relationId != relationId){
+		printf("rowIds DONT MATCHHH!!!\n");
+		return NULL;
+	}
 	uint64_t* returnedArray = malloc(rList[position].num_of_rowIds * sizeof(uint64_t));
 	rowIdNode* temp = rList[position].rowIds;
 	int index = 0;
@@ -388,14 +404,4 @@ uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo*
 		index++;
 	}
 	return returnedArray;
-}
-
-int existsInrList(rowIdsList* rList, int position, int rowId){
-	rowIdNode* temp = rList[position].rowIds;
-	while(temp != NULL){
-		if(rowId == temp->rowId)
-			return 1;
-		temp = temp->next;
-	}
-	return 0;
 }
