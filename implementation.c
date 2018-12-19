@@ -172,11 +172,14 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		if (predicates) {
 			for (int i = 0; i < predicatesSize; i++) {
 				deletePredicate(&predicates[i]);
-                deleteRowIdList(&rList[i].rowIds);
+			}
+			for (int i = 0; i < relationsSize; i++) {
+				deleteRowIdList(&rList[i].rowIds);
 			}
 			free(predicates);
 			predicates = NULL;
             free(rList);
+			rList = NULL;
 		}
 		if (projections) {
 			free(projections);
