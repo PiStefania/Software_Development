@@ -26,10 +26,10 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		char* predicatesStr = strtok(NULL,"|");
 		char* projectionsStr = strtok(NULL,"");
 
-		printf("lineStr:        '%s'\n",lineStr);
-		printf("relationsStr:   '%s'\n",relationsStr);
-		printf("predicatesStr:  '%s'\n",predicatesStr);
-		printf("projectionsStr: '%s'\n",projectionsStr);
+		//printf("lineStr:        '%s'\n",lineStr);
+		//printf("relationsStr:   '%s'\n",relationsStr);
+		//printf("predicatesStr:  '%s'\n",predicatesStr);
+		//printf("projectionsStr: '%s'\n",projectionsStr);
 
 		// Check for NULL Strings
 		if (lineStr == NULL || relationsStr == NULL || predicatesStr == NULL || projectionsStr == NULL) {
@@ -143,7 +143,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		}
 
         // Find final results (values summary)
-		printf("------------------------------------------------------\n");
+		//printf("------------------------------------------------------\n");
         for (int i = 0; i < projectionsSize; i++) {
             uint64_t valueSummary = 0;
             //projections[i].rowId = number of relation, projections[i].value = column
@@ -161,7 +161,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			}
 			//free(array);
         }
-		printf("\n------------------------------------------------------\n");
+        printf("\n");
+		//printf("\n------------------------------------------------------\n");
 
 		// Free vars for each line
 		if (relations) {
