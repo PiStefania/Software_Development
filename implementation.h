@@ -14,7 +14,7 @@ typedef struct rowIdNode {
 
 typedef struct rowIdsList {
     int relationId;
-    uint32_t num_of_rowIds;
+    int num_of_rowIds;
     rowIdNode* rowIds;
 } rowIdsList;
 
@@ -22,6 +22,7 @@ typedef struct rowIdsList {
 int queriesImplementation(FILE* file, relationsInfo* initRelations);
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate);
+int updatePredicates(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, int side);
 
 rowIdNode* createRowIdList();
 int insertIntoRowIdList(rowIdNode** list, int rowId);

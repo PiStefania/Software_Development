@@ -141,6 +141,8 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 	return projections;
 }
 
+
+
 predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 	if(predicatesStr == NULL){
 		*predicatesSize = 0;

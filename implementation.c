@@ -21,6 +21,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
+		printf("%s", line);
 		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
@@ -58,6 +59,17 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			}
 		}
 
+		// Get projections
+		tuple* projections = NULL;
+		int projectionsSize = 0;
+		if (projectionsStr != NULL) {
+			projections = getProjectionsFromLine(projectionsStr,&projectionsSize);
+			if (projections == NULL) {
+				printf("Projections are incorrect!\n");
+				failed = 1;
+			}
+		}
+
         // List to store the rowIds of all predicates found
         rowIdsList* rList = NULL;
 
@@ -76,6 +88,12 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 					rList[i].rowIds = createRowIdList();
                     rList[i].num_of_rowIds = 0;
 				}
+				// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
+				char *outdatedPredicates;
+				outdatedPredicates = malloc(predicatesSize * sizeof(char)); 	// We update only the join predicates, not the compare ones
+				for (int i = 0; i < predicatesSize; i++) {
+					outdatedPredicates[i] = 0;				// Each position same to predicates array - 0 good / 1 outdated, needs to be executed again
+				}
 				for (int i = 0; i < predicatesSize; i++) {
 					// Compare column with a number
 					if (predicates[i]->kind == 0) {
@@ -93,7 +111,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                                 	// Insert row id of predicare into rList of specific relation id
                                 	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
                                     if (result == -1) return 0;
-                                    else if (result == 1){
+                                    else if (result == 1) {
 	                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;
 	                                    rList[predicates[i]->leftSide->rowId].num_of_rowIds++;
 	                                }
@@ -103,7 +121,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                                 if (initRelations[relationId1].Rarray[relColumn][j] > predicates[i]->rightSide->rowId) {
                                 	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
                                     if (result == -1) return 0;
-                                    else if(result == 1){
+                                    else if (result == 1) {
 	                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;
 	                                    rList[predicates[i]->leftSide->rowId].num_of_rowIds++;
 	                                }
@@ -113,37 +131,79 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                                 if (initRelations[relationId1].Rarray[relColumn][j] < predicates[i]->rightSide->rowId) {
                                 	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
                                     if (result == -1) return 0;
-                                    else if(result == 1){
+                                    else if (result == 1) {
 	                                    rList[predicates[i]->leftSide->rowId].relationId = relationId1;
 	                                    rList[predicates[i]->leftSide->rowId].num_of_rowIds++;
 	                                }
                                 }
                             }
                         }
+						if (rList[predicates[i]->leftSide->rowId].num_of_rowIds == 0) {
+							rList[predicates[i]->leftSide->rowId].num_of_rowIds = -1;
+						}
 					} else {	// Join
 						printf("predicate: %ld.%ld %c %ld.%ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
 									predicates[i]->comparator, predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
                         // Call Radix Hash Join
-                        if (joinColumns(relations, predicates, initRelations, rList, i) == 0) return 0;
+						int result = joinColumns(relations, predicates, initRelations, rList, i);
+                        if (result == -1) {
+							return 0;
+						}
+						else if (result == 0) {
+							continue;
+						}
+						// Look for outdated join predicates (if a member of current predicate has already been used in another join)
+						for (int j = 0; j < i; j++) {
+							if (predicates[j]->kind != 0) {
+								uint64_t iLeftRow = predicates[i]->leftSide->rowId;
+								uint64_t iLeftColumn = predicates[i]->leftSide->value;
+								uint64_t iRightRow = predicates[i]->rightSide->rowId;
+								uint64_t iRightColumn = predicates[i]->rightSide->value;
+								uint64_t jLeftRow = predicates[j]->leftSide->rowId;
+								uint64_t jLeftColumn = predicates[j]->leftSide->value;
+								uint64_t jRightRow = predicates[j]->rightSide->rowId;
+								uint64_t jRightColumn = predicates[j]->rightSide->value;
+								if ((iLeftRow == jLeftRow && iLeftColumn == jLeftColumn) || (iRightRow == jLeftRow && iRightColumn == jLeftColumn)) {
+									if (iLeftRow == jRightRow || iRightRow == jRightRow) continue;
+									for (int k = 0; k < projectionsSize; k++) {
+										if (projections[k].rowId == jRightRow) {
+											outdatedPredicates[j] = 1;
+											break;
+										}
+										else continue;
+									}
+									//printf("outdated: %ld.%ld %c %ld.%ld\n", jLeftRow, jLeftColumn, predicates[j]->comparator, jRightRow, jRightColumn);
+								}
+								else if ((iLeftRow == jRightRow && iLeftColumn == jRightColumn) || (iRightRow == jRightRow && iRightColumn == jRightColumn)) {
+									if (iLeftRow == jLeftRow || iRightRow == jLeftRow) continue;
+									for (int k = 0; k < projectionsSize; k++) {
+										if (projections[k].rowId == jLeftRow) {
+											outdatedPredicates[j] = 2;
+											break;
+										}
+										else continue;
+									}
+								}
+							}
+							else continue;
+						}
 					}
-
 				}
-			}
-		}
-
-		// Get projections
-		tuple* projections = NULL;
-		int projectionsSize = 0;
-		if(projectionsStr != NULL){
-			projections = getProjectionsFromLine(projectionsStr,&projectionsSize);
-			if(projections == NULL){
-				printf("Projections are incorrect!\n");
-				failed = 1;
+				// Update the outdated combinations
+				for (int i = 0; i < predicatesSize; i++) {
+					if (outdatedPredicates[i] != 0) {
+						printf("Needs Update: %ld.%ld = %ld.%ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
+									predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
+						int result = updatePredicates(relations, predicates, initRelations, rList, i, outdatedPredicates[i]);
+						if (result == -1) return 0;
+					}
+				}
+				free(outdatedPredicates);
 			}
 		}
 
         // Find final results (values summary)
-		//printf("------------------------------------------------------\n");
+		printf("------------------------------------------------------\n");
         for (int i = 0; i < projectionsSize; i++) {
             uint64_t valueSummary = 0;
             //projections[i].rowId = number of relation, projections[i].value = column
@@ -161,8 +221,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 			}
 			//free(array);
         }
-        printf("\n");
-		//printf("\n------------------------------------------------------\n");
+        //printf("\n");
+		printf("\n------------------------------------------------------\n");
 
 		// Free vars for each line
 		if (relations) {
@@ -187,13 +247,11 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		}
 		if (failed) break;
 	}
-
 	// Free vars
 	if (line) {
 		free(line);
 		line = NULL;
 	}
-
 	// Close file
 	if (file != NULL  && file != stdin)
 		fclose(file);
@@ -210,15 +268,20 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
     relation* Rrel = NULL;
-    if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
+    if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds > 0) {
 		uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1);
 		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 0);
     	Rrel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
 		free(arrayValues);
 		free(arrayRowIds);
-    } else {
+    }
+	else if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds == 0) {
     	Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], NULL, initRelations[relationId1].num_of_rows);
     }
+	else if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds == -1) {
+		rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = -1;
+		return 0;
+	}
     if (PRINT) printRelation(Rrel);
 
     //create histogram
@@ -237,15 +300,24 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int relationId2 = relations[predicates[currentPredicate]->rightSide->rowId];
     int relColumn2 = predicates[currentPredicate]->rightSide->value;
     relation* Srel = NULL;
-    if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds != 0) {
+    if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds > 0) {
     	uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1);
 		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 0);
     	Srel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
     	free(arrayValues);
 		free(arrayRowIds);
-    } else {
+    }
+	else if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds == 0) {
     	Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], NULL, initRelations[relationId2].num_of_rows);
     }
+	else if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds == -1) {
+		rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = -1;
+		deleteRelation(&Rrel);
+	    deleteRelation(&RHist);
+	    deleteRelation(&RPsum);
+	    deleteRelation(&ROrdered);
+		return 0;
+	}
     if (PRINT) printRelation(Srel);
 
     //create histogram
@@ -265,7 +337,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     // Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
     if (indexCompareJoin(ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
         printf("Error\n");
-        return 0;
+        return -1;
     }
     if (PRINT) printList(ResultList);
 
@@ -288,13 +360,13 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     while (curr != NULL) {
         for (int j = 0; j < curr->num_of_elems; j++) {
             int result = insertIntoRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds, curr->array[j].rowId1);
-            if (result == -1) return 0;
+            if (result == -1) return -1;
             else if(result == 1){
 	            rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
 	            rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds++;
 	        }
 	        result = insertIntoRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds, curr->array[j].rowId2);
-            if (result == -1) return 0;
+            if (result == -1) return -1;
             else if(result == 1){
 	            rList[predicates[currentPredicate]->rightSide->rowId].relationId = relationId2;
 	            rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds++;
@@ -303,6 +375,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
         curr = curr->next;
     }
     deleteList(&ResultList);
+
+	printf("Left:%d, Right:%d\n", rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
 
     // Delete all structure created by allocating memory dynamically
     deleteRelation(&Rrel);
@@ -317,6 +391,87 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
     return 1;
 }
+
+
+
+int updatePredicates(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, int side) {
+	if (side != 1 && side != 2) return -1;
+	int relationIdRight = relations[predicates[currentPredicate]->rightSide->rowId];
+	int relationIdLeft = relations[predicates[currentPredicate]->leftSide->rowId];
+
+	rowIdsList *newOutdatedList = NULL;
+	if (side == 1) {
+		newOutdatedList = &rList[predicates[currentPredicate]->rightSide->rowId];
+	}
+	else newOutdatedList = &rList[predicates[currentPredicate]->leftSide->rowId];
+
+	deleteRowIdList(&(newOutdatedList)->rowIds);
+	newOutdatedList->rowIds = createRowIdList();
+	newOutdatedList->num_of_rowIds = 0;
+
+	rowIdNode *currentUpdatedRowId;
+	if (side == 1) {
+		currentUpdatedRowId = rList[predicates[currentPredicate]->leftSide->rowId].rowIds;
+	}
+	else currentUpdatedRowId = rList[predicates[currentPredicate]->rightSide->rowId].rowIds;
+
+	while (currentUpdatedRowId != NULL) {
+		uint64_t updatedValue = 0;
+		if (side == 1) {
+			updatedValue = initRelations[relationIdLeft].Rarray[predicates[currentPredicate]->leftSide->value][currentUpdatedRowId->rowId];
+		}
+		else updatedValue = initRelations[relationIdRight].Rarray[predicates[currentPredicate]->rightSide->value][currentUpdatedRowId->rowId];
+
+		/*rowIdNode *currentOutdatedRowId;
+		if (side == 1) {
+			currentOutdatedRowId = rList[predicates[currentPredicate]->rightSide->rowId].rowIds;
+		}
+		else currentOutdatedRowId = rList[predicates[currentPredicate]->leftSide->rowId].rowIds;
+
+		while (currentOutdatedRowId != NULL) {
+			uint64_t outdatedValue = 0;
+			if (side == 1) {
+				outdatedValue = initRelations[relationIdRight].Rarray[predicates[currentPredicate]->rightSide->value][currentOutdatedRowId->rowId];
+			}
+			else outdatedValue = initRelations[relationIdLeft].Rarray[predicates[currentPredicate]->leftSide->value][currentOutdatedRowId->rowId];
+
+			if (outdatedValue == updatedValue) {
+				break;
+			}
+			currentOutdatedRowId = currentOutdatedRowId->next;
+		}
+		if (currentOutdatedRowId == NULL) printf("hiiiiiii\n");*/
+
+		int rowPosition = -1;
+		int relationIdOutdated = -1;
+		uint64_t outdatedColumn = 0;
+		if (side == 1) {
+			relationIdOutdated = relationIdRight;
+			outdatedColumn = predicates[currentPredicate]->rightSide->value;
+		}
+		else {
+			relationIdOutdated = relationIdLeft;
+			outdatedColumn = predicates[currentPredicate]->leftSide->value;
+		}
+		for (int j = 0; j < initRelations[relationIdOutdated].num_of_rows; j++) {
+			if (initRelations[relationIdOutdated].Rarray[outdatedColumn][j] == updatedValue) {
+				rowPosition = j;
+				break;
+			}
+		}
+		if (rowPosition == -1) return 0;
+		int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, rowPosition);
+		//int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, currentOutdatedRowId->rowId);
+		if (result == -1) return -1;
+		newOutdatedList->num_of_rowIds++;
+		currentUpdatedRowId = currentUpdatedRowId->next;
+	}
+	printf("%d\n", newOutdatedList->num_of_rowIds);
+
+	return 1;
+}
+
+
 
 // Create a list in rowIdsList to store the rowIds found to satisfy the predicates
 rowIdNode* createRowIdList() {
