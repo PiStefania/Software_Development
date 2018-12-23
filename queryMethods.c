@@ -168,6 +168,7 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 
 	// Create returned variable
 	*predicatesSize = counter;
+	int finalCounter = counter;
 	int position = 0;
 	predicates = createPredicate(counter);
 
@@ -180,8 +181,9 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 	}
 
 	// Set approriate predicate
-	setPredicate(token, &predicates[position]);
+	setPredicate(token, &predicates[position],NULL,0);
 	position++;
+	int exists = 0;
 	while(position<counter){
 		if(position==counter-1){
 			token = strtok(remainingLine,"");
@@ -189,8 +191,13 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 			token = strtok(remainingLine, "&");
 		}
 		remainingLine = strtok(NULL,"");
-		if(token != NULL){
-			setPredicate(token, &predicates[position]);
+		if(token != NULL){	
+			exists = setPredicate(token, &predicates[position], predicates, position);
+			//delete last predicate checked
+			if(exists){
+				predicates[position]->needsToBeDeleted = 1;
+				finalCounter--;
+			}
 		}
 		position++;
 	}
@@ -198,7 +205,7 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 	// Find out the compare predicates and place them in the front, so as to be executed first
 	int comparePredicatesIndex = 0;
 	predicate** comparePredicates = createPredicate(*predicatesSize);
-	for (int i = 0; i < *predicatesSize; i++) {
+	for (int i = 0; i < counter; i++) {
 		if (predicates[i]->kind == 0) {
 			comparePredicates[comparePredicatesIndex]->kind = predicates[i]->kind;
 			comparePredicates[comparePredicatesIndex]->comparator = predicates[i]->comparator;
@@ -206,9 +213,11 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 			comparePredicates[comparePredicatesIndex]->leftSide->value = predicates[i]->leftSide->value;
 			comparePredicates[comparePredicatesIndex]->rightSide->rowId = predicates[i]->rightSide->rowId;
 			comparePredicates[comparePredicatesIndex]->rightSide->value = predicates[i]->rightSide->value;
+			comparePredicates[comparePredicatesIndex]->needsToBeDeleted = predicates[i]->needsToBeDeleted;
 			comparePredicatesIndex++;
 		}
 	}
+
 	// Now copy the rest of predicates (join) to the rest empty positions of comparePredicates array
 	for (int i = 0; i < *predicatesSize; i++) {
 		if (predicates[i]->kind != 0) {
@@ -218,17 +227,46 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 			comparePredicates[comparePredicatesIndex]->leftSide->value = predicates[i]->leftSide->value;
 			comparePredicates[comparePredicatesIndex]->rightSide->rowId = predicates[i]->rightSide->rowId;
 			comparePredicates[comparePredicatesIndex]->rightSide->value = predicates[i]->rightSide->value;
+			comparePredicates[comparePredicatesIndex]->needsToBeDeleted = predicates[i]->needsToBeDeleted;
 			comparePredicatesIndex++;
 		}
 	}
+
+	predicate** finalPredicates = createPredicate(finalCounter);
+	int tempCounter = 0;
+	for(int i=0;i<counter;i++){
+		if(!comparePredicates[i]->needsToBeDeleted){
+			if (comparePredicates[i]->kind != 0) {
+				finalPredicates[tempCounter]->kind = comparePredicates[i]->kind;
+				finalPredicates[tempCounter]->comparator = comparePredicates[i]->comparator;
+				finalPredicates[tempCounter]->leftSide->rowId = comparePredicates[i]->leftSide->rowId;
+				finalPredicates[tempCounter]->leftSide->value = comparePredicates[i]->leftSide->value;
+				finalPredicates[tempCounter]->rightSide->rowId = comparePredicates[i]->rightSide->rowId;
+				finalPredicates[tempCounter]->rightSide->value = comparePredicates[i]->rightSide->value;
+				finalPredicates[tempCounter]->needsToBeDeleted = comparePredicates[i]->needsToBeDeleted;
+			}else{
+				finalPredicates[tempCounter]->kind = comparePredicates[i]->kind;
+				finalPredicates[tempCounter]->comparator = comparePredicates[i]->comparator;
+				finalPredicates[tempCounter]->leftSide->rowId = comparePredicates[i]->leftSide->rowId;
+				finalPredicates[tempCounter]->leftSide->value = comparePredicates[i]->leftSide->value;
+				finalPredicates[tempCounter]->rightSide->rowId = comparePredicates[i]->rightSide->rowId;
+				finalPredicates[tempCounter]->rightSide->value = comparePredicates[i]->rightSide->value;
+				finalPredicates[tempCounter]->needsToBeDeleted = comparePredicates[i]->needsToBeDeleted;
+			}
+			tempCounter++;
+		}
+	}
+	*predicatesSize = finalCounter;
 	// Delete the old predicates array
-	for (int i = 0; i < *predicatesSize; i++) {
+	for (int i = 0; i < counter; i++) {
 		deletePredicate(&predicates[i]);
+		deletePredicate(&comparePredicates[i]);
 	}
 	free(predicates);
 	predicates = NULL;
-
-	return comparePredicates;
+	free(comparePredicates);
+	comparePredicates = NULL;
+	return finalPredicates;
 }
 
 // Create predicate struct for query handling
@@ -247,6 +285,7 @@ predicate** createPredicate(int size){
 		p[i]->rightSide->value = -1;
 		p[i]->comparator = '0';
 		p[i]->kind = -1;
+		p[i]->needsToBeDeleted = 0;
 	}
 	return p;
 }
@@ -261,10 +300,10 @@ void deletePredicate(predicate** p){
 	*p = NULL;
 }
 
-void setPredicate(char* str, predicate** p){
+int setPredicate(char* str, predicate** p, predicate** allPredicates,int size){
 	if(str == NULL){
 		*p = NULL;
-		return;
+		return -1;
 	}
 	// Check for all comparators
 	// Check for '>'
@@ -281,7 +320,8 @@ void setPredicate(char* str, predicate** p){
 		(*p)->comparator = '>';
 		(*p)->rightSide->rowId = atoi(remainingLine);
 		free(strTemp1);
-		return;
+		//check predicate for same
+		return checkIfSamePredicateExists((*p),allPredicates,size);
 	}
 	free(strTemp1);
 
@@ -299,7 +339,8 @@ void setPredicate(char* str, predicate** p){
 		(*p)->comparator = '<';
 		(*p)->rightSide->rowId = atoi(remainingLine);
 		free(strTemp2);
-		return;
+		//check predicate for same
+		return checkIfSamePredicateExists((*p),allPredicates,size);
 	}
 
 	free(strTemp2);
@@ -330,9 +371,11 @@ void setPredicate(char* str, predicate** p){
 		}
 		free(tempRemainingLine);
 		free(strTemp3);
-		return;
+		//check predicate for same
+		return checkIfSamePredicateExists((*p),allPredicates,size);
 	}
 	free(strTemp3);
+	return 0;
 }
 
 
@@ -347,4 +390,55 @@ int isNumeric(char* s){
             return 0;
 	}
     return 1;
+}
+
+
+//check if same predicate exists in predicates array
+int checkIfSamePredicateExists(predicate* p,predicate** allPredicates,int size){
+	if(allPredicates == NULL || size == 0){
+		return 0;
+	}
+	for(int i=0;i<size;i++){
+		if(checkPredicate(p,allPredicates[i])){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+//return true if all equals
+int checkPredicate(predicate* p1,predicate* p2){
+	if(p2->needsToBeDeleted){
+		return 0;
+	}
+	int returnValue = (p1->kind == p2->kind && p1->comparator==p2->comparator);
+	if(returnValue){
+		if(p1->kind==0){
+			if(p1->leftSide->rowId == p2->leftSide->rowId && p1->leftSide->value == p2->leftSide->value){
+				if(p1->rightSide->rowId == p2->rightSide->rowId){
+					return 1;
+				}
+			}
+		}else{
+			if(p1->leftSide->rowId == p2->leftSide->rowId && p1->leftSide->value == p2->leftSide->value){
+				if(p1->rightSide->rowId == p2->rightSide->rowId && p1->rightSide->value == p2->rightSide->value){
+					return 1;
+				}
+			}else if(p1->leftSide->rowId == p2->rightSide->rowId && p1->leftSide->value == p2->rightSide->value){
+				if(p1->rightSide->rowId == p2->leftSide->rowId && p1->rightSide->value == p2->leftSide->value){
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+void printPredicate(predicate* p){
+	printf("Printing predicate... ");
+	if(p->kind == 0){
+		printf("%ld.%ld %c %ld with del: %d\n",p->leftSide->rowId,p->leftSide->value,p->comparator,p->rightSide->rowId,p->needsToBeDeleted);
+	}else{
+		printf("%ld.%ld %c %ld.%ld with del: %d\n",p->leftSide->rowId,p->leftSide->value,p->comparator,p->rightSide->rowId,p->rightSide->value,p->needsToBeDeleted);
+	}
 }

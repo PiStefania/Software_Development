@@ -21,7 +21,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
-		printf("%s", line);
+		//printf("%s", line);
 		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
@@ -97,8 +97,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				for (int i = 0; i < predicatesSize; i++) {
 					// Compare column with a number
 					if (predicates[i]->kind == 0) {
-						printf("predicate: %ld.%ld %c %ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
-									predicates[i]->comparator, predicates[i]->rightSide->rowId);
+						//printPredicate(predicates[i]);
 						// Get relation from line of predicate
                         int relationId1 = relations[predicates[i]->leftSide->rowId];
                         // Get column that we need to compare, from predicate
@@ -142,8 +141,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 							rList[predicates[i]->leftSide->rowId].num_of_rowIds = -1;
 						}
 					} else {	// Join
-						printf("predicate: %ld.%ld %c %ld.%ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
-									predicates[i]->comparator, predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
+						//printPredicate(predicates[i]);
                         // Call Radix Hash Join
 						int result = joinColumns(relations, predicates, initRelations, rList, i);
                         if (result == -1) {
@@ -192,8 +190,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				// Update the outdated combinations
 				for (int i = 0; i < predicatesSize; i++) {
 					if (outdatedPredicates[i] != 0) {
-						printf("Needs Update: %ld.%ld = %ld.%ld\n", predicates[i]->leftSide->rowId, predicates[i]->leftSide->value,
-									predicates[i]->rightSide->rowId, predicates[i]->rightSide->value);
+						//printf("Needs Update\n");
+						//printPredicate(predicates[i]);
 						int result = updatePredicates(relations, predicates, initRelations, rList, i, outdatedPredicates[i]);
 						if (result == -1) return 0;
 					}
@@ -203,7 +201,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		}
 
         // Find final results (values summary)
-		printf("------------------------------------------------------\n");
+		//printf("------------------------------------------------------\n");
         for (int i = 0; i < projectionsSize; i++) {
             uint64_t valueSummary = 0;
             //projections[i].rowId = number of relation, projections[i].value = column
@@ -215,14 +213,22 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				currentRowId = currentRowId->next;
             }
 			if (valueSummary == 0){
-				printf("NULL ");
+				if(i==projectionsSize-1){
+					printf("NULL");
+				}else{
+					printf("NULL ");
+				}
 			} else {
-				printf("%ld ", valueSummary);
+				if(i==projectionsSize-1){
+					printf("%ld", valueSummary);
+				}else{
+					printf("%ld ", valueSummary);
+				}
 			}
 			//free(array);
         }
-        //printf("\n");
-		printf("\n------------------------------------------------------\n");
+        printf("\n");
+		//printf("\n------------------------------------------------------\n");
 
 		// Free vars for each line
 		if (relations) {
@@ -376,7 +382,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     }
     deleteList(&ResultList);
 
-	printf("Left:%d, Right:%d\n", rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
+	//printf("Left:%d, Right:%d\n", rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
 
     // Delete all structure created by allocating memory dynamically
     deleteRelation(&Rrel);
@@ -466,7 +472,7 @@ int updatePredicates(int* relations, predicate** predicates, relationsInfo* init
 		newOutdatedList->num_of_rowIds++;
 		currentUpdatedRowId = currentUpdatedRowId->next;
 	}
-	printf("%d\n", newOutdatedList->num_of_rowIds);
+	//printf("%d\n", newOutdatedList->num_of_rowIds);
 
 	return 1;
 }

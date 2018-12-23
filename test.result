@@ -4,94 +4,31 @@ Init: workloads/small.init, work: workloads/small.work
 --------------------------------------------------
    Reading data files done! Now read queries!!
 --------------------------------------------------
-predicate: 0.2 > 3499
-predicate: 0.2 = 1.0
-predicate: 0.1 = 2.0
-26468015 32533054 
-predicate: 0.3 = 9881
-predicate: 0.2 = 1.0
-5446 1009 1009 
-predicate: 0.0 > 12472
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.2
-31831879 5787675 5613946 
-predicate: 0.1 > 1150
-predicate: 0.1 = 1.0
-27314139 10766320 
-predicate: 0.0 < 62236
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.2
-901496306 
-predicate: 0.1 = 5784
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.2
-446123808 98750133 98750133 
-predicate: 0.1 > 2493
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.1
-predicate: 1.0 = 3.1
-281654532 60619017 180697109 
-predicate: 0.1 = 209
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.2
-predicate: 0.1 = 3.0
-7191 1036243 187822 
-predicate: 0.0 > 44809
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.1
-predicate: 1.0 = 3.1
-1381554091 
-predicate: 0.2 < 3071
-predicate: 0.1 = 1.0
-22766314 22766314 
-predicate: 0.0 > 26374
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.1
-4634779503 82950297 627329747 
-predicate: 0.4 < 9936
-predicate: 0.1 = 1.0
-41316024 267394881 9912745 
-predicate: 0.1 = 10731
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.2
-252215415 257531208 
-predicate: 0.2 = 4531
-predicate: 0.1 = 1.0
-9283 
-predicate: 0.2 < 74
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.1
-predicate: 2.1 = 3.2
-25369328 2430170493 2398594221 
-predicate: 0.1 = 1574
-predicate: 0.2 = 1.0
-11489503 36336058 36795784 
-predicate: 1.3 = 9855
-predicate: 0.0 = 1.2
-28017382 36049690 
-predicate: 0.1 < 5283
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.2
-206498684 18513288 334176745 
-predicate: 0.3 > 10502
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.1
-1645366150 1016283918 788397597 
-predicate: 0.3 > 3991
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.1
-predicate: 1.0 = 0.2
-228341683 
-predicate: 0.1 < 5730
-predicate: 0.1 = 1.0
-10014140 6526034 6526034 
-predicate: 0.2 = 4273
-predicate: 0.1 = 1.0
-predicate: 1.0 = 2.1
-predicate: 1.0 = 3.2
-70766749 1909804488 
-predicate: 0.2 < 2685
-predicate: 0.2 = 1.0
-predicate: 1.0 = 2.1
-predicate: 2.2 = 1.0
-875728021 
+26468015 32533054
+5446 1009 1009
+31831879 99137147 96627798
+27314139 10766320
+901496306
+NULL NULL NULL
+281654532 282954877 841559324
+187822 1036243 187822
+606781026
+22766314 22766314
+4634779503 627329747 627329747
+41316024 267394881 9912745
+NULL NULL
+9283
+760151704 2430170493 2398594221
+NULL NULL NULL
+NULL NULL
+595372315 319415951 334176745
+1645366150 1016283918 788397597
+106938127
+10014140 6526034 6526034
+NULL NULL
+875728021
+5507163529 5102013814
+179170057
+65339549 18594932 12524601
+744497 453180
+1144350494 1135424991 1144350494
