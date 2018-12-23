@@ -191,9 +191,9 @@ void TestJoinColumns(CuTest *tc){
 	int relations[3] = {0,2,4};
 	// Create predicates
 	predicate** p = createPredicate(3);
-	setPredicate("0.0=1.0", &p[0]);
-	setPredicate("0.1=2.0", &p[1]);
-	setPredicate("0.2=1.2", &p[2]);
+	setPredicate("0.0=1.0", &p[0],NULL,0);
+	setPredicate("0.1=2.0", &p[1],NULL,0);
+	setPredicate("0.2=1.2", &p[2],NULL,0);
 	// Create initRelations
 	relationsInfo* initRelations = malloc(5 * sizeof(relationsInfo));
 	initRelations[0].relName = malloc((strlen("r0")+1)*sizeof(char));

@@ -133,6 +133,7 @@ void TestDeletePredicate(CuTest *tc){
 
 void TestSetPredicate(CuTest *tc){
 	// Set kind 1 predicate
+	int result = 0;
 	predicate* pred = malloc(sizeof(predicate));
 	char* predicateStr = malloc((strlen("0.1=2.2")+1)*sizeof(char));
 	pred->leftSide = malloc(sizeof(tuple));
@@ -144,8 +145,8 @@ void TestSetPredicate(CuTest *tc){
 	pred->comparator = '0';
 	pred->kind = -1;
 	strcpy(predicateStr,"0.1=2.2");
-	setPredicate(predicateStr,&pred);
-	//CuAssertPtrNotNull(tc,pred);
+	result = setPredicate(predicateStr,&pred,NULL,0);
+	CuAssertIntEquals(tc,0,result);
 	CuAssertPtrNotNull(tc,pred->leftSide);
 	CuAssertIntEquals(tc,0,pred->leftSide->rowId);
 	CuAssertIntEquals(tc,1,pred->leftSide->value);
@@ -168,7 +169,8 @@ void TestSetPredicate(CuTest *tc){
 	pred->rightSide->value = -1;
 	pred->comparator = '0';
 	pred->kind = -1;
-	setPredicate(predicateStr,&pred);
+	result = setPredicate(predicateStr,&pred,NULL,0);
+	CuAssertIntEquals(tc,0,result);
 	CuAssertPtrNotNull(tc,pred);
 	CuAssertPtrNotNull(tc,pred->leftSide);
 	CuAssertIntEquals(tc,2,pred->leftSide->rowId);
@@ -181,7 +183,8 @@ void TestSetPredicate(CuTest *tc){
 	free(predicateStr);
 	deletePredicate(&pred);
 	// Set NULL string
-	setPredicate(NULL,&pred);
+	result = setPredicate(NULL,&pred,NULL,0);
+	CuAssertIntEquals(tc,-1,result);
 	CuAssertPtrEquals(tc,NULL,pred);
 }
 
@@ -222,6 +225,145 @@ void TestIsNumeric(CuTest *tc){
 	free(scaling);
 }
 
+void TestCheckPredicate(CuTest *tc){
+	// Initialize predicates
+	int result = 0;
+	predicate* pred1 = malloc(sizeof(predicate));
+	pred1->leftSide = malloc(sizeof(tuple));
+	pred1->leftSide->rowId = 0;
+	pred1->leftSide->value = 1;
+	pred1->rightSide = malloc(sizeof(tuple));
+	pred1->rightSide->rowId = 1;
+	pred1->rightSide->value = 0;
+	pred1->needsToBeDeleted = 0;
+	pred1->comparator = '=';
+	pred1->kind = 1;
+	predicate* pred2 = malloc(sizeof(predicate));
+	pred2->leftSide = malloc(sizeof(tuple));
+	pred2->leftSide->rowId = 0;
+	pred2->leftSide->value = 1;
+	pred2->rightSide = malloc(sizeof(tuple));
+	pred2->rightSide->rowId = 1;
+	pred2->rightSide->value = 0;
+	pred2->needsToBeDeleted = 0;
+	pred2->comparator = '=';
+	pred2->kind = 1;
+	// Check same
+	result = checkPredicate(pred1,pred2);
+	CuAssertIntEquals(tc,1,result);
+	predicate* pred3 = malloc(sizeof(predicate));
+	pred3->leftSide = malloc(sizeof(tuple));
+	pred3->leftSide->rowId = 1;
+	pred3->leftSide->value = 0;
+	pred3->rightSide = malloc(sizeof(tuple));
+	pred3->rightSide->rowId = 0;
+	pred3->rightSide->value = 1;
+	pred3->needsToBeDeleted = 0;
+	pred3->comparator = '=';
+	pred3->kind = 1;
+	// Check same
+	result = checkPredicate(pred1,pred3);
+	CuAssertIntEquals(tc,1,result);
+
+	predicate* pred4 = malloc(sizeof(predicate));
+	pred4->leftSide = malloc(sizeof(tuple));
+	pred4->leftSide->rowId = 0;
+	pred4->leftSide->value = 2;
+	pred4->rightSide = malloc(sizeof(tuple));
+	pred4->rightSide->rowId = 2000;
+	pred4->rightSide->value = -1;
+	pred4->needsToBeDeleted = 0;
+	pred4->comparator = '>';
+	pred4->kind = 0;
+	predicate* pred5 = malloc(sizeof(predicate));
+	pred5->leftSide = malloc(sizeof(tuple));
+	pred5->leftSide->rowId = 0;
+	pred5->leftSide->value = 2;
+	pred5->rightSide = malloc(sizeof(tuple));
+	pred5->rightSide->rowId = 2000;
+	pred5->rightSide->value = -1;
+	pred5->needsToBeDeleted = 0;
+	pred5->comparator = '>';
+	pred5->kind = 0;
+	predicate* pred9 = malloc(sizeof(predicate));
+	pred9->leftSide = malloc(sizeof(tuple));
+	pred9->leftSide->rowId = 2;
+	pred9->leftSide->value = 2;
+	pred9->rightSide = malloc(sizeof(tuple));
+	pred9->rightSide->rowId = 1001;
+	pred9->rightSide->value = -1;
+	pred9->needsToBeDeleted = 0;
+	pred9->comparator = '>';
+	pred9->kind = 0;
+	// Check same
+	result = checkPredicate(pred4,pred5);
+	CuAssertIntEquals(tc,1,result);
+	predicate* pred6 = malloc(sizeof(predicate));
+	pred6->leftSide = malloc(sizeof(tuple));
+	pred6->leftSide->rowId = 2;
+	pred6->leftSide->value = 2;
+	pred6->rightSide = malloc(sizeof(tuple));
+	pred6->rightSide->rowId = 90;
+	pred6->rightSide->value = -1;
+	pred6->needsToBeDeleted = 0;
+	pred6->comparator = '<';
+	pred6->kind = 0;
+	predicate* pred7 = malloc(sizeof(predicate));
+	pred7->leftSide = malloc(sizeof(tuple));
+	pred7->leftSide->rowId = 2;
+	pred7->leftSide->value = 2;
+	pred7->rightSide = malloc(sizeof(tuple));
+	pred7->rightSide->rowId = 90;
+	pred7->rightSide->value = -1;
+	pred7->needsToBeDeleted = 0;
+	pred7->comparator = '<';
+	pred7->kind = 0;
+	predicate* pred8 = malloc(sizeof(predicate));
+	pred8->leftSide = malloc(sizeof(tuple));
+	pred8->leftSide->rowId = 2;
+	pred8->leftSide->value = 2;
+	pred8->rightSide = malloc(sizeof(tuple));
+	pred8->rightSide->rowId = 91;
+	pred8->rightSide->value = -1;
+	pred8->needsToBeDeleted = 0;
+	pred8->comparator = '<';
+	pred8->kind = 0;
+	// Check same
+	result = checkPredicate(pred6,pred7);
+	CuAssertIntEquals(tc,1,result);
+	// Check not same
+	result = checkPredicate(pred1,pred2);
+	CuAssertIntEquals(tc,1,result);
+	result = checkPredicate(pred1,pred4);
+	CuAssertIntEquals(tc,0,result);
+	result = checkPredicate(pred4,pred6);
+	CuAssertIntEquals(tc,0,result);
+	result = checkPredicate(pred7,pred8);
+	CuAssertIntEquals(tc,0,result);
+	result = checkPredicate(pred5,pred9);
+	CuAssertIntEquals(tc,0,result);
+	// Check for deleted
+	pred3->needsToBeDeleted = 1;
+	result = checkPredicate(pred1,pred3);
+	CuAssertIntEquals(tc,0,result);
+	// Check for NULL
+	result = checkPredicate(NULL,pred3);
+	CuAssertIntEquals(tc,-1,result);
+	result = checkPredicate(pred1,NULL);
+	CuAssertIntEquals(tc,-1,result);
+	
+	//delete
+	deletePredicate(&pred1);
+	deletePredicate(&pred2);
+	deletePredicate(&pred3);
+	deletePredicate(&pred4);
+	deletePredicate(&pred5);
+	deletePredicate(&pred6);
+	deletePredicate(&pred7);
+	deletePredicate(&pred8);
+	deletePredicate(&pred9);
+}
+
 
 CuSuite* QueryMethodsGetSuite() {		
     CuSuite* suite = CuSuiteNew();
@@ -232,6 +374,7 @@ CuSuite* QueryMethodsGetSuite() {
     SUITE_ADD_TEST(suite, TestDeletePredicate);
     SUITE_ADD_TEST(suite, TestSetPredicate);
     SUITE_ADD_TEST(suite, TestIsNumeric);
+    SUITE_ADD_TEST(suite, TestCheckPredicate);
     return suite;
 }
 

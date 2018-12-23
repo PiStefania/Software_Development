@@ -395,7 +395,7 @@ int isNumeric(char* s){
 
 //check if same predicate exists in predicates array
 int checkIfSamePredicateExists(predicate* p,predicate** allPredicates,int size){
-	if(allPredicates == NULL || size == 0){
+	if(p == NULL || allPredicates == NULL || size == 0){
 		return 0;
 	}
 	for(int i=0;i<size;i++){
@@ -408,6 +408,9 @@ int checkIfSamePredicateExists(predicate* p,predicate** allPredicates,int size){
 
 //return true if all equals
 int checkPredicate(predicate* p1,predicate* p2){
+	if(p1 == NULL || p2 == NULL){
+		return -1;
+	}
 	if(p2->needsToBeDeleted){
 		return 0;
 	}
