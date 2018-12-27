@@ -29,6 +29,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations);
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
 int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins);
+int checkSameId(int* foundIds, uint32_t rowId, int capacity);
 
 rowIdNode* createRowIdList();
 int insertIntoRowIdList(rowIdNode** list, int rowId);

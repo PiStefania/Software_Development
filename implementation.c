@@ -21,7 +21,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
-		printf("%s", line);
+		//printf("%s", line);
 		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
@@ -462,9 +462,12 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 
 	while (mainStructNode != NULL) {
 		// check resultNode's array and mainStructNode for same rowId
+		// check for same id
 		uint32_t mainNodeRowId = mainStructNode->rowId;
 		arrayRowIds = currentIntermediate->ResultList->head;
 		while(arrayRowIds != NULL){
+			int* foundIds = malloc(arrayRowIds->num_of_elems * sizeof(int));
+			int capacity = 0;
 			for(int counterIntermediate = 0;counterIntermediate<arrayRowIds->num_of_elems;counterIntermediate++){
 				uint32_t intermediateRowId;
 				uint32_t needToInsertRowId;
@@ -477,6 +480,11 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 				}
 			
 				if(mainNodeRowId == intermediateRowId){
+					if(checkSameId(foundIds,intermediateRowId,capacity)){
+						continue;
+					}
+					foundIds[capacity] = intermediateRowId;
+					capacity++;
 					// insert to new rowIdsList
 					int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, needToInsertRowId);
 					if(result == -1){
@@ -487,13 +495,22 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 				}
 			}
 			arrayRowIds = arrayRowIds->next;	
+			free(foundIds);
 		}
 		mainStructNode = mainStructNode->next;
 	}
 	return 1;
 }
 
-
+int checkSameId(int* foundIds, uint32_t rowId, int capacity){
+	for(int i=0;i<capacity;i++){
+		if(foundIds[i] == rowId){
+			//printf("SAME: %d, %d\n",foundIds[i],rowId);
+			return 1;
+		}
+	}
+	return 0;
+}
 
 // Create a list in rowIdsList to store the rowIds found to satisfy the predicates
 rowIdNode* createRowIdList() {
