@@ -18,11 +18,17 @@ typedef struct rowIdsList {
     rowIdNode* rowIds;
 } rowIdsList;
 
+typedef struct intermediate{
+	result* ResultList;
+	int leftRelation;
+	int rightRelation;
+}intermediate;
+
 
 int queriesImplementation(FILE* file, relationsInfo* initRelations);
 
-int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate);
-int updatePredicates(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, int side);
+int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
+int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins);
 
 rowIdNode* createRowIdList();
 int insertIntoRowIdList(rowIdNode** list, int rowId);
