@@ -460,35 +460,35 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 		mainStructNode = rList[predicates[currentPredicate]->rightSide->rowId].rowIds;
 	}
 
-	while(arrayRowIds != NULL){
-		for(int counterIntermediate = 0;counterIntermediate<arrayRowIds->num_of_elems;counterIntermediate++){
-			uint32_t intermediateRowId;
-			uint32_t needToInsertRowId;
-			if(side == 1){
-				intermediateRowId = arrayRowIds->array[counterIntermediate].rowId1;
-				needToInsertRowId = arrayRowIds->array[counterIntermediate].rowId2;
-			}else{
-				intermediateRowId = arrayRowIds->array[counterIntermediate].rowId2;
-				needToInsertRowId = arrayRowIds->array[counterIntermediate].rowId1;	
-			}
-			while (mainStructNode != NULL) {
-				// check resultNode's array and mainStructNode for same rowId
-				uint32_t mainNodeRowId = mainStructNode->rowId;
-				//printf("mainNodeRowId %d\n",mainNodeRowId);
-				//printf("mainNodeRowId: %d, intermediateRowId: %d\n",mainNodeRowId,intermediateRowId);
+	while (mainStructNode != NULL) {
+		// check resultNode's array and mainStructNode for same rowId
+		uint32_t mainNodeRowId = mainStructNode->rowId;
+		arrayRowIds = currentIntermediate->ResultList->head;
+		while(arrayRowIds != NULL){
+			for(int counterIntermediate = 0;counterIntermediate<arrayRowIds->num_of_elems;counterIntermediate++){
+				uint32_t intermediateRowId;
+				uint32_t needToInsertRowId;
+				if(side == 1){
+					intermediateRowId = arrayRowIds->array[counterIntermediate].rowId1;
+					needToInsertRowId = arrayRowIds->array[counterIntermediate].rowId2;
+				}else{
+					intermediateRowId = arrayRowIds->array[counterIntermediate].rowId2;
+					needToInsertRowId = arrayRowIds->array[counterIntermediate].rowId1;	
+				}
+			
 				if(mainNodeRowId == intermediateRowId){
 					// insert to new rowIdsList
-					//printf("insert: %d\n",needToInsertRowId);
 					int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, needToInsertRowId);
 					if(result == -1){
 						return -1;
+					}else if(result == 1){
+						newOutdatedList->num_of_rowIds++;
 					}
-					newOutdatedList->num_of_rowIds++;
 				}
-				mainStructNode = mainStructNode->next;
-			}	
+			}
+			arrayRowIds = arrayRowIds->next;	
 		}
-		arrayRowIds = arrayRowIds->next;
+		mainStructNode = mainStructNode->next;
 	}
 	return 1;
 }
