@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h> 
 #include <errno.h> 
+#include <string.h>
 #include "threadPool.h"
 #define JOB_POOL_SIZE 20
 
@@ -16,27 +17,27 @@ JobPool* initializeJobPool(){
 	return jobPool;
 }
 
-//insert to the end a fd
+//insert to the start of jobs
 void insertJob(threadPool* th, Job* job){
 	pthread_mutex_lock(&(th->lockJobPool));
 	while (th->jobPool->position >= JOB_POOL_SIZE) {
 		pthread_cond_wait(&(th->notFull), &(th->lockJobPool));
 	}
-	//insert to buffer
-	th->jobPool->end = (th->jobPool->end + 1) % JOB_POOL_SIZE;
-	th->jobPool->jobs[th->jobPool->end] = *job;
+	//insert to jobs array
+	memmove(th->jobPool+1, th->jobPool, th->jobPool->position);
+	th->jobPool->jobs[th->jobPool->start] = *job;
 	th->jobPool->position++;
 	pthread_mutex_unlock(&(th->lockJobPool));
 }
 
-//get first item from fds
+//get first item from jobPool
 Job* getJob(threadPool* th){
 	Job* job = NULL;
 	pthread_mutex_lock(&(th->lockJobPool));
 	while(th->jobPool->position <= 0) {
 		pthread_cond_wait(&(th->notEmpty), &(th->lockJobPool));
 	}
-	//get first elem 
+	//get first job
 	job = &th->jobPool->jobs[th->jobPool->start];
 	th->jobPool->start = (th->jobPool->start + 1) % JOB_POOL_SIZE;
 	th->jobPool->position--;
