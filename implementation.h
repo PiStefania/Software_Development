@@ -28,14 +28,14 @@ typedef struct intermediate{
 int queriesImplementation(FILE* file, relationsInfo* initRelations);
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
-int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins);
-int checkSameId(int* foundIds, uint32_t rowId, int capacity);
+int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins, intermediate* currentIntermediate);
+int checkSameId(tuple* foundIds, uint32_t rowId, int capacity, int checkFlag);
 
 rowIdNode* createRowIdList();
 int insertIntoRowIdList(rowIdNode** list, int rowId);
 void deleteRowIdList(rowIdNode** list);
 void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations);
-uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type);
+uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type, tuple* foundIds, int* capacity, int checkFlag);
 int existsInrList(rowIdsList* rList, int position, int rowId);
 
 #endif
