@@ -22,6 +22,10 @@ typedef struct intermediate{
 	result* ResultList;
 	int leftRelation;
 	int rightRelation;
+	tuple* foundIdsLeft;
+	tuple* foundIdsRight;
+	int capacityLeft;
+	int capacityRight;
 }intermediate;
 
 

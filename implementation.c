@@ -89,6 +89,10 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				for(int i=0;i<joinPredicates;i++){
 					intermediateStructs[i] = malloc(sizeof(intermediate));
 					intermediateStructs[i]->ResultList = createList();
+					intermediateStructs[i]->foundIdsLeft = NULL;
+					intermediateStructs[i]->foundIdsRight = NULL;
+					intermediateStructs[i]->capacityLeft = 0;
+					intermediateStructs[i]->capacityRight = 0;
 				}
                 // Create the list to store the rowIds that satisfy each predicate
                 rList = malloc(relationsSize * sizeof(rowIdsList));
@@ -207,8 +211,10 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				}
 
 				// Delete intermediateStructs
-				for(int i=0;i<currentJoinPredicates;i++){
+				for(int i=0;i<joinPredicates;i++){
 					deleteList(&intermediateStructs[i]->ResultList);
+					free(intermediateStructs[i]->foundIdsLeft);
+	    			free(intermediateStructs[i]->foundIdsRight);
 					free(intermediateStructs[i]);
 				}
 				free(intermediateStructs);
@@ -294,6 +300,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     	Rrel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
 		free(arrayValues);
 		free(arrayRowIds);
+		inter->foundIdsLeft = foundIdsLeft;
+   		inter->capacityLeft = capacityLeft;
+		capacityLeft = 0;
     }
 	else if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds == 0) {
     	Rrel = createRelation(initRelations[relationId1].Rarray[relColumn1], NULL, initRelations[relationId1].num_of_rows);
@@ -330,6 +339,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     	Srel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
     	free(arrayValues);
 		free(arrayRowIds);
+		inter->foundIdsRight = foundIdsRight;
+    	inter->capacityRight = capacityRight;
     }
 	else if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds == 0) {
     	Srel = createRelation(initRelations[relationId2].Rarray[relColumn2], NULL, initRelations[relationId2].num_of_rows);
@@ -363,7 +374,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     }
     if (PRINT) printList(inter->ResultList);
 
-    
 	// Delete the (left & right) relation's current data in rList and replace it with the values found after radix join
 	if (rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds != 0) {
 		deleteRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds);
@@ -382,37 +392,19 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     resultNode* curr = inter->ResultList->head;
     while (curr != NULL) {
         for (int j = 0; j < curr->num_of_elems; j++) {
-        	// find id in array
-        	int counter = 1;
-        	for(int foundCounter=0;foundCounter<capacityLeft;foundCounter++){
-        		if(curr->array[j].rowId1 == foundIdsLeft[foundCounter].rowId){
-        			counter = foundIdsLeft[foundCounter].value;
-        			break;
-        		}
-        	}
-        	for(int i=0;i<counter;i++){
-	            int result = insertIntoRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds, curr->array[j].rowId1);
-	            if (result == -1) return -1;
-	            else if(result == 1){
-		            rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
-		            rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds++;
-		        }
-		    }
-		    counter = 1;
-        	for(int foundCounter=0;foundCounter<capacityRight;foundCounter++){
-        		if(curr->array[j].rowId2 == foundIdsRight[foundCounter].rowId){
-        			counter = foundIdsRight[foundCounter].value;
-        			break;
-        		}
-        	}
-        	for(int i=0;i<counter;i++){
-		        int result = insertIntoRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds, curr->array[j].rowId2);
-	            if (result == -1) return -1;
-	            else if(result == 1){
-		            rList[predicates[currentPredicate]->rightSide->rowId].relationId = relationId2;
-		            rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds++;
-		        }
-		    }
+			int result = insertIntoRowIdList(&rList[predicates[currentPredicate]->leftSide->rowId].rowIds, curr->array[j].rowId1);
+			if (result == -1) return -1;
+			else if(result == 1){
+			    rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
+			    rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds++;
+			}
+
+			result = insertIntoRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds, curr->array[j].rowId2);
+			if (result == -1) return -1;
+			else if(result == 1){
+			    rList[predicates[currentPredicate]->rightSide->rowId].relationId = relationId2;
+			    rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds++;
+			}
         }
         curr = curr->next;
     }
@@ -426,9 +418,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     deleteRelation(&SHist);
     deleteRelation(&SPsum);
     deleteRelation(&SOrdered);
-
-    free(foundIdsLeft);
-    free(foundIdsRight);
 
     return 1;
 }
@@ -471,18 +460,78 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 	// TODO - check
 	if (side == 1 && currentIntermediate->leftRelation == leftRelation) {
 		currentSide = 2;
-	}
-	else {
+	} else {
 		currentSide = 1;
 	}
 
+	// get no of rowIds in currentIntermediate resultlist
+	tuple* tempWholeLeft = malloc(currentResultList->num_of_elems * sizeof(tuple));
+	tuple* tempWholeRight = malloc(currentResultList->num_of_elems * sizeof(tuple));
+	int capacityLeft = 0;
+	int capacityRight = 0;
+	while(currentResultList != NULL){
+		for(int i=0;i<currentResultList->num_of_elems;i++){
+			if(!checkSameId(tempWholeLeft,currentResultList->array[i].rowId1,capacityLeft,1)){
+				tempWholeLeft[capacityLeft].rowId = currentResultList->array[i].rowId1;
+				tempWholeLeft[capacityLeft].value = 1;
+				capacityLeft++;
+			}
+			if(!checkSameId(tempWholeRight,currentResultList->array[i].rowId2,capacityRight,1)){
+				tempWholeRight[capacityRight].rowId = currentResultList->array[i].rowId2;
+				tempWholeRight[capacityRight].value = 1;
+				capacityRight++;
+			}
+		}
+		currentResultList = currentResultList->next;
+	}
+
+	// update for counter value
+	for(int i=0;i<capacityLeft;i++){
+		for(int j=0;j<currentIntermediate->capacityLeft;j++){
+			if(tempWholeLeft[i].rowId == currentIntermediate->foundIdsLeft[j].rowId){
+				tempWholeLeft[i].value /= currentIntermediate->foundIdsLeft[j].value;
+				break;
+			}
+		}
+	}
+
+	currentResultList = currentIntermediate->ResultList->head;
 	while (currentResultList != NULL) {
 		for(int counterCurrentIntermediate = 0; counterCurrentIntermediate < currentResultList->num_of_elems;counterCurrentIntermediate++){
 			uint32_t currentIntermediateRowId;
+			int counter;
 			if(currentSide == 1){
 				currentIntermediateRowId = currentResultList->array[counterCurrentIntermediate].rowId1;
+				//find counter of rowIds
+				int tempIndex = 0;
+				for(int i=0;i<capacityLeft;i++){
+					if(currentIntermediateRowId == tempWholeLeft[i].rowId){
+						counter = tempWholeLeft[i].value;
+						tempIndex = i;
+						break;
+					}
+				}
+				if(counter == 0){
+					continue;
+				}else{
+					tempWholeLeft[tempIndex].value--;
+				}
 			}else{
 				currentIntermediateRowId = currentResultList->array[counterCurrentIntermediate].rowId2;
+				//find counter of rowIds
+				int tempIndex = 0;
+				for(int i=0;i<capacityRight;i++){
+					if(currentIntermediateRowId == tempWholeRight[i].rowId){
+						counter = tempWholeRight[i].value;
+						tempIndex = i;
+						break;
+					}
+				}
+				if(counter == 0){
+					continue;
+				}else{
+					tempWholeRight[tempIndex].value--;
+				}
 			}
 
 			previousResultList = previousIntermediate->ResultList->head;
@@ -498,7 +547,7 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 						needToInsertRowId = previousResultList->array[counterPreviousIntermediate].rowId1;	
 					}
 				
-					if(currentIntermediateRowId == previousIntermediateRowId){					
+					if(currentIntermediateRowId == previousIntermediateRowId){	
 						// insert to new rowIdsList
 						int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, needToInsertRowId);
 						if(result == -1){
@@ -513,6 +562,8 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 		}
 		currentResultList = currentResultList->next;
 	}
+	free(tempWholeLeft);
+	free(tempWholeRight);
 	return 1;
 }
 
@@ -603,19 +654,14 @@ uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo*
 	rowIdNode* temp = rList[position].rowIds;
 	int index = 0;
 	while (temp != NULL) {
-		if(checkSameId(foundIds,temp->rowId,*capacity,checkFlag)){
-			temp = temp->next;
-			continue;
+		if(!checkSameId(foundIds,temp->rowId,*capacity,checkFlag)){
+			if(checkFlag){
+				foundIds[*capacity].rowId = temp->rowId;
+				foundIds[*capacity].value = 1;
+			}
+			(*capacity)++;
 		}
-		if(checkFlag){
-			foundIds[*capacity].rowId = temp->rowId;
-			foundIds[*capacity].value = 1;
-		}
-		(*capacity)++;
 		if (type == 1) {
-			//printf("index: %d\n",index);
-			//printf("returnedArray[index]: %d\n",returnedArray[index]);
-			//printf("value: %d\n",initRelations[relationId].Rarray[relColumn][temp->rowId]);
 			returnedArray[index] = initRelations[relationId].Rarray[relColumn][temp->rowId];
 		} else {
 			returnedArray[index] = temp->rowId;
