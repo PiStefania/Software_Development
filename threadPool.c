@@ -5,57 +5,88 @@
 #include <errno.h> 
 #include <string.h>
 #include "threadPool.h"
-#define JOB_POOL_SIZE 20
 
-//functions for jobPool
+// Functions for jobPool
+// Initialize jobPool
 JobPool* initializeJobPool(){
 	JobPool* jobPool = malloc(sizeof(JobPool));
-	jobPool->jobs = malloc(JOB_POOL_SIZE*sizeof(Job));
-	jobPool->end = -1;
-	jobPool->position = 0;
-	jobPool->start = 0;
+	jobPool->head = NULL;
+	jobPool->tail = NULL;
+	jobPool->size = 0;
+	if(pthread_mutex_init(&(jobPool->lockJobPool),NULL)!=0){
+		//destroy jobPool if error occurs
+		destroyJobPool(&jobPool);
+		return NULL;
+	}
+	if(pthread_cond_init(&(jobPool->notEmpty),NULL)!=0){
+		// Destroy jobPool if error occurs
+		destroyJobPool(&jobPool);
+		return NULL;
+	}
 	return jobPool;
 }
 
-//insert to the start of jobs
-void insertJob(threadPool* th, Job* job){
-	pthread_mutex_lock(&(th->lockJobPool));
-	while (th->jobPool->position >= JOB_POOL_SIZE) {
-		pthread_cond_wait(&(th->notFull), &(th->lockJobPool));
-	}
-	//insert to jobs array
-	memmove(th->jobPool+1, th->jobPool, th->jobPool->position);
-	th->jobPool->jobs[th->jobPool->start] = *job;
-	th->jobPool->position++;
-	pthread_mutex_unlock(&(th->lockJobPool));
-}
-
-//get first item from jobPool
-Job* getJob(threadPool* th){
-	Job* job = NULL;
-	pthread_mutex_lock(&(th->lockJobPool));
-	while(th->jobPool->position <= 0) {
-		pthread_cond_wait(&(th->notEmpty), &(th->lockJobPool));
-	}
-	//get first job
-	job = &th->jobPool->jobs[th->jobPool->start];
-	th->jobPool->start = (th->jobPool->start + 1) % JOB_POOL_SIZE;
-	th->jobPool->position--;
-	pthread_mutex_unlock(&(th->lockJobPool));
-	return job;
-}
-
-//destroy jobPoll
+// Destroy jobPool
 void destroyJobPool(JobPool** jobPool){
-	free((*jobPool)->jobs);
-	(*jobPool)->jobs = NULL;
-	(*jobPool)->end = -1;
-	(*jobPool)->position = 0;
+	Job* currentJob = (*jobPool)->head;
+	Job* tempJob = NULL;
+	while(currentJob != NULL){
+		tempJob = currentJob;
+		currentJob = currentJob->nextJob;
+		free(tempJob);
+	}
+	(*jobPool)->head = NULL;
+	(*jobPool)->size = 0;
+	pthread_mutex_destroy(&((*jobPool)->lockJobPool));
+    pthread_cond_destroy(&((*jobPool)->notEmpty));
 	free(*jobPool);
 	*jobPool = NULL;
 }
 
-//functions for threadPool
+
+//insert to the start of jobs
+void insertJob(JobPool* jobPool, Job* job){
+	// Lock jobPool because it's going to change
+	pthread_mutex_lock(&(jobPool->lockJobPool));
+	if(jobPool->head == NULL && jobPool->tail == NULL){
+		jobPool->head = malloc(sizeof(Job));
+		jobPool->head->function = job->function;
+		jobPool->head->arg = job->arg;
+		jobPool->tail = jobPool->head;
+	}else{
+		jobPool->tail->nextJob = malloc(sizeof(Job));
+		jobPool->tail->nextJob->function = job->function;
+		jobPool->tail->nextJob->arg = job->arg;
+		jobPool->tail = jobPool->tail->nextJob;
+	}
+	jobPool->size++;
+	pthread_cond_signal(&jobPool->notEmpty);
+	pthread_mutex_unlock(&(jobPool->lockJobPool));
+}
+
+// Get first item from jobPool
+Job* getJob(JobPool* jobPool){
+	Job* job = NULL;
+	pthread_mutex_lock(&(jobPool->lockJobPool));
+	while(jobPool->size <= 0) {
+		pthread_cond_wait(&(jobPool->notEmpty), &(jobPool->lockJobPool));
+	}
+	// Pop first job (head)
+	job = jobPool->head;
+	jobPool->head = jobPool->head->nextJob;
+	if(jobPool->head == NULL){
+		jobPool->tail = NULL;
+	}
+	jobPool->size--;
+	pthread_mutex_unlock(&(jobPool->lockJobPool));
+	return job;
+}
+
+// Functions for threads
+
+
+/*
+// Functions for threadPool
 threadPool* initializeThreadPool(int numThreads, int kindThread){
 	threadPool* th = malloc(sizeof(threadPool));
 	th->tids = malloc(numThreads*sizeof(pthread_t));
@@ -83,26 +114,13 @@ threadPool* initializeThreadPool(int numThreads, int kindThread){
 	th->jobPool = initializeJobPool();
 	
 	for(int i=0;i<numThreads;i++){
-		if(pthread_create(&th->tids[i],NULL, (void*) executeJob, th)!=0){
+		if(pthread_create(&th->tids[i],NULL, (void*) void, th)!=0){
 			//destroy threads
 			destroyThreadPool(&th);
 			return NULL;
 		}
 	}
 	return th;
-}
-
-void* executeJob(void* args){
-	/*threadPool* th = (threadPool*) args;
-	while(1){
-		//get fd
-		int newsock = getPoolData(th);
-		pthread_cond_signal(&th->notFull);
-		readGetLinesFromCrawler(newsock,th);
-		close(newsock);
-	}
-	pthread_exit(NULL);*/
-	return NULL;
 }
 
 
@@ -128,4 +146,4 @@ void destroyThreadPool(threadPool** th){
 	
 	free((*th));
 	*th = NULL;
-}
+}*/

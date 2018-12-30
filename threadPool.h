@@ -4,34 +4,40 @@
 #include <pthread.h>
 
 typedef struct Job{
-	//arguments
+	struct Job* nextJob;
+	void (*function)(void* arg);
+	void* arg;
 }Job;
 
 typedef struct JobPool{
-	Job* jobs;				//jobs -> different kind of arguments
-	int end;				//end of buffer
-	int position;			//current size of buffer
-	int start;
+	Job* head;							//job head -> get node from
+	Job* tail;							//job tail -> insert to next of
+	int size;							//current size of queue
+	pthread_mutex_t lockJobPool;		//mutex for locking jobPool
+	pthread_cond_t notEmpty;			//cond var for checking if jobPool is empty
 }JobPool;
 
 typedef struct threadPool{
 	int noThreads;						//number of threads
 	pthread_t* tids; 					//execution threads
-	pthread_cond_t notEmpty;			//cond var for checking if jobPool is empty
-	pthread_cond_t notFull;				//cond var for checking if jobPool is full
-	pthread_mutex_t lockJobPool;		//mutex for locking jobPool
-	JobPool* jobPool;						//jobs that the threads consume
+	JobPool* jobPool;					//jobs that the threads consume
+	volatile int noAlive;      			//threads currently alive
+	volatile int noWorking;    			//threads currently working
+	pthread_mutex_t  lockThreadPool;    //mutex for locking threadPool
+	pthread_cond_t  allIdle;    		//cond var for checking if thread pool is full (all working)
 }threadPool;
 
-//functions for jobPool
+// Functions for jobPool
 JobPool* initializeJobPool();
-void insertJob(threadPool* th, Job* job);
-Job* getJob(threadPool* th);
 void destroyJobPool(JobPool** jobPool);
-void* executeJob(void* args);
+void insertJob(JobPool* jobPool, Job* job);
+Job* getJob(JobPool* jobPool);
 
-//functions for threads
-threadPool* initializeThreadPool(int numThreads, int kindThread);
+// Functions for threads
+
+
+// Functions for threadPool
+threadPool* initializeThreadPool(int numThreads);
 void destroyThreadPool(threadPool** th);
 
 #endif
