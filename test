@@ -1,41 +1,50 @@
-==7009== Memcheck, a memory error detector
-==7009== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==7009== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
-==7009== Command: ./joinProgram -i workloads/small.init -w workloads/small.work
-==7009== 
-==7009== 
-==7009== Process terminating with default action of signal 2 (SIGINT)
-==7009==    at 0x10DDF3: joinColumns (implementation.c:388)
-==7009==    by 0x10CA4C: queriesImplementation (implementation.c:150)
-==7009==    by 0x108D6F: main (main.c:48)
-------------------------------------------------------
-START OF MAIN PROGRAM
-Init: workloads/small.init, work: workloads/small.work
---------------------------------------------------
-   Reading data files done! Now read queries!!
---------------------------------------------------
-3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1
 26468015 32533054
-5 0|0.2=1.0&0.3=9881|1.1 0.2 1.0
 5446 1009 1009
-9 0 2|0.1=1.0&1.0=2.2&0.0>12472|1.0 0.3 0.4
 31831879 99876596 96864400
-9 0|0.1=1.0&0.1>1150|0.3 1.0
 27314139 10766320
-6 1 12|0.1=1.0&1.0=2.2&0.0<62236|1.0
-==7009== 
-==7009== HEAP SUMMARY:
-==7009==     in use at exit: 11,652,002 bytes in 20,585 blocks
-==7009==   total heap usage: 121,560 allocs, 100,975 frees, 16,713,110 bytes allocated
-==7009== 
-==7009== LEAK SUMMARY:
-==7009==    definitely lost: 0 bytes in 0 blocks
-==7009==    indirectly lost: 0 bytes in 0 blocks
-==7009==      possibly lost: 0 bytes in 0 blocks
-==7009==    still reachable: 11,652,002 bytes in 20,585 blocks
-==7009==         suppressed: 0 bytes in 0 blocks
-==7009== Reachable blocks (those to which a pointer was found) are not shown.
-==7009== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==7009== 
-==7009== For counts of detected and suppressed errors, rerun with: -v
-==7009== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+901496306
+NULL NULL NULL
+281654532 282357938 841559324
+187822 1036243 187822
+1771710026
+22766314 22766314
+4634779503 627329747 627329747
+41316024 267394881 9912745
+NULL NULL
+9283
+760151704 2430170493 2398594221
+NULL NULL NULL
+NULL NULL
+3537544236 319415951 334176745
+1645366150 1016283918 788397597
+106938127
+10014140 6526034 6526034
+NULL NULL
+875728021
+39406105251 36341958246
+179170057
+65339549 18594932 12524601
+744497 7983214
+1144350494 3395449560 3377819501
+5032407477 1146864253
+255982520
+23837499 33633760 23837499
+1391837538
+42163975 42772523
+858534
+109050774 109050774
+444547
+20504095556 20504095556
+633080591 1050051803
+5304879 1634121
+144651751 144651751 1733901713
+28536640 19373870
+2135404
+943464 3320201
+178397045 178397045 213214740
+852794
+203444887 336237721 203444887
+230229977 440364776
+93772438
+1791170870 104998693 197672442
+103260116758 17416413522 59644305653
