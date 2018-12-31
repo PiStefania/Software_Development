@@ -21,7 +21,9 @@ typedef struct rowIdsList {
 typedef struct intermediate{
 	result* ResultList;
 	int leftRelation;
+	int leftColumn;
 	int rightRelation;
+	int rightColumn;
 	tuple* foundIdsLeft;
 	tuple* foundIdsRight;
 	int capacityLeft;
@@ -31,7 +33,7 @@ typedef struct intermediate{
 
 int queriesImplementation(FILE* file, relationsInfo* initRelations);
 
-int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
+int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter, intermediate** intermediateStructs, int noJoins);
 int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins, intermediate* currentIntermediate);
 int checkSameId(tuple* foundIds, uint32_t rowId, int capacity, int checkFlag);
 
