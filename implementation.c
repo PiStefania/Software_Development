@@ -152,21 +152,84 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                         // Update specific intermediate structure before join
                         intermediateStructs[currentJoinPredicates]->leftRelation = relations[predicates[i]->leftSide->rowId];
                         intermediateStructs[currentJoinPredicates]->rightRelation = relations[predicates[i]->rightSide->rowId];
-						int result = joinColumns(relations, predicates, initRelations, rList, i,intermediateStructs[currentJoinPredicates]);
-						currentJoinPredicates++;
-                        if (result == -1) {
-							return 0;
+
+						// Special join if needed
+						uint64_t leftRelation = predicates[i]->leftSide->rowId;
+						uint64_t rightRelation = predicates[i]->rightSide->rowId;
+
+						if ((leftRelation == rightRelation) || (rList[leftRelation].num_of_rowIds > 0 && rList[rightRelation].num_of_rowIds > 0)) {
+							printf("Special Join: %ld.%ld=%ld.%ld\n", leftRelation, predicates[i]->leftSide->value, rightRelation, predicates[i]->rightSide->value);
+							rowIdNode *newLeftRList = createRowIdList();
+							int newLeft_num_of_rowIds = 0;
+							rowIdNode *newRightRList = createRowIdList();
+							int newRight_num_of_rowIds = 0;
+
+							tuple *foundRowIds = malloc(rList[leftRelation].num_of_rowIds * sizeof(tuple));
+							int capacity = 0;
+							rowIdNode *currentLeft = rList[leftRelation].rowIds;
+							while (currentLeft != NULL) {
+								// Check if we have check this left rowId before
+								if (!checkSameId(foundRowIds, currentLeft->rowId, capacity, 1)){
+									// If not, it is inserted
+									foundRowIds[capacity].rowId = currentLeft->rowId;
+									foundRowIds[capacity].value = 1;
+									capacity++;
+								}
+								else {
+									currentLeft = currentLeft->next;		// If we have check this rowId, continue to next one
+									continue;
+								}
+
+								rowIdNode *currentRight = rList[rightRelation].rowIds;
+								// Check if the values that these 2 rowIds point to are equal and, if so, keep these rowIds
+								while (currentRight != NULL) {
+									if (initRelations[relations[leftRelation]].Rarray[predicates[i]->leftSide->value][currentLeft->rowId] ==
+										initRelations[relations[rightRelation]].Rarray[predicates[i]->rightSide->value][currentRight->rowId]) {
+											// Insert the rowIds with same values
+											int result = insertIntoRowIdList(&newLeftRList, currentLeft->rowId);
+											if (result == -1) return -1;
+											else if (result == 1) {
+											    newLeft_num_of_rowIds++;
+											}
+											result = insertIntoRowIdList(&newRightRList, currentRight->rowId);
+											if (result == -1) return -1;
+											else if (result == 1) {
+											    newRight_num_of_rowIds++;
+											}
+											break;
+									}
+									currentRight = currentRight->next;
+								}
+								currentLeft = currentLeft->next;
+							}
+							free(foundRowIds);
+							//printf("%d, %d\n", capacity, newLeft_num_of_rowIds);
+
+							deleteRowIdList(&rList[leftRelation].rowIds);
+							rList[leftRelation].rowIds = newLeftRList;
+							rList[leftRelation].num_of_rowIds = newLeft_num_of_rowIds;
+							deleteRowIdList(&rList[rightRelation].rowIds);
+							rList[rightRelation].rowIds = newRightRList;
+							rList[rightRelation].num_of_rowIds = newRight_num_of_rowIds;
 						}
-						else if (result == 0) {
-							continue;
+						else {	  // Join columns
+							int result = joinColumns(relations, predicates, initRelations, rList, i, intermediateStructs[currentJoinPredicates]);
+							currentJoinPredicates++;
+	                        if (result == -1) {
+								return 0;
+							}
+							else if (result == 0) {
+								continue;
+							}
 						}
+
 						// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 						char *outdatedPredicates;
-						outdatedPredicates = malloc(predicatesSize * sizeof(char)); 	
+						outdatedPredicates = malloc(predicatesSize * sizeof(char));
 						// We update only the join predicates, not the compare ones
 						for (int j = 0; j < predicatesSize; j++) {
 							// Each position same to predicates array - 0 good / 1 outdated, needs to be executed again
-							outdatedPredicates[j] = 0;				
+							outdatedPredicates[j] = 0;
 						}
 						// After join, look for outdated join predicates (if a member of current predicate has already been used in another join)
 						for (int j = 0; j < i; j++) {
@@ -194,7 +257,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 								else if ((iLeftRow == jRightRow && iLeftColumn == jRightColumn) || (iRightRow == jRightRow && iRightColumn == jRightColumn)) {
 									if (iLeftRow == jLeftRow || iRightRow == jLeftRow){
 										continue;
-									} 
+									}
 									for (int k = 0; k < projectionsSize; k++) {
 										if (projections[k].rowId == jLeftRow) {
 											outdatedPredicates[j] = 2;
@@ -593,11 +656,11 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 						needToInsertRowId = previousResultList->array[counterPreviousIntermediate].rowId2;
 					}else{
 						previousIntermediateRowId = previousResultList->array[counterPreviousIntermediate].rowId2;
-						needToInsertRowId = previousResultList->array[counterPreviousIntermediate].rowId1;	
+						needToInsertRowId = previousResultList->array[counterPreviousIntermediate].rowId1;
 					}
-				
+
 					// If ids are the same
-					if(currentIntermediateRowId == previousIntermediateRowId){	
+					if(currentIntermediateRowId == previousIntermediateRowId){
 						// Insert to new rowIdsList
 						int result = insertIntoRowIdList(&(newOutdatedList)->rowIds, needToInsertRowId);
 						if(result == -1){
@@ -607,7 +670,7 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 						}
 					}
 				}
-				previousResultList = previousResultList->next;	
+				previousResultList = previousResultList->next;
 			}
 		}
 		currentResultList = currentResultList->next;
