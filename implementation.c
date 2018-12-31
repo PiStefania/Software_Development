@@ -164,27 +164,41 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 							rowIdNode *newRightRList = createRowIdList();
 							int newRight_num_of_rowIds = 0;
 
-							tuple *foundRowIds = malloc(rList[leftRelation].num_of_rowIds * sizeof(tuple));
-							int capacity = 0;
+							tuple *foundRowIdsLeft = malloc(rList[leftRelation].num_of_rowIds * sizeof(tuple));
+							int capacityLeft = 0;
 							rowIdNode *currentLeft = rList[leftRelation].rowIds;
+
 							while (currentLeft != NULL) {
 								// Check if we have check this left rowId before
-								if (!checkSameId(foundRowIds, currentLeft->rowId, capacity, 1)){
+								if (!checkSameId(foundRowIdsLeft, currentLeft->rowId, capacityLeft, 1)){
 									// If not, it is inserted
-									foundRowIds[capacity].rowId = currentLeft->rowId;
-									foundRowIds[capacity].value = 1;
-									capacity++;
+									foundRowIdsLeft[capacityLeft].rowId = currentLeft->rowId;
+									foundRowIdsLeft[capacityLeft].value = 1;
+									capacityLeft++;
 								}
 								else {
 									currentLeft = currentLeft->next;		// If we have check this rowId, continue to next one
 									continue;
 								}
 
+								tuple *foundRowIdsRight = malloc(rList[rightRelation].num_of_rowIds * sizeof(tuple));
+								int capacityRight = 0;
 								rowIdNode *currentRight = rList[rightRelation].rowIds;
 								// Check if the values that these 2 rowIds point to are equal and, if so, keep these rowIds
 								while (currentRight != NULL) {
 									if (initRelations[relations[leftRelation]].Rarray[predicates[i]->leftSide->value][currentLeft->rowId] ==
 										initRelations[relations[rightRelation]].Rarray[predicates[i]->rightSide->value][currentRight->rowId]) {
+											// Check if we have check this left rowId before
+											if (!checkSameId(foundRowIdsRight, currentRight->rowId, capacityRight, 1)){
+												// If not, it is inserted
+												foundRowIdsRight[capacityRight].rowId = currentRight->rowId;
+												foundRowIdsRight[capacityRight].value = 1;
+												capacityRight++;
+											}
+											else {
+												currentRight = currentRight->next;		// If we have check this rowId, continue to next one
+												continue;
+											}
 											// Insert the rowIds with same values
 											int result = insertIntoRowIdList(&newLeftRList, currentLeft->rowId);
 											if (result == -1) return -1;
@@ -196,14 +210,15 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 											else if (result == 1) {
 											    newRight_num_of_rowIds++;
 											}
-											break;
+											//break;
 									}
 									currentRight = currentRight->next;
 								}
+								free(foundRowIdsRight);
 								currentLeft = currentLeft->next;
 							}
-							free(foundRowIds);
-							//printf("%d, %d\n", capacity, newLeft_num_of_rowIds);
+							free(foundRowIdsLeft);
+							printf("%d, %d\n", capacityLeft, newLeft_num_of_rowIds);
 
 							deleteRowIdList(&rList[leftRelation].rowIds);
 							rList[leftRelation].rowIds = newLeftRList;
