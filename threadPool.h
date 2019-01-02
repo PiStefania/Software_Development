@@ -17,14 +17,21 @@ typedef struct JobPool{
 	pthread_cond_t notEmpty;			//cond var for checking if jobPool is empty
 }JobPool;
 
+typedef struct thread{
+	pthread_t threadId;					//Thread
+	struct threadPool* thPool;			//Need to get access to whole structure for executing a job
+}thread;
+
 typedef struct threadPool{
 	int noThreads;						//number of threads
-	pthread_t* tids; 					//execution threads
+	thread* threads; 					//execution threads
 	JobPool* jobPool;					//jobs that the threads consume
 	volatile int noAlive;      			//threads currently alive
 	volatile int noWorking;    			//threads currently working
-	pthread_mutex_t  lockThreadPool;    //mutex for locking threadPool
-	pthread_cond_t  allIdle;    		//cond var for checking if thread pool is full (all working)
+	volatile int keepAlive;				//boolean for keeping threads alive
+	volatile int threadsWaiting;		//threads waiting for a job
+	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
+	pthread_cond_t allIdle;    		//cond var for checking if thread pool is full (all working)
 }threadPool;
 
 // Functions for jobPool
@@ -33,11 +40,11 @@ void destroyJobPool(JobPool** jobPool);
 void insertJob(JobPool* jobPool, Job* job);
 Job* getJob(JobPool* jobPool);
 
-// Functions for threads
-
-
 // Functions for threadPool
 threadPool* initializeThreadPool(int numThreads);
 void destroyThreadPool(threadPool** th);
+
+// General function for executing job
+void* executeJob(thread* th);
 
 #endif
