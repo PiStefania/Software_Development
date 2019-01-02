@@ -21,7 +21,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
-		printf("%s", line);
+		//printf("%s", line);
 		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
@@ -196,8 +196,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 						}
 					} else {	// Join
                         // Call Radix Hash Join
-                        printf("JOIN\n");
-                        printPredicate(predicates[i]);
+                        //printf("JOIN\n");
+                        //printPredicate(predicates[i]);
                         // Update specific intermediate structure before join
                         intermediateStructs[currentJoinPredicates]->leftRelation = relations[predicates[i]->leftSide->rowId];
                         intermediateStructs[currentJoinPredicates]->rightRelation = relations[predicates[i]->rightSide->rowId];
@@ -264,8 +264,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 						// Update outdated relations after specifying them
 						for (int j = 0; j < predicatesSize; j++) {
 							if (outdatedPredicates[j] != 0) {
-								printf("UPDATE\n");
-								printPredicate(predicates[j]);
+								//printf("UPDATE\n");
+								//printPredicate(predicates[j]);
 								int result = updatePredicates(predicates, rList, j, outdatedPredicates[j], intermediateStructs, joinPredicates, intermediateStructs[currentJoinPredicates-1]);
 								if (result == -1) return 0;
 							}
@@ -353,7 +353,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 	int leftRelationSame = predicates[currentPredicate]->leftSide->rowId;
 	int rightRelationSame = predicates[currentPredicate]->rightSide->rowId;
 	if(leftRelationSame == rightRelationSame){
-		printf("SAME\n");
 		// if rList is empty for this relation
 		if(rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds == 0){
 			// Don't execute radix hash join, instead get rowIds of columns that are the same
@@ -381,7 +380,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 	}
 	// Check if both relations from predicate already exist
 	if(rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds > 0 && rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds > 0){
-		printf("ISNIDE\n");
 		// Find column used for previous predicate
 		// Get relations
 		int leftRelation = rList[predicates[currentPredicate]->leftSide->rowId].relationId;
@@ -432,7 +430,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
 			// If columns used for joins are not the same
 			if(leftColumnPrevious != leftColumnCurrent){
-				printf("change rList left\n");
 				newRowIdsListLeft = malloc(sizeof(rowIdsList));
 				newRowIdsListLeft->rowIds = createRowIdList();
 				newRowIdsListLeft->num_of_rowIds = 0;
@@ -453,7 +450,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 			}
 			
 			if(rightColumnPrevious != rightColumnCurrent){
-				printf("change rList right\n");
 				newRowIdsListRight = malloc(sizeof(rowIdsList));
 				newRowIdsListRight->rowIds = createRowIdList();
 				newRowIdsListRight->num_of_rowIds = 0;
@@ -480,17 +476,18 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 				rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = newRowIdsListLeft->num_of_rowIds;
 				free(newRowIdsListLeft);
 			}
+
 			if(newRowIdsListRight != NULL){
 				deleteRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
 				rList[predicates[currentPredicate]->rightSide->rowId].rowIds = newRowIdsListRight->rowIds;
 				rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = newRowIdsListRight->num_of_rowIds;
 				free(newRowIdsListRight);
 			}
+
 			return 1;
 		}
 	}
 
-	printf("RADIX\n");
     // Create relations
     int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
