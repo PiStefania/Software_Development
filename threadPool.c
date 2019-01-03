@@ -157,11 +157,20 @@ void destroyThreadPool(threadPool** thPool){
 
 	// Threads should end
 	(*thPool)->keepAlive = 0;
-
 	for(int i=0; i<(*thPool)->noThreads; i++) {
-        // Destroy each thread
+        // Stop each thread -> keepAlive has been updated
+        (*thPool)->threads->thPool = *thPool;
     }
-			
+
+	// Wake all threads
+	while ((*thPool)->noAlive){
+		pthread_mutex_lock(&(*thPool)->jobPool->lockJobPool);
+		pthread_cond_broadcast(&(*thPool)->jobPool->notEmpty);
+		pthread_mutex_unlock(&(*thPool)->jobPool->lockJobPool);
+		sleep(1);
+	}
+   
+	// Destroy threads
 	if((*thPool)->threads!=NULL){
 		free((*thPool)->threads);
 		(*thPool)->threads = NULL;
@@ -186,6 +195,11 @@ void* executeJob(thread* th){
 	while(thPool->keepAlive){
 
 		// wait until job pool has jobs
+		pthread_mutex_lock(&(thPool->jobPool->lockJobPool));
+		while(thPool->jobPool->size <= 0) {
+			pthread_cond_wait(&(thPool->jobPool->notEmpty), &(thPool->jobPool->lockJobPool));
+		}
+		pthread_mutex_unlock(&(thPool->jobPool->lockJobPool));
 		
 		// If threads are kept alive
 		if (thPool->keepAlive){
@@ -207,6 +221,8 @@ void* executeJob(thread* th){
 			}
 			pthread_mutex_unlock(&thPool->lockThreadPool);
 		}
+		// Update if keepAlive has been updated
+		thPool = th->thPool;
 	}
 
 	pthread_mutex_lock(&thPool->lockThreadPool);

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "radixHashJoin.h"
+#include "threadPool.h"
 
 
 //Create new node to add to list

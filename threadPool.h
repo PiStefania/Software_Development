@@ -2,6 +2,7 @@
 #define _THREAD_POOL_H_
 
 #include <pthread.h>
+#include "radixHashJoin.h"
 
 typedef struct Job{
 	struct Job* nextJob;
@@ -33,6 +34,16 @@ typedef struct threadPool{
 	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
 	pthread_cond_t allIdle;    		//cond var for checking if thread pool is full (all working)
 }threadPool;
+
+typedef struct histArgs{
+	relation* R;
+}histArgs;
+
+typedef struct rOrderedArgs{
+	relation* R;
+	relation* Hist;
+	relation* Psum;
+}rOrderedArgs;
 
 // Functions for jobPool
 JobPool* initializeJobPool();
