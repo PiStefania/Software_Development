@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 
+#define MAX_DISCRETE_VALUES 50000000
+
+
 typedef struct metadataCol {
-    uint32_t num_of_rows;
+    uint32_t num_of_data;
     uint32_t min, max;
     uint32_t discrete_values;
 } metadataCol;
@@ -14,7 +17,7 @@ typedef struct relationsInfo {
     uint64_t num_of_columns;
     uint64_t num_of_rows;
     uint64_t** Rarray;
-    metadataCol * MDCols; //metadata about each column goes here
+    metadataCol* MDCols;           //metadata about each column goes here
 } relationsInfo;
 
 typedef struct stringNode {

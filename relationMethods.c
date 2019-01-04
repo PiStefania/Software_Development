@@ -41,48 +41,62 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
         //fseek(relFile, sizeof(uint64_t), SEEK_SET);
         fread(&initRelations[i].num_of_columns, sizeof(uint64_t), 1, relFile);
-        if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
+        /*if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
             //critical error, not enough memory for metadata
             return NULL;
-        }
+        }*/
 
-        // Fill in the arrays with the values from relation File
+        // Fill in the arrays with the values from relation File and their metadata
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
+        initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol));
+
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
-            //long int min, max, discrete_values, y;
+
+            uint64_t min, max;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
-
-                //find min,max and discrete_values
-                /*if (!k) { //first element of current column
-                  min = initRelations[i].Rarray[j][k];
-                  max = min;
-                  discrete_values = 1;
-                }
-                else { //every other element of current column
-                  if (min > initRelations[i].Rarray[j][k]) {
+                // Find min, max for each column
+                if (k == 0) {                                       //first element of current column
                     min = initRelations[i].Rarray[j][k];
-                  }
-                  else if (max < initRelations[i].Rarray[j][k]) {
-                    max = initRelations[i].Rarray[j][k];
-                  }
-
-                  //calculate discrete_values
-                  for (y = 0; y < k; y++) {
-                    if (initRelations[i].Rarray[j][k] == initRelations[i].Rarray[j][y]) {
-                      break;
+                    max = min;
+                }
+                else {                                              //every other element of current column
+                    if (min > initRelations[i].Rarray[j][k]) {
+                        min = initRelations[i].Rarray[j][k];
                     }
-                  }
-                  if (k == y) {
-                    discrete_values++;
-                  }
-              }*/
+                    else if (max < initRelations[i].Rarray[j][k]) {
+                        max = initRelations[i].Rarray[j][k];
+                    }
+                }
             }
-            /*initRelations[i].MDCols[j].num_of_rows = initRelations[i].num_of_rows;
+            initRelations[i].MDCols[j].num_of_data = initRelations[i].num_of_rows;
             initRelations[i].MDCols[j].min = (uint32_t)min;
             initRelations[i].MDCols[j].max = (uint32_t)max;
-            initRelations[i].MDCols[j].discrete_values = (uint32_t)discrete_values;*/
+
+            // Find the number of discrete values
+            int valuesOffset = max - min + 1;
+            if (valuesOffset > MAX_DISCRETE_VALUES) {
+                valuesOffset = MAX_DISCRETE_VALUES;
+            }
+            //printf("%d\n", valuesOffset);
+            char *discreteItems = malloc(valuesOffset * sizeof(char));
+            for (int k = 0; k < valuesOffset; k++) {
+                discreteItems[k] = 0;
+            }
+            uint32_t discreteValues = 0;
+            for (int k = 0; k < initRelations[i].num_of_rows; k++) {
+                int item = (initRelations[i].Rarray[j][k] - min) % valuesOffset;
+                if (discreteItems[item] == 0) {
+                    discreteItems[item] = 1;
+                    discreteValues++;
+                }
+            }
+            initRelations[i].MDCols[j].discrete_values = discreteValues;
+            free(discreteItems);
+
+            /*printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", i, j, initRelations[i].MDCols[j].num_of_data,
+                            initRelations[i].MDCols[j].min, initRelations[i].MDCols[j].max, initRelations[i].MDCols[j].discrete_values);*/
         }
         fclose(relFile);
     }
