@@ -3,7 +3,7 @@
 
 #include "queryMethods.h"
 #include "relationMethods.h"
-
+#include "threadPool.h"
 
 typedef struct rowIdNode {
     uint32_t rowId;
@@ -29,7 +29,7 @@ typedef struct intermediate{
 }intermediate;
 
 
-int queriesImplementation(FILE* file, relationsInfo* initRelations);
+int queriesImplementation(FILE* file, relationsInfo* initRelations, threadPool* thPool);
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
 int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins, intermediate* currentIntermediate);

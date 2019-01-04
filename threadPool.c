@@ -99,8 +99,6 @@ threadPool* initializeThreadPool(int numThreads){
 	thPool->noThreads = numThreads;
 	// In initialization, threads which are waiting are 0 (none)
 	thPool->threadsWaiting = 0;
-	// In addition, we want to keep them alive (until it is set to 0)
-	thPool->keepAlive = 1;
 	// Threads currently alive are 0
 	thPool->noAlive = 0;
 	// Threads currently working are also 0
@@ -108,7 +106,7 @@ threadPool* initializeThreadPool(int numThreads){
 	// Initialize job queue
 	thPool->jobPool = initializeJobPool();
 	if (thPool->jobPool == NULL){
-		//destroyThreadPool(&thPool);
+		destroyThreadPool(&thPool);
 		return NULL;
 	}
 	// Allocate threads
@@ -126,21 +124,17 @@ threadPool* initializeThreadPool(int numThreads){
 		destroyThreadPool(&thPool);
 		return NULL;
 	}
+	// In addition, we want to keep them alive (until it is set to 0)
+	keepAlive = 1;
 
 	// Initialize threads
 	for(int i=0; i < numThreads; i++){
-		// Initialize each thread
-		pthread_create(&thPool->threads[i].threadId, NULL, (void *) executeJob, thPool);
-		// No need to join threads at end
-		pthread_detach(thPool->threads[i].threadId);
 		// Set access to thread pool
 		thPool->threads[i].thPool = thPool;
-	}
-
-	// If initialization of threads was incorrect, error
-	if(thPool->noAlive != numThreads){
-		destroyThreadPool(&thPool);
-		return NULL;
+		// Initialize each thread
+		pthread_create(&thPool->threads[i].threadId, NULL, (void *) executeJob, &thPool->threads[i]);
+		// No need to join threads at end
+		pthread_detach(thPool->threads[i].threadId);
 	}
 
 	return thPool;
@@ -151,24 +145,18 @@ void destroyThreadPool(threadPool** thPool){
 	if (thPool == NULL){
 		return;
 	}
-
-	// Destroy job pool
-	destroyJobPool(&(*thPool)->jobPool);
-
 	// Threads should end
-	(*thPool)->keepAlive = 0;
-	for(int i=0; i<(*thPool)->noThreads; i++) {
-        // Stop each thread -> keepAlive has been updated
-        (*thPool)->threads->thPool = *thPool;
-    }
+	keepAlive = 0;
 
 	// Wake all threads
 	while ((*thPool)->noAlive){
 		pthread_mutex_lock(&(*thPool)->jobPool->lockJobPool);
 		pthread_cond_broadcast(&(*thPool)->jobPool->notEmpty);
 		pthread_mutex_unlock(&(*thPool)->jobPool->lockJobPool);
-		sleep(1);
 	}
+
+	// Destroy job pool
+	destroyJobPool(&(*thPool)->jobPool);
    
 	// Destroy threads
 	if((*thPool)->threads!=NULL){
@@ -178,6 +166,7 @@ void destroyThreadPool(threadPool** thPool){
 	
 	(*thPool)->noThreads = -1;
 	
+	pthread_mutex_lock(&(*thPool)->lockThreadPool);
     pthread_mutex_destroy(&((*thPool)->lockThreadPool));
     pthread_cond_destroy(&((*thPool)->allIdle));
 		
@@ -192,17 +181,15 @@ void* executeJob(thread* th){
 	thPool->noAlive += 1;
 	pthread_mutex_unlock(&thPool->lockThreadPool);
 
-	while(thPool->keepAlive){
-
+	while(keepAlive){
 		// wait until job pool has jobs
 		pthread_mutex_lock(&(thPool->jobPool->lockJobPool));
-		while(thPool->jobPool->size <= 0) {
+		if(thPool->jobPool->size <= 0) {
 			pthread_cond_wait(&(thPool->jobPool->notEmpty), &(thPool->jobPool->lockJobPool));
 		}
 		pthread_mutex_unlock(&(thPool->jobPool->lockJobPool));
-		
 		// If threads are kept alive
-		if (thPool->keepAlive){
+		if (keepAlive && thPool->jobPool->size > 0){
 			pthread_mutex_lock(&thPool->lockThreadPool);
 			// Set current thread as working
 			thPool->noWorking++;
@@ -221,14 +208,11 @@ void* executeJob(thread* th){
 			}
 			pthread_mutex_unlock(&thPool->lockThreadPool);
 		}
-		// Update if keepAlive has been updated
-		thPool = th->thPool;
 	}
 
 	pthread_mutex_lock(&thPool->lockThreadPool);
 	// Decrement number of threads being alive
 	thPool->noAlive--;
 	pthread_mutex_unlock(&thPool->lockThreadPool);
-	
 	return NULL;	
 }

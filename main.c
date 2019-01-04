@@ -7,6 +7,8 @@
 #include "queryMethods.h"
 #include "relationMethods.h"
 #include "implementation.h"
+#include "threadPool.h"
+#define THREADS 1
 
 
 int main(int argc, char* argv[]){
@@ -45,10 +47,13 @@ int main(int argc, char* argv[]){
 	if(work != NULL){
 		workFile = fopen(work,"r");
 	}
-	int query = queriesImplementation(workFile, initRelations);
-	if (!query) printf(" WORK FAILED\n");
+
+	threadPool* thPool = initializeThreadPool(THREADS);
+	int query = queriesImplementation(workFile, initRelations, thPool);
+	if (!query) printf("WORK FAILED\n");
 
 	deleteRelationsData(initRelations, &num_of_initRelations);
-
+	// Delete threadPool
+	destroyThreadPool(&thPool);
 	return 0;
 }

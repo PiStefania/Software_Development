@@ -7,7 +7,7 @@
 #include "radixHashJoin.h"
 
 
-int queriesImplementation(FILE* file, relationsInfo* initRelations) {
+int queriesImplementation(FILE* file, relationsInfo* initRelations, threadPool* thPool) {
 	char *line = NULL;
 	size_t len = 0;
 	int read;

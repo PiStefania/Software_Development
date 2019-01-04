@@ -29,10 +29,9 @@ typedef struct threadPool{
 	JobPool* jobPool;					//jobs that the threads consume
 	volatile int noAlive;      			//threads currently alive
 	volatile int noWorking;    			//threads currently working
-	volatile int keepAlive;				//boolean for keeping threads alive
 	volatile int threadsWaiting;		//threads waiting for a job
 	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
-	pthread_cond_t allIdle;    		//cond var for checking if thread pool is full (all working)
+	pthread_cond_t allIdle;    		//cond var for checking if thread pool is not empty, no working threads
 }threadPool;
 
 typedef struct histArgs{
@@ -44,6 +43,9 @@ typedef struct rOrderedArgs{
 	relation* Hist;
 	relation* Psum;
 }rOrderedArgs;
+
+static volatile int keepAlive;
+
 
 // Functions for jobPool
 JobPool* initializeJobPool();
