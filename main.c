@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include "radixHashJoin.h"
-#include "queryMethods.h"
 #include "relationMethods.h"
 #include "implementation.h"
 
@@ -45,7 +44,7 @@ int main(int argc, char* argv[]){
 	if(work != NULL){
 		workFile = fopen(work,"r");
 	}
-	int query = queriesImplementation(workFile, initRelations);
+	int query = queriesImplementation(workFile, initRelations, num_of_initRelations);
 	if (!query) printf(" WORK FAILED\n");
 
 	deleteRelationsData(initRelations, &num_of_initRelations);

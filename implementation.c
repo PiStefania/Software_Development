@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include "implementation.h"
+#include "rowIdListMethods.h"
+#include "statisticsMethods.h"
 #include "relationMethods.h"
 #include "queryMethods.h"
 #include "radixHashJoin.h"
 
 
-int queriesImplementation(FILE* file, relationsInfo* initRelations) {
+int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_initRelations) {
 	char *line = NULL;
 	size_t len = 0;
 	int read;
@@ -19,6 +20,13 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		printf("Please input queries (End input with letter 'F'):\n");
 		file = stdin;
 	}
+
+	// Create an assisting structure of metadata, which we will use for each query, keeping the initial statistics in the initRelations structure unchanged
+	metadataCol** queryMetadata = malloc(num_of_initRelations * sizeof(metadataCol*));
+	for (int i = 0; i < num_of_initRelations; i++) {
+		queryMetadata[i] = malloc(initRelations[i].num_of_columns * sizeof(metadataCol));
+	}
+	copyMetadata(initRelations, num_of_initRelations, NULL, 0, queryMetadata);
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
@@ -87,7 +95,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 				}
 				// Create intermediate structures which contain resultlists and other data for update
 				intermediate** intermediateStructs = malloc(joinPredicates*sizeof(intermediate*));
-				for(int i=0;i<joinPredicates;i++){
+				for (int i = 0; i < joinPredicates; i++) {
 					intermediateStructs[i] = malloc(sizeof(intermediate));
 					intermediateStructs[i]->ResultList = createList();
 					intermediateStructs[i]->foundIdsLeft = NULL;
@@ -111,32 +119,10 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                         int relationId1 = relations[predicates[i]->leftSide->rowId];
                         // Get column that we need to compare, from predicate
                         int relColumn = predicates[i]->leftSide->value;
-						// Print initial statistics (optional)
-						/*printf("Old - Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, relColumn,
-								initRelations[relationId1].MDCols[relColumn].num_of_data, initRelations[relationId1].MDCols[relColumn].min,
-								initRelations[relationId1].MDCols[relColumn].max, initRelations[relationId1].MDCols[relColumn].discrete_values);*/
-						uint64_t compareValue = predicates[i]->rightSide->rowId;
-						// Keep some previous statistics that may be used in the calculation of the new ones later
-						uint32_t old_discrete_values = initRelations[relationId1].MDCols[relColumn].discrete_values;
-						uint32_t old_num_of_data = initRelations[relationId1].MDCols[relColumn].num_of_data;
-						uint32_t old_min = initRelations[relationId1].MDCols[relColumn].min;
-						uint32_t old_max = initRelations[relationId1].MDCols[relColumn].max;
-						// Check if we need to check the array, and update some statistics
-						if (predicates[i]->comparator == '=') {
-							if (compareValue < initRelations[relationId1].MDCols[relColumn].min || compareValue > initRelations[relationId1].MDCols[relColumn].max) {
-								continue;
-							}
-							initRelations[relationId1].MDCols[relColumn].min = compareValue;
-							initRelations[relationId1].MDCols[relColumn].max = compareValue;
-						}
-						else if (predicates[i]->comparator == '>') {
-							if (compareValue > initRelations[relationId1].MDCols[relColumn].max) continue;
-							initRelations[relationId1].MDCols[relColumn].min = compareValue;
-						}
-						else if (predicates[i]->comparator == '<') {
-							if (compareValue < initRelations[relationId1].MDCols[relColumn].min) continue;
-							initRelations[relationId1].MDCols[relColumn].max = compareValue;
-						}
+						// Check if the compare values are legitimate for this column and update the first statistics if so
+						metadataCol *oldMetadata = malloc(sizeof(metadataCol));
+						int outOfBoundaries = checkCompareStatistics(predicates, queryMetadata, oldMetadata, i, relationId1, relColumn);
+						if (outOfBoundaries == 1) continue;
 						char foundValue = 0;
                         // If rList for specific relation is empty, use initRelations
                         if(rList[predicates[i]->leftSide->rowId].num_of_rowIds == 0){
@@ -144,7 +130,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	                        for (int j = 0; j < initRelations[relationId1].num_of_rows; j++) {
 	                            if (predicates[i]->comparator == '=') {
 	                            	// Check if are equal
-	                                if (initRelations[relationId1].Rarray[relColumn][j] == compareValue) {
+	                                if (initRelations[relationId1].Rarray[relColumn][j] == predicates[i]->rightSide->rowId) {
 	                                	// Insert row id of predicare into rList of specific relation id
 	                                	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
 	                                    if (result == -1) return 0;
@@ -156,7 +142,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	                                }
 	                            }
 	                            if (predicates[i]->comparator == '>') {
-	                                if (initRelations[relationId1].Rarray[relColumn][j] > compareValue) {
+	                                if (initRelations[relationId1].Rarray[relColumn][j] > predicates[i]->rightSide->rowId) {
 	                                	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
 	                                    if (result == -1) return 0;
 	                                    else if (result == 1) {
@@ -167,7 +153,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	                                }
 	                            }
 	                            else if (predicates[i]->comparator == '<') {
-	                                if (initRelations[relationId1].Rarray[relColumn][j] < compareValue) {
+	                                if (initRelations[relationId1].Rarray[relColumn][j] < predicates[i]->rightSide->rowId) {
 	                                	int result = insertIntoRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds, j);
 	                                    if (result == -1) return 0;
 	                                    else if (result == 1) {
@@ -192,7 +178,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 								int value = initRelations[relationId1].Rarray[predicates[i]->leftSide->value][currentNode->rowId];
 								if (predicates[i]->comparator == '=') {
 	                            	// Check if are equal
-	                                if (value == compareValue) {
+	                                if (value == predicates[i]->rightSide->rowId) {
 	                                	// Insert row id of predicare into rList of specific relation id
 	                                	if (!insertIntoRowIdList(&new_rowIds, currentNode->rowId)) return 0;
 										foundValue = 1;
@@ -200,14 +186,14 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	                                }
 	                            }
 	                            if (predicates[i]->comparator == '>') {
-	                                if (value > compareValue) {
+	                                if (value > predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdList(&new_rowIds, currentNode->rowId)) return 0;
 										foundValue = 1;
 	                                	new_num_of_rowIds++;
 	                                }
 	                            }
 	                            else if (predicates[i]->comparator == '<') {
-	                                if (value < compareValue) {
+	                                if (value < predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdList(&new_rowIds, currentNode->rowId)) return 0;
 										foundValue = 1;
 	                                	new_num_of_rowIds++;
@@ -216,54 +202,18 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 	                            currentNode = currentNode->next;
 	                        }
 							// Delete pre-existing rowIds from rList and set new one
- 						   deleteRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds);
- 						   rList[predicates[i]->leftSide->rowId].rowIds = new_rowIds;
- 						   rList[predicates[i]->leftSide->rowId].num_of_rowIds = new_num_of_rowIds;
-						}
-						// Update the rest of statistics
-						if (predicates[i]->comparator == '=') {
-							if (foundValue == 1) {
-								float fraction = (float)old_num_of_data / (float)initRelations[relationId1].MDCols[relColumn].discrete_values;
-								initRelations[relationId1].MDCols[relColumn].num_of_data = (uint32_t)roundf(fraction);
-								initRelations[relationId1].MDCols[relColumn].discrete_values = 1;
-							}
-							else if (foundValue == 0) {
-								initRelations[relationId1].MDCols[relColumn].num_of_data = 0;
-								initRelations[relationId1].MDCols[relColumn].discrete_values = 0;
+							deleteRowIdList(&rList[predicates[i]->leftSide->rowId].rowIds);
+							rList[predicates[i]->leftSide->rowId].rowIds = new_rowIds;
+							rList[predicates[i]->leftSide->rowId].num_of_rowIds = new_num_of_rowIds;
+							if (rList[predicates[i]->leftSide->rowId].num_of_rowIds == 0) {
 								rList[predicates[i]->leftSide->rowId].num_of_rowIds = -1;
 							}
 						}
-						else if (predicates[i]->comparator == '>') {
-							if (compareValue < old_min) {
-								compareValue = old_min;
-							}
-							float fraction = ((float)(old_max - compareValue) / (float)(old_max - old_min));
-							initRelations[relationId1].MDCols[relColumn].discrete_values = (uint32_t)roundf((float)old_discrete_values * fraction);
-							initRelations[relationId1].MDCols[relColumn].num_of_data = (uint32_t)roundf((float)old_num_of_data * fraction);
-						}
-						else if (predicates[i]->comparator == '<') {
-							if (compareValue > old_max) {
-								compareValue = old_max;
-							}
-							float fraction = ((float)(compareValue - old_min) / (float)(old_max - old_min));
-							initRelations[relationId1].MDCols[relColumn].discrete_values = (uint32_t)roundf((float)old_discrete_values * fraction);
-							initRelations[relationId1].MDCols[relColumn].num_of_data = (uint32_t)roundf((float)old_num_of_data * fraction);
-						}
-						for (int j = 0; j < initRelations[relationId1].num_of_columns; j++) {
-							if (j != relColumn) {
-								float fraction = (float)(initRelations[relationId1].MDCols[relColumn].num_of_data / (float)old_num_of_data);
-								float exponent = (float)(initRelations[relationId1].MDCols[j].num_of_data / (float)initRelations[relationId1].MDCols[j].discrete_values);
-								float new_discrete_values = (float)old_discrete_values * (float)(1.0 - (float)pow((1.0 - fraction), exponent));
-								//printf("New Discrete: %f - Fraction: %f - Exponent: %f\n", new_discrete_values, fraction, exponent);
-								initRelations[relationId1].MDCols[j].discrete_values = (uint32_t)roundf(new_discrete_values);
-								initRelations[relationId1].MDCols[j].num_of_data = initRelations[relationId1].MDCols[relColumn].num_of_data;
-							}
-							//printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, j,
-							//		initRelations[relationId1].MDCols[j].num_of_data, initRelations[relationId1].MDCols[j].min,
-							//		initRelations[relationId1].MDCols[j].max, initRelations[relationId1].MDCols[j].discrete_values);
-						}
-					} else {	// Join
-                        // Call Radix Hash Join
+						// Update the rest of statistics
+						updateCompareStatistics(predicates, initRelations, queryMetadata, oldMetadata, i, relationId1, relColumn, foundValue);
+						free(oldMetadata);
+					}
+					else {	// Join
                         //printf("JOIN\n");
                         //printPredicate(predicates[i]);
                         // Update specific intermediate structure before join
@@ -271,6 +221,9 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                         intermediateStructs[currentJoinPredicates]->rightRelation = relations[predicates[i]->rightSide->rowId];
                         intermediateStructs[currentJoinPredicates]->leftColumn = predicates[i]->leftSide->value;
                         intermediateStructs[currentJoinPredicates]->rightColumn = predicates[i]->rightSide->value;
+
+						// Update join statistics
+						updateJoinStatistics(predicates, initRelations, relations, queryMetadata, i);
 
 					  	// Join columns
 						int result = joinColumns(relations, predicates, initRelations, rList, i, intermediateStructs[currentJoinPredicates], intermediateStructs, currentJoinPredicates);
@@ -285,49 +238,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 						// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 						char *outdatedPredicates;
 						outdatedPredicates = malloc(predicatesSize * sizeof(char));
-						// We update only the join predicates, not the compare ones
-						for (int j = 0; j < predicatesSize; j++) {
-							// Each position same to predicates array - 0 good / 1 outdated, needs to be executed again
-							outdatedPredicates[j] = 0;
-						}
-						// After join, look for outdated join predicates (if a member of current predicate has already been used in another join)
-						for (int j = 0; j < i; j++) {
-							if (predicates[j]->kind != 0) {
-								uint64_t iLeftRow = predicates[i]->leftSide->rowId;
-								uint64_t iLeftColumn = predicates[i]->leftSide->value;
-								uint64_t iRightRow = predicates[i]->rightSide->rowId;
-								uint64_t iRightColumn = predicates[i]->rightSide->value;
-								uint64_t jLeftRow = predicates[j]->leftSide->rowId;
-								uint64_t jLeftColumn = predicates[j]->leftSide->value;
-								uint64_t jRightRow = predicates[j]->rightSide->rowId;
-								uint64_t jRightColumn = predicates[j]->rightSide->value;
-								if ((iLeftRow == jLeftRow && iLeftColumn == jLeftColumn) || (iRightRow == jLeftRow && iRightColumn == jLeftColumn)) {
-									if (iLeftRow == jRightRow || iRightRow == jRightRow){
-										continue;
-									}
-									for (int k = 0; k < projectionsSize; k++) {
-										if (projections[k].rowId == jRightRow) {
-											outdatedPredicates[j] = 1;
-											break;
-										}
-										else continue;
-									}
-								}
-								else if ((iLeftRow == jRightRow && iLeftColumn == jRightColumn) || (iRightRow == jRightRow && iRightColumn == jRightColumn)) {
-									if (iLeftRow == jLeftRow || iRightRow == jLeftRow){
-										continue;
-									}
-									for (int k = 0; k < projectionsSize; k++) {
-										if (projections[k].rowId == jLeftRow) {
-											outdatedPredicates[j] = 2;
-											break;
-										}
-										else continue;
-									}
-								}
-							}
-							else continue;
-						}
+						searchOutdatedPredicates(predicates, projections, outdatedPredicates, i, predicatesSize, projectionsSize);
 
 						// Update outdated relations after specifying them
 						for (int j = 0; j < predicatesSize; j++) {
@@ -362,21 +273,24 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
                 valueSummary += initRelations[relations[projections[i].rowId]].Rarray[projections[i].value][currentRowId->rowId];
 				currentRowId = currentRowId->next;
             }
-			if (valueSummary == 0){
-				if(i==projectionsSize-1){
+			if (valueSummary == 0) {
+				if (i == projectionsSize-1) {
 					printf("NULL");
-				}else{
+				} else {
 					printf("NULL ");
 				}
 			} else {
-				if(i==projectionsSize-1){
+				if (i == projectionsSize-1) {
 					printf("%ld", valueSummary);
-				}else{
+				} else {
 					printf("%ld ", valueSummary);
 				}
 			}
         }
         printf("\n");
+
+		// Reset initial metadata to the assisting structure, which we used above, in order to use it again
+		copyMetadata(initRelations, num_of_initRelations, relations, relationsSize, queryMetadata);
 
 		// Free vars for each line
 		if (relations) {
@@ -401,15 +315,20 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations) {
 		}
 		if (failed) break;
 	}
+	// Free assisting metadata structure
+	for (int i = 0; i < num_of_initRelations; i++) {
+		free(queryMetadata[i]);
+	}
+	free(queryMetadata);
 	// Free vars
 	if (line) {
 		free(line);
 		line = NULL;
 	}
 	// Close file
-	if (file != NULL  && file != stdin)
+	if (file != NULL  && file != stdin) {
 		fclose(file);
-
+	}
 	if (failed) return 0;
 
 	return 1;
@@ -544,14 +463,12 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 				rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds = newRowIdsListLeft->num_of_rowIds;
 				free(newRowIdsListLeft);
 			}
-
 			if(newRowIdsListRight != NULL){
 				deleteRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds);
 				rList[predicates[currentPredicate]->rightSide->rowId].rowIds = newRowIdsListRight->rowIds;
 				rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds = newRowIdsListRight->num_of_rowIds;
 				free(newRowIdsListRight);
 			}
-
 			return 1;
 		}
 	}
@@ -567,9 +484,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     	// Get rowid - value pairs for creating a new relation for join
     	// In addition, get rowid - number of times found pairs, helpful for updating predicates
     	foundIdsLeft = malloc(rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds * sizeof(tuple));
-		uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1, foundIdsLeft, &capacityLeft,1);
+		uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1, foundIdsLeft, &capacityLeft);
 		capacityLeft = 0;
-		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 0, foundIdsLeft, &capacityLeft,0);
+		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 0, foundIdsLeft, &capacityLeft);
     	Rrel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds);
 		free(arrayValues);
 		free(arrayRowIds);
@@ -608,9 +525,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int capacityRight = 0;
     if (rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds > 0) {
     	foundIdsRight = malloc(rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds * sizeof(tuple));
-    	uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1, foundIdsRight, &capacityRight,1);
+    	uint64_t* arrayValues = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1, foundIdsRight, &capacityRight);
 		capacityRight = 0;
-		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 0, foundIdsRight, &capacityRight,0);
+		uint64_t* arrayRowIds = setRowIdsValuesToArray(rList, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 0, foundIdsRight, &capacityRight);
     	Srel = createRelation(arrayValues, arrayRowIds, rList[predicates[currentPredicate]->rightSide->rowId].num_of_rowIds);
     	free(arrayValues);
 		free(arrayRowIds);
@@ -673,7 +590,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 			    rList[predicates[currentPredicate]->leftSide->rowId].relationId = relationId1;
 			    rList[predicates[currentPredicate]->leftSide->rowId].num_of_rowIds++;
 			}
-
 			result = insertIntoRowIdList(&rList[predicates[currentPredicate]->rightSide->rowId].rowIds, curr->array[j].rowId2);
 			if (result == -1) return -1;
 			else if(result == 1){
@@ -704,26 +620,21 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 	int rightRelation = rList[predicates[currentPredicate]->rightSide->rowId].relationId;
 	// Get intermediate structure from outdated join
 	intermediate* previousIntermediate;
-	for(int i=0;i<noJoins;i++){
+	for (int i = 0; i < noJoins; i++) {
 		if(intermediateStructs[i]->leftRelation == leftRelation && intermediateStructs[i]->rightRelation == rightRelation){
 			previousIntermediate = intermediateStructs[i];
 			break;
 		}
 	}
-
 	// Error occured
-	if (side != 1 && side != 2){
-		return -1;
-	}
+	if (side != 1 && side != 2) return -1;
 
 	// Delete main structure of relation in order to update it
 	rowIdsList *newOutdatedList = NULL;
-	if (side == 1) {
-		// Delete right relation from the outdated predicate
+	if (side == 1) {	// Delete right relation from the outdated predicate
 		newOutdatedList = &rList[predicates[currentPredicate]->rightSide->rowId];
 	}
-	else {
-		// Delete left relation from the outdated predicate
+	else {		// Delete left relation from the outdated predicate
 		newOutdatedList = &rList[predicates[currentPredicate]->leftSide->rowId];
 	}
 
@@ -732,8 +643,7 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 	newOutdatedList->rowIds = createRowIdList();
 	newOutdatedList->num_of_rowIds = 0;
 
-	// Get resultLists of joins
-	// For outdated join
+	// Get resultLists of joins for outdated join
 	resultNode* previousResultList = previousIntermediate->ResultList->head;
 	// For current join which triggered the update procedure
 	resultNode* currentResultList = currentIntermediate->ResultList->head;
@@ -877,114 +787,4 @@ int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredi
 	free(tempWholeLeft);
 	free(tempWholeRight);
 	return 1;
-}
-
-
-int checkSameId(tuple* foundIds, uint32_t rowId, int capacity, int checkFlag){
-	for(int i=0;i<capacity;i++){
-		// If rowId is the same as the one given
-		if(foundIds[i].rowId == rowId){
-			if(checkFlag){
-				// Increment number of times found
-				foundIds[i].value++;
-			}
-			return 1;
-		}
-	}
-	return 0;
-}
-
-// Create a list in rowIdsList to store the rowIds found to satisfy the predicates
-rowIdNode* createRowIdList() {
-	rowIdNode* list;
-	if ((list = malloc(sizeof(rowIdNode))) == NULL) return NULL;
-	list->isEmptyList = 1;
-	list->next = NULL;
-	list->rowId = -1;
-	return list;
-}
-
-// Insert strings into the list (helps while reading files)
-int insertIntoRowIdList(rowIdNode** list, int rowId) {
-	if (list == NULL || rowId < 0) {
-		return -1;
-	}
-	rowIdNode *newNode;
-	if ((*list)->isEmptyList == 1){
-		(*list)->rowId = rowId;
-		(*list)->isEmptyList = 0;
-		(*list)->next = NULL;
-		return 1;
-	}
-
-	if ((newNode = malloc(sizeof(rowIdNode))) == NULL) return -1;
-	newNode->rowId = rowId;
-    newNode->isEmptyList = 0;
-	newNode->next = *list;
-	*list = newNode;
-	return 1;
-}
-
-// Delete above list
-void deleteRowIdList(rowIdNode** list) {
-	rowIdNode* tempNode;
-	rowIdNode* currentNode = *list;
-	while (currentNode != NULL){
-		tempNode = currentNode;
-		currentNode = currentNode->next;
-		free(tempNode);
-	}
-	*list = NULL;
-}
-
-void printRowIdsList(rowIdsList* rowIdsList, int noOfRelations){
-	for (int i = 0; i < noOfRelations; i++) {
-		printf("----Relation: %d----\n",rowIdsList[i].relationId);
-		rowIdNode* temp = rowIdsList[i].rowIds;
-		while (temp != NULL) {
-			printf("%d ",temp->rowId);
-			temp = temp->next;
-		}
-	}
-}
-
-// params: rList: list of relations and found rowIds
-// params: position: position of relationId we want from rList
-// params: initRelations: helpful for getting values of specific rowIds
-// params: relationId: get values from initRelations from specific relationId
-// params: relColumn: column for getting value from initRelations
-// params: type: type of setting (rowId:0,value:1)
-uint64_t* setRowIdsValuesToArray(rowIdsList* rList, int position, relationsInfo* initRelations, int relationId, int relColumn, char type, tuple* foundIds, int* capacity, int checkFlag) {
-	if (rList == NULL || position < 0 || initRelations == NULL || relationId < 0 || relColumn < 0 || type < 0 || type > 1) {
-		return NULL;
-	}
-	if (rList[position].num_of_rowIds == 0 || rList[position].rowIds == NULL) {
-		return NULL;
-	}
-	if (rList[position].relationId != relationId) {
-		printf("rowIds DONT MATCHHH!!!\n");
-		return NULL;
-	}
-	uint64_t* returnedArray = calloc(rList[position].num_of_rowIds,sizeof(uint64_t));
-	rowIdNode* temp = rList[position].rowIds;
-	int index = 0;
-	while (temp != NULL) {
-		// Check if rowId is inside array of rowId - counter pairs
-		if(!checkSameId(foundIds,temp->rowId,*capacity,checkFlag)){
-			// If not, it is inserted
-			if(checkFlag){
-				foundIds[*capacity].rowId = temp->rowId;
-				foundIds[*capacity].value = 1;
-			}
-			(*capacity)++;
-		}
-		if (type == 1) {
-			returnedArray[index] = initRelations[relationId].Rarray[relColumn][temp->rowId];
-		} else {
-			returnedArray[index] = temp->rowId;
-		}
-		temp = temp->next;
-		index++;
-	}
-	return returnedArray;
 }

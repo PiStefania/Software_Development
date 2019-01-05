@@ -95,8 +95,8 @@ relationsInfo* getRelationsData(FILE* file, int* num_of_initRelations) {
             initRelations[i].MDCols[j].discrete_values = discreteValues;
             free(discreteItems);
 
-            /*printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", i, j, initRelations[i].MDCols[j].num_of_data,
-                            initRelations[i].MDCols[j].min, initRelations[i].MDCols[j].max, initRelations[i].MDCols[j].discrete_values);*/
+            //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", i, j, initRelations[i].MDCols[j].num_of_data,
+            //                initRelations[i].MDCols[j].min, initRelations[i].MDCols[j].max, initRelations[i].MDCols[j].discrete_values);
         }
         fclose(relFile);
     }
