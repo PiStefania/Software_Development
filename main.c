@@ -8,7 +8,7 @@
 #include "relationMethods.h"
 #include "implementation.h"
 #include "threadPool.h"
-#define THREADS 2
+#define THREADS 1
 
 
 int main(int argc, char* argv[]){
@@ -55,6 +55,6 @@ int main(int argc, char* argv[]){
 
 	deleteRelationsData(initRelations, &num_of_initRelations);
 	// Delete threadPool
-	destroyThreadPool(&thPool);
+	//destroyThreadPool(&thPool);
 	return 0;
 }

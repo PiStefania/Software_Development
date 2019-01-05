@@ -31,7 +31,7 @@ typedef struct intermediate{
 
 int queriesImplementation(FILE* file, relationsInfo* initRelations, threadPool* thPool);
 
-int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter);
+int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter, threadPool* thPool);
 int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs, int noJoins, intermediate* currentIntermediate);
 int checkSameId(tuple* foundIds, uint32_t rowId, int capacity, int checkFlag);
 

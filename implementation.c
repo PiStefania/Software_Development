@@ -152,7 +152,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, threadPool* 
                         // Update specific intermediate structure before join
                         intermediateStructs[currentJoinPredicates]->leftRelation = relations[predicates[i]->leftSide->rowId];
                         intermediateStructs[currentJoinPredicates]->rightRelation = relations[predicates[i]->rightSide->rowId];
-						int result = joinColumns(relations, predicates, initRelations, rList, i,intermediateStructs[currentJoinPredicates]);
+						int result = joinColumns(relations, predicates, initRelations, rList, i,intermediateStructs[currentJoinPredicates],thPool);
 						currentJoinPredicates++;
                         if (result == -1) {
 							return 0;
@@ -293,7 +293,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, threadPool* 
 
 
 
-int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter) {
+int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter, threadPool* thPool) {
     // Create relations
     int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
@@ -326,9 +326,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 	}
     if (PRINT) printRelation(Rrel);
 
-    // Create histogram
-    relation* RHist = createHistogram(Rrel);
-    if (PRINT) printRelation(RHist);
+    // Use threads for creating RHist by cutting it to pieces as the number of threads exist
+   	relation* RHist = mergeIntoHist(thPool, Rrel);
+	if (PRINT) printRelation(RHist);
 
     // Create Psum
     relation* RPsum = createPsum(RHist);
@@ -368,9 +368,10 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 	}
     if (PRINT) printRelation(Srel);
 
-    // Create histogram
-    relation* SHist = createHistogram(Srel);
-    if (PRINT) printRelation(SHist);
+
+   	// Use threads for creating SHist by cutting it to pieces as the number of threads exist
+   	relation* SHist = mergeIntoHist(thPool, Srel);
+	if (PRINT) printRelation(SHist);
 
     // Create Psum
     relation* SPsum = createPsum(SHist);
