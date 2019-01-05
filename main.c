@@ -8,7 +8,7 @@
 #include "relationMethods.h"
 #include "implementation.h"
 #include "threadPool.h"
-#define THREADS 1
+#define THREADS 2
 
 
 int main(int argc, char* argv[]){
@@ -48,6 +48,7 @@ int main(int argc, char* argv[]){
 		workFile = fopen(work,"r");
 	}
 
+	// Create thread Pool
 	threadPool* thPool = initializeThreadPool(THREADS);
 	int query = queriesImplementation(workFile, initRelations, thPool);
 	if (!query) printf("WORK FAILED\n");

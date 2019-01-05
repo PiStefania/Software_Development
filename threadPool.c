@@ -153,6 +153,7 @@ void destroyThreadPool(threadPool** thPool){
 		pthread_mutex_lock(&(*thPool)->jobPool->lockJobPool);
 		pthread_cond_broadcast(&(*thPool)->jobPool->notEmpty);
 		pthread_mutex_unlock(&(*thPool)->jobPool->lockJobPool);
+		sleep(1);
 	}
 
 	// Destroy job pool
