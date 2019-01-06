@@ -5,127 +5,292 @@
 #include <errno.h> 
 #include <string.h>
 #include "threadPool.h"
-#define JOB_POOL_SIZE 20
 
-//functions for jobPool
+// Functions for jobPool
+// Initialize jobPool
 JobPool* initializeJobPool(){
 	JobPool* jobPool = malloc(sizeof(JobPool));
-	jobPool->jobs = malloc(JOB_POOL_SIZE*sizeof(Job));
-	jobPool->end = -1;
-	jobPool->position = 0;
-	jobPool->start = 0;
+	jobPool->head = NULL;
+	jobPool->tail = NULL;
+	jobPool->size = 0;
+	if(pthread_mutex_init(&(jobPool->lockJobPool),NULL)!=0){
+		//destroy jobPool if error occurs
+		destroyJobPool(&jobPool);
+		return NULL;
+	}
+	if(pthread_cond_init(&(jobPool->notEmpty),NULL)!=0){
+		// Destroy jobPool if error occurs
+		destroyJobPool(&jobPool);
+		return NULL;
+	}
 	return jobPool;
 }
 
-//insert to the start of jobs
-void insertJob(threadPool* th, Job* job){
-	pthread_mutex_lock(&(th->lockJobPool));
-	while (th->jobPool->position >= JOB_POOL_SIZE) {
-		pthread_cond_wait(&(th->notFull), &(th->lockJobPool));
-	}
-	//insert to jobs array
-	memmove(th->jobPool+1, th->jobPool, th->jobPool->position);
-	th->jobPool->jobs[th->jobPool->start] = *job;
-	th->jobPool->position++;
-	pthread_mutex_unlock(&(th->lockJobPool));
-}
-
-//get first item from jobPool
-Job* getJob(threadPool* th){
-	Job* job = NULL;
-	pthread_mutex_lock(&(th->lockJobPool));
-	while(th->jobPool->position <= 0) {
-		pthread_cond_wait(&(th->notEmpty), &(th->lockJobPool));
-	}
-	//get first job
-	job = &th->jobPool->jobs[th->jobPool->start];
-	th->jobPool->start = (th->jobPool->start + 1) % JOB_POOL_SIZE;
-	th->jobPool->position--;
-	pthread_mutex_unlock(&(th->lockJobPool));
-	return job;
-}
-
-//destroy jobPoll
+// Destroy jobPool
 void destroyJobPool(JobPool** jobPool){
-	free((*jobPool)->jobs);
-	(*jobPool)->jobs = NULL;
-	(*jobPool)->end = -1;
-	(*jobPool)->position = 0;
+	Job* currentJob = (*jobPool)->head;
+	Job* tempJob = NULL;
+	while(currentJob != NULL){
+		tempJob = currentJob;
+		currentJob = currentJob->nextJob;
+		free(tempJob->arg);
+		free(tempJob);
+	}
+	(*jobPool)->head = NULL;
+	(*jobPool)->size = 0;
+	pthread_mutex_destroy(&((*jobPool)->lockJobPool));
+    pthread_cond_destroy(&((*jobPool)->notEmpty));
 	free(*jobPool);
 	*jobPool = NULL;
 }
 
-//functions for threadPool
-threadPool* initializeThreadPool(int numThreads, int kindThread){
-	threadPool* th = malloc(sizeof(threadPool));
-	th->tids = malloc(numThreads*sizeof(pthread_t));
-	th->noThreads = numThreads;
-	
-	if(pthread_mutex_init(&(th->lockJobPool),NULL)!=0){
-		//destroy threadPool
-		destroyThreadPool(&th);
+
+//insert to the start of jobs
+void insertJob(JobPool* jobPool, Job* job){
+	// Lock jobPool because it's going to change
+	pthread_mutex_lock(&(jobPool->lockJobPool));
+	if(jobPool->head == NULL && jobPool->tail == NULL){
+		jobPool->head = malloc(sizeof(Job));
+		jobPool->head->function = job->function;
+		jobPool->head->arg = job->arg;
+		jobPool->tail = jobPool->head;
+		jobPool->head->nextJob = NULL;
+	}else{
+		jobPool->tail->nextJob = malloc(sizeof(Job));
+		jobPool->tail->nextJob->function = job->function;
+		jobPool->tail->nextJob->arg = job->arg;
+		jobPool->tail = jobPool->tail->nextJob;
+		jobPool->tail->nextJob = NULL;
+	}
+	free(job);
+	jobPool->size++;
+	pthread_cond_signal(&jobPool->notEmpty);
+	pthread_mutex_unlock(&(jobPool->lockJobPool));
+}
+
+// Get first item from jobPool
+Job* getJob(JobPool* jobPool){
+	Job* job = NULL;
+	pthread_mutex_lock(&(jobPool->lockJobPool));
+	while(jobPool->size <= 0) {
+		pthread_cond_wait(&(jobPool->notEmpty), &(jobPool->lockJobPool));
+	}
+	// Pop first job (head)
+	job = jobPool->head;
+	jobPool->head = jobPool->head->nextJob;
+	if(jobPool->head == NULL){
+		jobPool->tail = NULL;
+	}
+	jobPool->size--;
+	pthread_mutex_unlock(&(jobPool->lockJobPool));
+	return job;
+}
+
+// Functions for threadPool
+threadPool* initializeThreadPool(int numThreads){
+	// If number of threads given is 0, return NULL
+	if(numThreads == 0){
 		return NULL;
 	}
-	
-	if(pthread_cond_init(&(th->notEmpty),NULL)!=0){
-		//destroy threadPool
-		destroyThreadPool(&th);
+
+	// Allocate thread pool
+	threadPool* thPool = malloc(sizeof(threadPool));
+	if(thPool == NULL){
 		return NULL;
 	}
-	
-	if(pthread_cond_init(&(th->notFull),NULL)!=0){
-		//destroy threads
-		destroyThreadPool(&th);
+	// Set each field
+	// Set number of threads to thread pool
+	thPool->noThreads = numThreads;
+	// Threads currently alive are 0
+	thPool->noAlive = 0;
+	// Threads currently working are also 0
+	thPool->noWorking = 0;
+	// Initialize job queue
+	thPool->jobPool = initializeJobPool();
+	if (thPool->jobPool == NULL){
+		destroyThreadPool(&thPool);
 		return NULL;
 	}
+	// Allocate threads
+	thPool->threads = malloc(numThreads * sizeof(thread));
+	if (thPool->threads == NULL){
+		destroyThreadPool(&thPool);
+		return NULL;
+	}
+	// Initialize mutex and cond var
+	if(pthread_mutex_init(&thPool->lockThreadPool, NULL) != 0){
+		destroyThreadPool(&thPool);
+		return NULL;
+	}
+	if(pthread_cond_init(&thPool->allIdle, NULL) != 0){
+		destroyThreadPool(&thPool);
+		return NULL;
+	}
+	// In addition, we want to keep them alive (until it is set to 0)
+	keepAlive = 1;
+
+	// Initialize threads
+	for(int i=0; i < numThreads; i++){
+		// Set access to thread pool
+		thPool->threads[i].thPool = thPool;
+		// Initialize each thread
+		pthread_create(&thPool->threads[i].threadId, NULL, (void *) executeJob, &thPool->threads[i]);
+		// No need to join threads at end
+		pthread_detach(thPool->threads[i].threadId);
+	}
+
+	return thPool;
+}
+
+// Destroy thread pool
+void destroyThreadPool(threadPool** thPool){
+	if (thPool == NULL){
+		return;
+	}
+	// Threads should end
+	keepAlive = 0;
+
+	// Wake all threads
+	while ((*thPool)->noAlive){
+		pthread_mutex_lock(&(*thPool)->jobPool->lockJobPool);
+		pthread_cond_broadcast(&(*thPool)->jobPool->notEmpty);
+		pthread_mutex_unlock(&(*thPool)->jobPool->lockJobPool);
+		sleep(1);
+	}
+
+	// Destroy job pool
+	destroyJobPool(&(*thPool)->jobPool);
+   
+	// Destroy threads
+	if((*thPool)->threads!=NULL){
+		free((*thPool)->threads);
+		(*thPool)->threads = NULL;
+	}
 	
-	//initialize jobPool
-	th->jobPool = initializeJobPool();
+	(*thPool)->noThreads = -1;
 	
-	for(int i=0;i<numThreads;i++){
-		if(pthread_create(&th->tids[i],NULL, (void*) executeJob, th)!=0){
-			//destroy threads
-			destroyThreadPool(&th);
-			return NULL;
+    pthread_mutex_destroy(&((*thPool)->lockThreadPool));
+    pthread_cond_destroy(&((*thPool)->allIdle));
+		
+	free((*thPool));
+	*thPool = NULL;
+}
+
+void* executeJob(thread* th){
+	//printf("EXECUTE: %ld\n",th->threadId);
+	threadPool* thPool = th->thPool;
+	// Set thread as alive
+	pthread_mutex_lock(&thPool->lockThreadPool);
+	thPool->noAlive += 1;
+	pthread_mutex_unlock(&thPool->lockThreadPool);
+
+	while(keepAlive){
+		// wait until job pool has jobs
+		pthread_mutex_lock(&(thPool->jobPool->lockJobPool));
+		if(thPool->jobPool->size <= 0) {
+			pthread_cond_wait(&(thPool->jobPool->notEmpty), &(thPool->jobPool->lockJobPool));
+		}
+		pthread_mutex_unlock(&(thPool->jobPool->lockJobPool));
+		// If threads are kept alive
+		if (keepAlive && thPool->jobPool->size > 0){
+			//printf("WORK: %ld\n",th->threadId);
+			pthread_mutex_lock(&thPool->lockThreadPool);
+			// Set current thread as working
+			thPool->noWorking++;
+			pthread_mutex_unlock(&thPool->lockThreadPool);
+			// Pop job
+			Job* job = getJob(thPool->jobPool);
+			// Execute job
+			job->function(job->arg);
+			//printf("RET\n");
+			// Free job object
+			free(job->arg);
+			free(job);
+			/*pthread_mutex_lock(&thPool->lockThreadPool);
+			thPool->noWorking--;
+			if (thPool->noWorking == 0) {
+				// Signal that all threads are idle, not working
+				pthread_cond_signal(&thPool->allIdle);
+			}
+			pthread_mutex_unlock(&thPool->lockThreadPool);*/
 		}
 	}
-	return th;
-}
 
-void* executeJob(void* args){
-	/*threadPool* th = (threadPool*) args;
-	while(1){
-		//get fd
-		int newsock = getPoolData(th);
-		pthread_cond_signal(&th->notFull);
-		readGetLinesFromCrawler(newsock,th);
-		close(newsock);
-	}
-	pthread_exit(NULL);*/
-	return NULL;
+	pthread_mutex_lock(&thPool->lockThreadPool);
+	// Decrement number of threads being alive
+	thPool->noAlive--;
+	pthread_mutex_unlock(&thPool->lockThreadPool);
+	return NULL;	
 }
 
 
-//destroy threadPool
-void destroyThreadPool(threadPool** th){
-	for(size_t i = 0; i<(*th)->noThreads; i++) {
-        pthread_cancel((*th)->tids[i]);
-        pthread_join((*th)->tids[i], NULL);
+relation* mergeIntoHist(threadPool* thPool, relation* R){
+	 // Use threads for creating SHist by cutting it to pieces as the number of threads exist
+    relation** rels = malloc(thPool->noThreads*sizeof(relation*));
+   	int remainingTuples = R->num_tuples % thPool->noThreads;
+    // Perfect division - easy cut
+    int divisionFlag = 0;
+    if(remainingTuples == 0){
+    	divisionFlag = 1;
     }
-			
-	if((*th)->tids!=NULL){
-		free((*th)->tids);
-		(*th)->tids = NULL;
+
+    // Create Hists array
+    relation** hists = malloc(thPool->noThreads*sizeof(relation*));
+	int rowsEachChunk = R->num_tuples / thPool->noThreads;
+	int tempTuples = 0;
+	for(int i=0;i<thPool->noThreads;i++){
+		// Allocate and set chunk relations
+		// Last chunk will have additional rows if divisionFlag == 0
+		if(i==thPool->noThreads-1 && divisionFlag == 0){
+			rowsEachChunk += remainingTuples;
+		}
+		rels[i] = malloc(sizeof(relation));
+		rels[i]->tuples = malloc(rowsEachChunk*sizeof(tuple));
+		memmove(rels[i]->tuples, R->tuples + tempTuples, rowsEachChunk * sizeof(tuple));
+		rels[i]->num_tuples = rowsEachChunk;
+		tempTuples += rowsEachChunk;
+		// Add chunk and hist creation function
+		// Create histArgs struct
+		histArgs* args = malloc(sizeof(histArgs));
+		args->Hist = &hists[i];
+		args->R = rels[i];
+		// Add to job Pool
+		Job* job = malloc(sizeof(Job));
+		job->function = (void*)createHistogramThread;
+		job->arg = args;
+		//printf("ADD WORK\n");
+		insertJob(thPool->jobPool, job);
 	}
-	
-	(*th)->noThreads = -1;
-	
-    pthread_mutex_destroy(&((*th)->lockJobPool));
-    pthread_cond_destroy(&((*th)->notEmpty));
-    pthread_cond_destroy(&((*th)->notFull));
-	
-	destroyJobPool(&((*th)->jobPool));
-	
-	free((*th));
-	*th = NULL;
+
+	sleep(1);
+
+    // Create histogram
+    // Merge all chunks of Hists to a single Hist
+    // Same number of tuples for each Hist == BUCKETS
+    int numTuplesHists = hists[0]->num_tuples;
+    relation* Hist = malloc(sizeof(relation));
+    Hist->num_tuples = numTuplesHists;
+    Hist->tuples = malloc(numTuplesHists*sizeof(tuple));
+    
+	// Merge Hists to one by adding each row
+	for(int j=0;j<thPool->noThreads;j++){
+		for(int i=0;i < numTuplesHists ;i++){
+			Hist->tuples[i].rowId = hists[j]->tuples[i].rowId;
+			if(i == 0){
+				Hist->tuples[i].value = hists[j]->tuples[i].value;
+			}else{
+				Hist->tuples[i].value += hists[j]->tuples[i].value;
+			}
+		}		
+	}
+
+	// Delete additional vars
+    for(int i=0;i<thPool->noThreads;i++){
+    	deleteRelation(&rels[i]);
+    	deleteRelation(&hists[i]);
+    }
+    free(rels);
+    free(hists);
+
+	return Hist;
 }

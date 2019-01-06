@@ -9,7 +9,7 @@
 #include "radixHashJoin.h"
 
 
-int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_initRelations) {
+int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_initRelations, threadPool* thPool) {
 	char *line = NULL;
 	size_t len = 0;
 	int read;
@@ -226,7 +226,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 						updateJoinStatistics(predicates, initRelations, relations, queryMetadata, i);
 
 					  	// Join columns
-						int result = joinColumns(relations, predicates, initRelations, rList, i, intermediateStructs[currentJoinPredicates], intermediateStructs, currentJoinPredicates);
+						int result = joinColumns(relations, predicates, initRelations, rList, i, intermediateStructs[currentJoinPredicates], intermediateStructs, currentJoinPredicates, thPool);
 						currentJoinPredicates++;
                         if (result == -1) {
 							return 0;
@@ -335,7 +335,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 }
 
 
-int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter, intermediate** intermediateStructs, int noJoins) {
+int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate, intermediate* inter, intermediate** intermediateStructs, int noJoins, threadPool* thPool) {
 	// Check if relations in predicate are the same
 	int leftRelationSame = predicates[currentPredicate]->leftSide->rowId;
 	int rightRelationSame = predicates[currentPredicate]->rightSide->rowId;
@@ -506,6 +506,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(Rrel);
 
     // Create histogram
+    // Use threads for creating RHist by cutting it to pieces as the number of threads exist
+   	//relation* RHist = mergeIntoHist(thPool, Rrel);
     relation* RHist = createHistogram(Rrel);
     if (PRINT) printRelation(RHist);
 
@@ -548,6 +550,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(Srel);
 
     // Create histogram
+    // Use threads for creating RHist by cutting it to pieces as the number of threads exist
+   	//relation* SHist = mergeIntoHist(thPool, Srel);
     relation* SHist = createHistogram(Srel);
     if (PRINT) printRelation(SHist);
 

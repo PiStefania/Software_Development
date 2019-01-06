@@ -4,6 +4,7 @@
 #include "queryMethods.h"
 #include "relationMethods.h"
 #include "rowIdListMethods.h"
+#include "threadPool.h"
 
 
 typedef struct intermediate {
@@ -19,10 +20,10 @@ typedef struct intermediate {
 } intermediate;
 
 
-int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_initRelations);
+int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_initRelations, threadPool* thPool);
 
 int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelations, rowIdsList* rList, int currentPredicate,
-                        intermediate* inter, intermediate** intermediateStructs, int noJoins);
+                        intermediate* inter, intermediate** intermediateStructs, int noJoins, threadPool* thPool);
 int updatePredicates(predicate** predicates, rowIdsList* rList, int currentPredicate, int side, intermediate** intermediateStructs,
                         int noJoins, intermediate* currentIntermediate);
 

@@ -2,36 +2,53 @@
 #define _THREAD_POOL_H_
 
 #include <pthread.h>
+#include "radixHashJoin.h"
 
 typedef struct Job{
-	//arguments
+	struct Job* nextJob;
+	void (*function)(void* arg);
+	void* arg;
 }Job;
 
 typedef struct JobPool{
-	Job* jobs;				//jobs -> different kind of arguments
-	int end;				//end of buffer
-	int position;			//current size of buffer
-	int start;
+	Job* head;							//job head -> get node from
+	Job* tail;							//job tail -> insert to next of
+	int size;							//current size of queue
+	pthread_mutex_t lockJobPool;		//mutex for locking jobPool
+	pthread_cond_t notEmpty;			//cond var for checking if jobPool is empty
 }JobPool;
+
+typedef struct thread{
+	pthread_t threadId;					//Thread
+	struct threadPool* thPool;			//Need to get access to whole structure for executing a job
+}thread;
 
 typedef struct threadPool{
 	int noThreads;						//number of threads
-	pthread_t* tids; 					//execution threads
-	pthread_cond_t notEmpty;			//cond var for checking if jobPool is empty
-	pthread_cond_t notFull;				//cond var for checking if jobPool is full
-	pthread_mutex_t lockJobPool;		//mutex for locking jobPool
-	JobPool* jobPool;						//jobs that the threads consume
+	thread* threads; 					//execution threads
+	JobPool* jobPool;					//jobs that the threads consume
+	volatile int noAlive;      			//threads currently alive
+	volatile int noWorking;    			//threads currently working
+	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
+	pthread_cond_t allIdle;    		//cond var for checking if thread pool is empty, no working threads
 }threadPool;
 
-//functions for jobPool
-JobPool* initializeJobPool();
-void insertJob(threadPool* th, Job* job);
-Job* getJob(threadPool* th);
-void destroyJobPool(JobPool** jobPool);
-void* executeJob(void* args);
+static volatile int keepAlive;
 
-//functions for threads
-threadPool* initializeThreadPool(int numThreads, int kindThread);
+
+// Functions for jobPool
+JobPool* initializeJobPool();
+void destroyJobPool(JobPool** jobPool);
+void insertJob(JobPool* jobPool, Job* job);
+Job* getJob(JobPool* jobPool);
+
+// Functions for threadPool
+threadPool* initializeThreadPool(int numThreads);
 void destroyThreadPool(threadPool** th);
 
+// General function for executing job
+void* executeJob(thread* th);
+
+// General Functions for mergind data
+relation* mergeIntoHist(threadPool* thPool, relation* R);
 #endif

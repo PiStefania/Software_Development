@@ -5,7 +5,7 @@ OUT = joinProgram
 HEADERS = radixHashJoin.h queryMethods.h relationMethods.h rowIdListMethods.h statisticsMethods.h implementation.h threadPool.h
 
 all: $(OBJECTS) $(HEADERS)
-	$(CC) -o $(OUT) -lm $(FILES)
+	$(CC) -o $(OUT) $(FILES) -lm
 	make clean_some
 
 main.o: main.c

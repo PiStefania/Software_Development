@@ -303,3 +303,26 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 	}
     return 0;
 }
+
+// Create Histogram with thread
+void createHistogramThread(histArgs* args){
+	relation* R = args->R;
+	relation** Hist = args->Hist;
+	if(R == NULL)
+		return;
+	if(R->tuples == NULL || R->num_tuples == 0)
+		return;
+	*Hist = malloc(sizeof(relation));
+	(*Hist)->num_tuples = BUCKETS;
+	(*Hist)->tuples = malloc(BUCKETS * sizeof(tuple));
+	//initialize Hist
+	for(int i=0;i<(*Hist)->num_tuples;i++){
+		(*Hist)->tuples[i].rowId = i;
+		(*Hist)->tuples[i].value = 0;
+	}
+	//populate Hist
+	for(int i=0;i<R->num_tuples;i++){
+		int bucket = hashFunction1(R->tuples[i].value);
+		(*Hist)->tuples[bucket].value++;
+	}
+}

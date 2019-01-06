@@ -6,9 +6,13 @@
 #include "radixHashJoin.h"
 #include "relationMethods.h"
 #include "implementation.h"
+#include "threadPool.h"
+#define THREADS 1
 
 
 int main(int argc, char* argv[]){
+	// Create thread Pool
+	threadPool* thPool = initializeThreadPool(THREADS);
 	printf("------------------------------------------------------\n");
 	printf("START OF MAIN PROGRAM\n");
 	// Check arguments
@@ -44,10 +48,11 @@ int main(int argc, char* argv[]){
 	if(work != NULL){
 		workFile = fopen(work,"r");
 	}
-	int query = queriesImplementation(workFile, initRelations, num_of_initRelations);
+	int query = queriesImplementation(workFile, initRelations, num_of_initRelations, thPool);
 	if (!query) printf(" WORK FAILED\n");
 
 	deleteRelationsData(initRelations, &num_of_initRelations);
-
+	// Delete threadPool
+	destroyThreadPool(&thPool);
 	return 0;
 }

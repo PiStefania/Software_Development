@@ -47,6 +47,18 @@ typedef struct result{
 	resultNode* head;
 }result;
 
+// For job scheduler - threads
+typedef struct histArgs{
+	relation** Hist;
+	relation* R;
+}histArgs;
+
+typedef struct rOrderedArgs{
+	relation* R;
+	relation* Hist;
+	relation* Psum;
+}rOrderedArgs;
+
 resultNode * createNode();
 
 result * createList();
@@ -84,5 +96,8 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum);
 
 //create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
 int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum);
+
+// Threads
+void createHistogramThread(histArgs* args);
 
 #endif
