@@ -3,7 +3,7 @@
 
 #include "queryMethods.h"
 #include "relationMethods.h"
-#include "rowIdListMethods.h"
+#include "rowIdArrayMethods.h"
 #include "threadPool.h"
 
 
@@ -26,5 +26,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
                         intermediate* inter, intermediate** intermediateStructs, int noJoins, threadPool* thPool);
 int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPredicate, int side, intermediate** intermediateStructs,
                         int noJoins, intermediate* currentIntermediate);
+
+void searchOutdatedPredicates(predicate** predicates, tuple* projections, char *outdatedPredicates, int currentPredicate, int predicatesSize, int projectionsSize);
+
+int checkSameId(tuple* foundIds, uint64_t rowId, int capacity, char checkFlag);
 
 #endif

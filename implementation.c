@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "implementation.h"
-#include "rowIdListMethods.h"
+#include "rowIdArrayMethods.h"
 #include "statisticsMethods.h"
 #include "relationMethods.h"
 #include "queryMethods.h"
@@ -459,12 +459,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     	// Get rowid - value pairs for creating a new relation for join
     	// In addition, get rowid - number of times found pairs, helpful for updating predicates
     	foundIdsLeft = malloc(rArray[predicates[currentPredicate]->leftSide->rowId]->position * sizeof(tuple));
-		uint64_t* arrayValues = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1, foundIdsLeft, &capacityLeft);
-		capacityLeft = 0;
-		uint64_t* arrayRowIds = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 0, foundIdsLeft, &capacityLeft);
-    	Rrel = createRelation(arrayValues, arrayRowIds, rArray[predicates[currentPredicate]->leftSide->rowId]->position);
-		free(arrayValues);
-		free(arrayRowIds);
+		//uint64_t* arrayValues = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->leftSide->rowId, initRelations, relationId1, relColumn1, 1, foundIdsLeft, &capacityLeft);
+    	Rrel = createRelationFromRarray(rArray[predicates[currentPredicate]->leftSide->rowId], initRelations, relationId1, relColumn1);
 		inter->foundIdsLeft = foundIdsLeft;
    		inter->capacityLeft = capacityLeft;
 		capacityLeft = 0;
@@ -502,12 +498,8 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     int capacityRight = 0;
     if (rArray[predicates[currentPredicate]->rightSide->rowId]->position > 0) {
     	foundIdsRight = malloc(rArray[predicates[currentPredicate]->rightSide->rowId]->position * sizeof(tuple));
-    	uint64_t* arrayValues = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1, foundIdsRight, &capacityRight);
-		capacityRight = 0;
-		uint64_t* arrayRowIds = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 0, foundIdsRight, &capacityRight);
-    	Srel = createRelation(arrayValues, arrayRowIds, rArray[predicates[currentPredicate]->rightSide->rowId]->position);
-    	free(arrayValues);
-		free(arrayRowIds);
+    	//uint64_t* arrayValues = setRowIdsValuesToArray(rArray, predicates[currentPredicate]->rightSide->rowId, initRelations, relationId2, relColumn2, 1, foundIdsRight, &capacityRight);
+    	Srel = createRelationFromRarray(rArray[predicates[currentPredicate]->rightSide->rowId], initRelations, relationId2, relColumn2);
 		inter->foundIdsRight = foundIdsRight;
     	inter->capacityRight = capacityRight;
     }
@@ -606,7 +598,7 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 	}
 	// Delete rowIdsArray rowIds of selected relation main structure and create another one from the beginning
 	free(newOutdatedArray->rowIds);
-	newOutdatedArray->rowIds = malloc(DEFAULT_ROWS*sizeof(uint32_t));
+	newOutdatedArray->rowIds = malloc(DEFAULT_ROWS*sizeof(uint64_t));
 	newOutdatedArray->position = 0;
 	newOutdatedArray->num_of_rowIds = DEFAULT_ROWS;
 
@@ -752,4 +744,66 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 	free(tempWholeLeft);
 	free(tempWholeRight);
 	return 1;
+}
+
+
+// Search for previous predicates need to be updated
+void searchOutdatedPredicates(predicate** predicates, tuple* projections, char *outdatedPredicates, int currentPredicate, int predicatesSize, int projectionsSize) {
+    // We update only the join predicates, not the compare ones
+    for (int j = 0; j < predicatesSize; j++) {
+        // Each position same to predicates array - 0 good / 1 outdated, needs to be executed again
+        outdatedPredicates[j] = 0;
+    }
+    // After join, look for outdated join predicates (if a member of current predicate has already been used in another join)
+    for (int j = 0; j < currentPredicate; j++) {
+        if (predicates[j]->kind != 0) {
+            uint64_t iLeftRow = predicates[currentPredicate]->leftSide->rowId;
+            uint64_t iLeftColumn = predicates[currentPredicate]->leftSide->value;
+            uint64_t iRightRow = predicates[currentPredicate]->rightSide->rowId;
+            uint64_t iRightColumn = predicates[currentPredicate]->rightSide->value;
+            uint64_t jLeftRow = predicates[j]->leftSide->rowId;
+            uint64_t jLeftColumn = predicates[j]->leftSide->value;
+            uint64_t jRightRow = predicates[j]->rightSide->rowId;
+            uint64_t jRightColumn = predicates[j]->rightSide->value;
+            if ((iLeftRow == jLeftRow && iLeftColumn == jLeftColumn) || (iRightRow == jLeftRow && iRightColumn == jLeftColumn)) {
+                if (iLeftRow == jRightRow || iRightRow == jRightRow){
+                    continue;
+                }
+                for (int k = 0; k < projectionsSize; k++) {
+                    if (projections[k].rowId == jRightRow) {
+                        outdatedPredicates[j] = 1;
+                        break;
+                    }
+                    else continue;
+                }
+            }
+            else if ((iLeftRow == jRightRow && iLeftColumn == jRightColumn) || (iRightRow == jRightRow && iRightColumn == jRightColumn)) {
+                if (iLeftRow == jLeftRow || iRightRow == jLeftRow){
+                    continue;
+                }
+                for (int k = 0; k < projectionsSize; k++) {
+                    if (projections[k].rowId == jLeftRow) {
+                        outdatedPredicates[j] = 2;
+                        break;
+                    }
+                    else continue;
+                }
+            }
+        }
+        else continue;
+    }
+}
+
+int checkSameId(tuple* foundIds, uint64_t rowId, int capacity, char checkFlag) {
+	for (int i = 0; i < capacity; i++) {
+		// If rowId is the same as the one given
+		if (foundIds[i].rowId == rowId) {
+			if (checkFlag == 1) {
+				// Increment number of times found
+				foundIds[i].value++;
+			}
+			return 1;
+		}
+	}
+	return 0;
 }

@@ -114,6 +114,17 @@ relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems){
 	return rel;
 }
 
+relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn){
+	relation* rel = malloc(sizeof(relation));
+	rel->tuples = malloc(rArray->position*sizeof(tuple));
+	for (int i = 0; i < rArray->position; i++){
+        rel->tuples[i].rowId = rArray->rowIds[i];
+		rel->tuples[i].value = initRelations[relationId].Rarray[relColumn][rArray->rowIds[i]];
+	}
+	rel->num_tuples = rArray->position;
+	return rel;
+}
+
 void deleteRelation(relation** rel){
 	if(*rel == NULL)
 		return;

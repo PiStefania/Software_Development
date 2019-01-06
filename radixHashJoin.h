@@ -2,6 +2,8 @@
 #define _RADIX_HASH_JOIN_H_
 
 #include <stdint.h>
+#include "rowIdArrayMethods.h"
+#include "relationMethods.h"
 
 #define BUCKETS 4							// Number of buckets is 2^n, where n = num of last bits for hashing
 #define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
@@ -78,6 +80,7 @@ int hashFunction2(uint64_t value);
 
 //create relation for field
 relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems);
+relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn);
 
 //delete specific relation
 void deleteRelation(relation** rel);
