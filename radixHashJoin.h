@@ -61,6 +61,13 @@ typedef struct rOrderedArgs{
 	relation* Psum;
 }rOrderedArgs;
 
+// For update
+typedef struct foundIds{
+	tuple* idsHash;
+	int length;
+	int position;
+}foundIds;
+
 resultNode * createNode();
 
 result * createList();
@@ -80,7 +87,7 @@ int hashFunction2(uint64_t value);
 
 //create relation for field
 relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems);
-relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn);
+relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn, foundIds* foundIdsRelation);
 
 //delete specific relation
 void deleteRelation(relation** rel);
@@ -98,9 +105,16 @@ relation* createPsum(relation* Hist);
 relation* createROrdered(relation* R, relation* Hist, relation* Psum);
 
 //create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
-int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum);
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, 
+	relation* SOrdered, relation* SHist, relation* SPsum, foundIds* foundIdsRelationLeft, foundIds* foundIdsRelationRight);
 
 // Threads
 void createHistogramThread(histArgs* args);
+
+// For update
+foundIds* initializeFoundIds();
+void doubleFoundIds(foundIds* foundIdsRelation);
+void deleteFoundIds(foundIds** foundIdsRelation);
+void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId);
 
 #endif

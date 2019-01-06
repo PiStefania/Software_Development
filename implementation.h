@@ -5,7 +5,7 @@
 #include "relationMethods.h"
 #include "rowIdArrayMethods.h"
 #include "threadPool.h"
-
+#include "radixHashJoin.h"
 
 typedef struct intermediate {
 	result* ResultList;
@@ -13,10 +13,10 @@ typedef struct intermediate {
 	int leftColumn;
 	int rightRelation;
 	int rightColumn;
-	tuple* foundIdsLeft;
-	tuple* foundIdsRight;
-	int capacityLeft;
-	int capacityRight;
+	foundIds* foundIdsLeft;
+	foundIds* foundIdsRight;
+	foundIds* foundIdsLeftAfterRadix;
+	foundIds* foundIdsRightAfterRadix;
 } intermediate;
 
 
@@ -28,7 +28,5 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
                         int noJoins, intermediate* currentIntermediate);
 
 void searchOutdatedPredicates(predicate** predicates, tuple* projections, char *outdatedPredicates, int currentPredicate, int predicatesSize, int projectionsSize);
-
-int checkSameId(tuple* foundIds, uint64_t rowId, int capacity, char checkFlag);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "relationMethods.h"
 
-#define DEFAULT_ROWS 5
+#define DEFAULT_ROWS 10
 
 typedef struct rowIdsArray{
     int relationId;
@@ -17,7 +17,5 @@ int insertIntoRowIdsArray(rowIdsArray* rArray, int rowId);
 void doubleRowIdsArray(rowIdsArray* rArray);
 void deleteRowIdsArray(rowIdsArray** rArray);
 void printRowIdsArray(rowIdsArray* rArray, int noOfRelations);
-//uint64_t* setRowIdsValuesToArray(rowIdsArray** rArray, int position, relationsInfo* initRelations, int relationId, int relColumn, char type, tuple* foundIds, int* capacity);
-
 
 #endif

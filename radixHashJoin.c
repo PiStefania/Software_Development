@@ -114,12 +114,14 @@ relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems){
 	return rel;
 }
 
-relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn){
+relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn, foundIds* foundIdsRelation){
 	relation* rel = malloc(sizeof(relation));
 	rel->tuples = malloc(rArray->position*sizeof(tuple));
 	for (int i = 0; i < rArray->position; i++){
         rel->tuples[i].rowId = rArray->rowIds[i];
 		rel->tuples[i].value = initRelations[relationId].Rarray[relColumn][rArray->rowIds[i]];
+		// Insert to intermediate's field
+		insertIdsHash(foundIdsRelation, rArray->rowIds[i]);
 	}
 	rel->num_tuples = rArray->position;
 	return rel;
@@ -240,8 +242,8 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 
 
 //Create indexes for each bucket in the smaller one, compare the items of bigger with smaller's and finally join the same values (return in the list rowIds)
-int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum) {
-    // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, 
+	relation* SOrdered, relation* SHist, relation* SPsum, foundIds* foundIdsRelationLeft, foundIds* foundIdsRelationRight){    // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
     for (int i = 0; i < BUCKETS; i++) {
 		// Find which of the 2 buckets (from R and S array) is the smaller one, in order to create the index in that one
         relation *smallOrdered, *smallHist, *smallPsum, *bigOrdered, *bigHist, *bigPsum;
@@ -306,6 +308,9 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
+						// Insert to intermediate's field after radix
+						insertIdsHash(foundIdsRelationLeft, ROrdered->tuples[itemROrderedOffset].rowId);
+						insertIdsHash(foundIdsRelationRight, SOrdered->tuples[itemSOrderedOffset].rowId);
 					}
 					currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of smaller with the current one from bigger
 				} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from smaller left
@@ -336,4 +341,46 @@ void createHistogramThread(histArgs* args){
 		int bucket = hashFunction1(R->tuples[i].value);
 		(*Hist)->tuples[bucket].value++;
 	}
+}
+
+// For update
+foundIds* initializeFoundIds(){
+	foundIds* foundIdsRelation = malloc(sizeof(foundIds));
+	foundIdsRelation->length = DEFAULT_ROWS;
+	foundIdsRelation->position = 0;
+	foundIdsRelation->idsHash = malloc(foundIdsRelation->length*sizeof(tuple));
+	return foundIdsRelation;
+}
+
+void doubleFoundIds(foundIds* foundIdsRelation){
+	foundIdsRelation->length *= 2;
+	foundIdsRelation->idsHash = realloc(foundIdsRelation->idsHash, foundIdsRelation->length*sizeof(tuple));
+}
+
+void deleteFoundIds(foundIds** foundIdsRelation){
+	if(*foundIdsRelation != NULL){
+		free((*foundIdsRelation)->idsHash);
+		(*foundIdsRelation)->idsHash = NULL;
+		free(*foundIdsRelation);
+		*foundIdsRelation = NULL;
+	}
+}
+
+void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId) {
+	for (int i = 0; i < foundIdsRelation->position; i++) {
+		// If rowId is the same as the one given
+		if (foundIdsRelation->idsHash[i].rowId == rowId) {
+			foundIdsRelation->idsHash[i].value++;
+			return;
+		}
+	}
+
+	// Not found -> insert
+	if(foundIdsRelation->position == foundIdsRelation->length){
+		doubleFoundIds(foundIdsRelation);
+	}
+
+	foundIdsRelation->idsHash[foundIdsRelation->position].rowId = rowId;
+	foundIdsRelation->idsHash[foundIdsRelation->position].value = 1;
+	foundIdsRelation->position++;
 }
