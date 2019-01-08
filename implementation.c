@@ -522,9 +522,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(SOrdered);
 
     // Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
-    inter->foundIdsLeftAfterRadix = initializeFoundIds();
-    inter->foundIdsRightAfterRadix = initializeFoundIds();
-    if (indexCompareJoin(inter->ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum, inter->foundIdsLeftAfterRadix, inter->foundIdsRightAfterRadix)) {
+    if (indexCompareJoin(inter->ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
         printf("Error\n");
         return -1;
     }
@@ -613,29 +611,52 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 	} else{
 		currentSide = 1;
 	}
+   	
+   	int capacity = 0;
+   	int capacityRight = 0;
+   	int capacityLeft = 0;
+   	if(currentIntermediate->foundIdsRight != NULL){
+   		capacityRight = currentIntermediate->foundIdsRight->position;
+   	}
+   	if(currentIntermediate->foundIdsLeft != NULL){
+   		capacityLeft = currentIntermediate->foundIdsLeft->position;
+   	}
 
+	if(currentIntermediate->foundIdsLeftAfterRadix == NULL && currentIntermediate->foundIdsRightAfterRadix == NULL){
+		currentIntermediate->foundIdsLeftAfterRadix = initializeFoundIds();
+		currentIntermediate->foundIdsRightAfterRadix = initializeFoundIds();
+		while(currentResultList != NULL){
+			for(int i=0;i<currentResultList->num_of_elems;i++){
+				// Insert to intermediate's fields
+				insertIdsHash(currentIntermediate->foundIdsLeftAfterRadix, currentResultList->array[i].rowId1);
+				insertIdsHash(currentIntermediate->foundIdsRightAfterRadix, currentResultList->array[i].rowId2);
+			}
+			currentResultList = currentResultList->next;
+		}
 
-	// Update for number of appearances
-	foundIds* tempWholeLeft = currentIntermediate->foundIdsLeftAfterRadix;
-	foundIds* tempWholeRight = currentIntermediate->foundIdsRightAfterRadix;
-	for(int i=0;i<currentIntermediate->foundIdsLeftAfterRadix->position;i++){
-		for(int j=0;j<currentIntermediate->foundIdsLeft->position;j++){
-			if(tempWholeLeft->idsHash[i].rowId == currentIntermediate->foundIdsLeft->idsHash[j].rowId){
-				tempWholeLeft->idsHash[i].value /= currentIntermediate->foundIdsLeft->idsHash[j].value;
-				break;
+		// Set minimum capacity
+		capacity = currentIntermediate->foundIdsLeftAfterRadix->position;
+		if(capacity > currentIntermediate->foundIdsRightAfterRadix->position){
+			capacity = currentIntermediate->foundIdsRightAfterRadix->position;
+		}
+		// Update for number of appearances
+		for(int i=0;i<capacity;i++){
+			for(int j=0;j<capacityLeft;j++){
+				if(currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].rowId == currentIntermediate->foundIdsLeft->idsHash[j].rowId){
+					currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].value /= currentIntermediate->foundIdsLeft->idsHash[j].value;
+					break;
+				}
+			}
+			for(int j=0;j<capacityRight;j++){
+				if(currentIntermediate->foundIdsRightAfterRadix->idsHash[i].rowId == currentIntermediate->foundIdsRight->idsHash[j].rowId){
+					currentIntermediate->foundIdsRightAfterRadix->idsHash[i].value /= currentIntermediate->foundIdsRight->idsHash[j].value;
+					break;
+				}
 			}
 		}
 	}
-	for(int i=0;i<currentIntermediate->foundIdsRightAfterRadix->position;i++){
-		for(int j=0;j<currentIntermediate->foundIdsRight->position;j++){
-			if(tempWholeRight->idsHash[i].rowId == currentIntermediate->foundIdsRight->idsHash[j].rowId){
-				tempWholeRight->idsHash[i].value /= currentIntermediate->foundIdsRight->idsHash[j].value;
-				break;
-			}
-		}
-	}
-	int capacityLeft = currentIntermediate->foundIdsLeftAfterRadix->position;
-	int capacityRight = currentIntermediate->foundIdsRightAfterRadix->position;
+
+	
 	// For each resultlist node of current intermediate join
 	currentResultList = currentIntermediate->ResultList->head;
 	while (currentResultList != NULL) {
@@ -649,8 +670,8 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 				// Find counter of rowId
 				int tempIndex = 0;
 				for(int i=0;i<capacityLeft;i++){
-					if(currentIntermediateRowId == tempWholeLeft->idsHash[i].rowId){
-						counter = tempWholeLeft->idsHash[i].value;
+					if(currentIntermediateRowId == currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].rowId){
+						counter = currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].value;
 						tempIndex = i;
 						break;
 					}
@@ -660,15 +681,15 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 					continue;
 				// Else decrement counter and use it for compare
 				}else{
-					tempWholeLeft->idsHash[tempIndex].value--;
+					currentIntermediate->foundIdsLeftAfterRadix->idsHash[tempIndex].value--;
 				}
 			// Same as above
 			}else if(currentSide == 2 && capacityRight > 0){
 				currentIntermediateRowId = currentResultList->array[counterCurrentIntermediate].rowId2;
 				int tempIndex = 0;
 				for(int i=0;i<capacityRight;i++){
-					if(currentIntermediateRowId == tempWholeRight->idsHash[i].rowId){
-						counter = tempWholeRight->idsHash[i].value;
+					if(currentIntermediateRowId == currentIntermediate->foundIdsRightAfterRadix->idsHash[i].rowId){
+						counter = currentIntermediate->foundIdsRightAfterRadix->idsHash[i].value;
 						tempIndex = i;
 						break;
 					}
@@ -676,7 +697,7 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 				if(counter == 0){
 					continue;
 				}else{
-					tempWholeRight->idsHash[tempIndex].value--;
+					currentIntermediate->foundIdsRightAfterRadix->idsHash[tempIndex].value--;
 				}
 			}
 

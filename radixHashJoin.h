@@ -105,8 +105,7 @@ relation* createPsum(relation* Hist);
 relation* createROrdered(relation* R, relation* Hist, relation* Psum);
 
 //create indexes for each bucket in R array, compare the items of S with R's and finally join the same values (return in the list rowIds)
-int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, 
-	relation* SOrdered, relation* SHist, relation* SPsum, foundIds* foundIdsRelationLeft, foundIds* foundIdsRelationRight);
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum);
 
 // Threads
 void createHistogramThread(histArgs* args);

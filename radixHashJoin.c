@@ -242,8 +242,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 
 
 //Create indexes for each bucket in the smaller one, compare the items of bigger with smaller's and finally join the same values (return in the list rowIds)
-int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, 
-	relation* SOrdered, relation* SHist, relation* SPsum, foundIds* foundIdsRelationLeft, foundIds* foundIdsRelationRight){    // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
+int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum){    // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
     for (int i = 0; i < BUCKETS; i++) {
 		// Find which of the 2 buckets (from R and S array) is the smaller one, in order to create the index in that one
         relation *smallOrdered, *smallHist, *smallPsum, *bigOrdered, *bigHist, *bigPsum;
@@ -308,9 +307,6 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
-						// Insert to intermediate's field after radix
-						insertIdsHash(foundIdsRelationLeft, ROrdered->tuples[itemROrderedOffset].rowId);
-						insertIdsHash(foundIdsRelationRight, SOrdered->tuples[itemSOrderedOffset].rowId);
 					}
 					currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of smaller with the current one from bigger
 				} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from smaller left
