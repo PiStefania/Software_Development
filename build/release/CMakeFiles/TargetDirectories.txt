@@ -1,4 +1,0 @@
-/home/orestis/Ergasia/Software_Development/build/release/CMakeFiles/rebuild_cache.dir
-/home/orestis/Ergasia/Software_Development/build/release/CMakeFiles/edit_cache.dir
-/home/orestis/Ergasia/Software_Development/build/release/CMakeFiles/harness.dir
-/home/orestis/Ergasia/Software_Development/build/release/CMakeFiles/link_target.dir
