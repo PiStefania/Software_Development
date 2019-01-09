@@ -438,13 +438,11 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 			if(newRowIdsArrayLeft != NULL){
 				deleteRowIdsArray(&rArray[predicates[currentPredicate]->leftSide->rowId]);
 				rArray[predicates[currentPredicate]->leftSide->rowId] = newRowIdsArrayLeft;
-				deleteRowIdsArray(&newRowIdsArrayLeft);
 			}
 
 			if(newRowIdsArrayRight != NULL){
 				deleteRowIdsArray(&rArray[predicates[currentPredicate]->rightSide->rowId]);
 				rArray[predicates[currentPredicate]->rightSide->rowId] = newRowIdsArrayRight;
-				deleteRowIdsArray(&newRowIdsArrayRight);
 			}
 			return 1;
 		}
@@ -627,7 +625,7 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 		currentIntermediate->foundIdsRightAfterRadix = initializeFoundIds();
 		while(currentResultList != NULL){
 			for(int i=0;i<currentResultList->num_of_elems;i++){
-				// Insert to intermediate's fields
+				// Insert to intermediate's fields with sort
 				insertIdsHash(currentIntermediate->foundIdsLeftAfterRadix, currentResultList->array[i].rowId1);
 				insertIdsHash(currentIntermediate->foundIdsRightAfterRadix, currentResultList->array[i].rowId2);
 			}
@@ -641,6 +639,18 @@ int updatePredicates(predicate** predicates, rowIdsArray** rArray, int currentPr
 		}
 		// Update for number of appearances
 		for(int i=0;i<capacity;i++){
+			/*if(capacityLeft > 0){
+				int positionSame1 = binarySearchFoundIds(currentIntermediate->foundIdsLeft,currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].rowId);
+				if(currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].rowId == currentIntermediate->foundIdsLeft->idsHash[positionSame1].rowId){
+					currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].value /= currentIntermediate->foundIdsLeft->idsHash[positionSame1].value;
+				}
+			}
+			if(capacityRight > 0){
+				int positionSame2 = binarySearchFoundIds(currentIntermediate->foundIdsRight,currentIntermediate->foundIdsRightAfterRadix->idsHash[i].rowId);
+				if(currentIntermediate->foundIdsRightAfterRadix->idsHash[i].rowId == currentIntermediate->foundIdsRight->idsHash[positionSame2].rowId){
+					currentIntermediate->foundIdsRightAfterRadix->idsHash[i].value /= currentIntermediate->foundIdsRight->idsHash[positionSame2].value;
+				}
+			}*/
 			for(int j=0;j<capacityLeft;j++){
 				if(currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].rowId == currentIntermediate->foundIdsLeft->idsHash[j].rowId){
 					currentIntermediate->foundIdsLeftAfterRadix->idsHash[i].value /= currentIntermediate->foundIdsLeft->idsHash[j].value;

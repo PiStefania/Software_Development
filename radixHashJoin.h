@@ -115,5 +115,7 @@ foundIds* initializeFoundIds();
 void doubleFoundIds(foundIds* foundIdsRelation);
 void deleteFoundIds(foundIds** foundIdsRelation);
 void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId);
+int binarySearchFoundIds(foundIds* fIds, uint64_t rowId);
+void insertionSortFoundIds(foundIds* fIds, uint64_t rowId);
 
 #endif

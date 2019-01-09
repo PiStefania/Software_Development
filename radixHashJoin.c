@@ -120,7 +120,8 @@ relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelat
 	for (int i = 0; i < rArray->position; i++){
         rel->tuples[i].rowId = rArray->rowIds[i];
 		rel->tuples[i].value = initRelations[relationId].Rarray[relColumn][rArray->rowIds[i]];
-		// Insert to intermediate's field
+		// Insert to intermediate's field with sorting
+		//insertionSortFoundIds(foundIdsRelation, rArray->rowIds[i]);
 		insertIdsHash(foundIdsRelation, rArray->rowIds[i]);
 	}
 	rel->num_tuples = rArray->position;
@@ -379,4 +380,65 @@ void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId) {
 	foundIdsRelation->idsHash[foundIdsRelation->position].rowId = rowId;
 	foundIdsRelation->idsHash[foundIdsRelation->position].value = 1;
 	foundIdsRelation->position++;
+}
+
+// Binary search foundIds->idsHash array depending on id and return its position
+int binarySearchFoundIds(foundIds* fIds, uint64_t rowId){
+	int first = 0;
+	int last = fIds->position-2;
+	if(last == -2){
+		return 0;
+	}
+	int mid = 0;
+	tuple* rowIds = fIds->idsHash;
+	while (first < last){
+        int mid = first + (last-first)/2;
+        if(rowIds[mid].rowId == rowId)
+            return mid;
+        if (rowIds[mid].rowId < rowId)
+            first = mid + 1;
+		else
+            last = mid - 1;
+    }
+	if(last<=first){
+		if(rowId > fIds->idsHash[first].rowId)
+			return first+1;
+		else
+			return first;
+	}
+    return mid;
+}
+
+// Insert a rowId to foundIds
+void insertionSortFoundIds(foundIds* fIds, uint64_t rowId){
+	int getPosition = binarySearchFoundIds(fIds,rowId);
+	
+	// Full array, need to double
+	if(fIds->position == fIds->length){
+		doubleFoundIds(fIds);
+	}
+	
+	if(fIds->position == 0){
+		// Insert to first position
+		fIds->idsHash[0].rowId = rowId;
+		fIds->idsHash[0].value = 1;
+		fIds->position++;
+	}else{
+		if(getPosition < fIds->position){
+			// If same id in position, increment counter value
+			if(rowId == fIds->idsHash[getPosition].rowId){
+				fIds->idsHash[getPosition].value++;
+			}else{
+				// Need to shift other elements to insert a new node with different rowId
+				int fullMoveSize = (fIds->position - getPosition)*sizeof(fIds->idsHash[fIds->position]);
+				memmove(&(fIds->idsHash[getPosition+1]), &(fIds->idsHash[getPosition]), fullMoveSize);
+				fIds->idsHash[getPosition].rowId = rowId;
+				fIds->idsHash[getPosition].value = 1;
+				fIds->position++;
+			}
+		}else{
+			fIds->idsHash[getPosition].rowId = rowId;
+			fIds->idsHash[getPosition].value = 1;
+		}
+	}
 }
