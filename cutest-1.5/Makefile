@@ -1,11 +1,11 @@
 CC = gcc -g
 FILESTEST = AllTests.c CuTest.c CuTestRadixHashJoin.c CuTestQueryMethods.c CuTestRelationMethods.c CuTestImplementation.c
-FILESMAIN = ../radixHashJoin.c ../queryMethods.c ../relationMethods.c ../implementation.c
+FILESMAIN = ../src/radixHashJoin.c ../src/queryMethods.c ../src/relationMethods.c ../src/implementation.c
 OBJECTSTEST = AllTests.o CuTest.o CuTestRadixHashJoin.o CuTestQueryMethods.o CuTestRelationMethods.o CuTestImplementation.o
 OBJECTSMAIN = radixHashJoin.o queryMethods.o relationMethods.o implementation.o
 OUT = test
 HEADERSTEST = CuTest.h CuTestRadixHashJoin.h CuTestQueryMethods.h CuTestRelationMethods.h CuTestImplementation.h
-HEADERSMAIN = ../radixHashJoin.h ../queryMethods.h ../relationMethods.h ../implementation.h
+HEADERSMAIN = ../include/radixHashJoin.h ../include/queryMethods.h ../include/relationMethods.h ../include/implementation.h
 
 all: $(OBJECTS) $(HEADERSTEST) $(HEADERSMAIN)
 	$(CC) -o $(OUT) $(FILESTEST) $(FILESMAIN) -lm
@@ -29,17 +29,17 @@ CuTestRelationMethods.o: CuTestRelationMethods.c
 CuTestImplementation.o: CuTestImplementation.c
 	$(CC) -c CuTestImplementation.c
 
-radixHashJoin.o: ../radixHashJoin.c
-	$(CC) -c ../radixHashJoin.c
+radixHashJoin.o: ../src/radixHashJoin.c
+	$(CC) -c ../src/radixHashJoin.c
 
-queryMethods.o: ../queryMethods.c
-	$(CC) -c ../queryMethods.c
+queryMethods.o: ../src/queryMethods.c
+	$(CC) -c ../src/queryMethods.c
 
-relationMethods.o: ../relationMethods.c
-	$(CC) -c ../relationMethods.c
+relationMethods.o: ../src/relationMethods.c
+	$(CC) -c ../src/relationMethods.c
 
-implementation.o: ../implementation.c
-	$(CC) -c ../implementation.c
+implementation.o: ../src/implementation.c
+	$(CC) -c ../src/implementation.c
 
 clean_some:
 	rm -f $(OBJECTSTEST) $(OBJECTSMAIN)

@@ -1,7 +1,0 @@
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/edit_cache.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/Driver.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/harness.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/database.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/Query2SQL.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/link_target.dir
-/home/stef-chwan/Desktop/Software_Development/submission/build/release/CMakeFiles/rebuild_cache.dir

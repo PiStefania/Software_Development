@@ -1,7 +1,7 @@
 #ifndef CU_TEST_QUERY_METHODS_H
 #define CU_TEST_QUERY_METHODS_H
 #include "CuTest.h"
-#include "../queryMethods.h"
+#include "../include/queryMethods.h"
 
 void TestGetRelationsFromLine(CuTest *tc);
 void TestGetProjectionsFromLine(CuTest *tc);
@@ -15,4 +15,3 @@ void TestCheckPredicate(CuTest *tc);
 CuSuite* QueryMethodsGetSuite();
 
 #endif
-
