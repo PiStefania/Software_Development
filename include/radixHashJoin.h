@@ -2,14 +2,13 @@
 #define _RADIX_HASH_JOIN_H_
 
 #include <stdint.h>
-#include "rowIdArrayMethods.h"
 #include "relationMethods.h"
 
 #define BUCKETS 4							// Number of buckets is 2^n, where n = num of last bits for hashing
 #define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
 #define HASH2 8
 #define HEXHASH2 0x7						// Second hash number for indexing in buckets
-#define ARRAYSIZE ((1024 * 1024) / 64)
+#define ARRAYSIZE ((1024 * 1024) / 128)
 
 #define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
 #define R_ROWS 7							// Number of rows for R array
@@ -22,7 +21,8 @@
 typedef struct node resultNode;
 
 //Type definition for a tuple
-typedef struct tuple{
+typedef struct tuple {
+	int rArrayRow;
 	uint64_t rowId;
 	uint64_t value;
 }tuple;
@@ -35,7 +35,9 @@ typedef struct relation{
 }relation;
 
 typedef struct resultElement{
+	int rArrayRow1;
 	uint32_t rowId1;
+	int rArrayRow2;
 	uint32_t rowId2;
 }resultElement;
 
@@ -61,21 +63,11 @@ typedef struct rOrderedArgs{
 	relation* Psum;
 }rOrderedArgs;
 
-// For update
-typedef struct foundIds{
-	tuple* idsHash;
-	int length;
-	int position;
-}foundIds;
 
 resultNode * createNode();
-
 result * createList();
-
-int insertToList(result** list, uint32_t rowID1, uint32_t rowID2);
-
+int insertToList(result** list, tuple RItemTuple, tuple SItemTuple);
 void printList(result * list);
-
 void deleteList(result ** list);
 
 //Radix Hash Join
@@ -87,11 +79,8 @@ int hashFunction2(uint64_t value);
 
 //create relation for field
 relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems);
-relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn, foundIds* foundIdsRelation);
-
 //delete specific relation
 void deleteRelation(relation** rel);
-
 //print relation
 void printRelation(relation* rel);
 
@@ -110,12 +99,5 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 // Threads
 void createHistogramThread(histArgs* args);
 
-// For update
-foundIds* initializeFoundIds();
-void doubleFoundIds(foundIds* foundIdsRelation);
-void deleteFoundIds(foundIds** foundIdsRelation);
-void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId);
-int binarySearchFoundIds(foundIds* fIds, uint64_t rowId);
-void insertionSortFoundIds(foundIds* fIds, uint64_t rowId);
 
 #endif

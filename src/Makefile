@@ -1,4 +1,4 @@
-CC = gcc -Wall -g -pthread
+CC = gcc -Wall -O3 -g -pthread
 FILES = main.c radixHashJoin.c queryMethods.c relationMethods.c rowIdArrayMethods.c statisticsMethods.c implementation.c threadPool.c
 OBJECTS = main.o radixHashJoin.o queryMethods.o relationMethods.o rowIdArrayMethods.o statisticsMethods.o implementation.o threadPool.o
 OUT = joinProgram

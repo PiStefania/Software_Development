@@ -143,7 +143,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 
 
 
-predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
+predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize, int* relations, int relationsSize) {
 	if(predicatesStr == NULL){
 		*predicatesSize = 0;
 		return NULL;
@@ -201,6 +201,35 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 		}
 		position++;
 	}
+	// Find if there are same relations, then change number of predicates relations that are same to the one of the first same relation
+	/*int* foundSameRelation = malloc(relationsSize * sizeof(int));
+	for (int i = 0; i < relationsSize; i++) {
+		foundSameRelation[i] = -1;
+	}
+	for (int i = 0; i < relationsSize; i++) {
+		for (int j = 0; j < i; j++) {
+			if (relations[j] == relations[i]) {
+				foundSameRelation[i] = j;
+			}
+		}
+	}
+	for (int i = 0; i < *predicatesSize; i++) {
+		for (int j = 0; j < relationsSize; j++) {
+			if (relations[predicates[i]->leftSide->rowId] == relations[j]) {
+				if (foundSameRelation[j] > -1) {
+					predicates[i]->leftSide->rowId = foundSameRelation[j];
+				}
+			}
+			if (predicates[i]->kind != 0) {
+				if (relations[predicates[i]->rightSide->rowId] == relations[j]) {
+					if (foundSameRelation[j] > -1) {
+						predicates[i]->rightSide->rowId = foundSameRelation[j];
+					}
+				}
+			}
+		}
+	}
+	free(foundSameRelation);*/
 
 	// Find out the compare predicates and place them in the front, so as to be executed first
 	int comparePredicatesIndex = 0;
@@ -231,6 +260,43 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize){
 			comparePredicatesIndex++;
 		}
 	}
+	// After compare predicates, place a join predicate with a relation that took part in the previous comparison (for optimization)
+	for (int i = 0; i < *predicatesSize; i++) {
+		if (comparePredicates[i]->kind != 0) {
+			int previousCompareRelation = comparePredicates[i-1]->leftSide->rowId;
+			if (comparePredicates[i]->leftSide->rowId != previousCompareRelation && comparePredicates[i]->rightSide->rowId != previousCompareRelation) {
+				//printPredicate(comparePredicates[i]);
+				predicate** temp = createPredicate(1);
+				temp[0]->leftSide->rowId = comparePredicates[i]->leftSide->rowId;
+				temp[0]->leftSide->value = comparePredicates[i]->leftSide->value;
+				temp[0]->rightSide->rowId = comparePredicates[i]->rightSide->rowId;
+				temp[0]->rightSide->value = comparePredicates[i]->rightSide->value;
+				for (int j = i; j < *predicatesSize; j++) {
+					if (comparePredicates[j]->leftSide->rowId == previousCompareRelation || comparePredicates[j]->rightSide->rowId == previousCompareRelation) {
+						comparePredicates[i]->leftSide->rowId = comparePredicates[j]->leftSide->rowId;
+						comparePredicates[i]->leftSide->value = comparePredicates[j]->leftSide->value;
+						comparePredicates[i]->rightSide->rowId = comparePredicates[j]->rightSide->rowId;
+						comparePredicates[i]->rightSide->value = comparePredicates[j]->rightSide->value;
+						comparePredicates[j]->leftSide->rowId = temp[0]->leftSide->rowId;
+						comparePredicates[j]->leftSide->value = temp[0]->leftSide->value;
+						comparePredicates[j]->rightSide->rowId = temp[0]->rightSide->rowId;
+						comparePredicates[j]->rightSide->value = temp[0]->rightSide->value;
+						deletePredicate(&temp[0]);
+						free(temp);
+						temp = NULL;
+						break;
+					}
+				}
+				if (temp != NULL) {
+					deletePredicate(&temp[0]);
+					free(temp);
+				}
+			}
+			break;
+		}
+		else if (comparePredicates[i]->kind == 0) continue;
+	}
+
 
 	predicate** finalPredicates = createPredicate(finalCounter);
 	int tempCounter = 0;

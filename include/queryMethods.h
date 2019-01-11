@@ -9,21 +9,20 @@ typedef struct predicate{
 	char comparator;
 	int kind;				// kind:0 filter predicate - kind:1 join predicate
 	int needsToBeDeleted;
-}predicate;
+} predicate;
 
 // For query input
 int* getRelationsFromLine(char* relationsStr, int* relationsSize);
 tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize);
-predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize);
+predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize, int* relations, int relationsSize);
 
 // For predicate struct
 predicate** createPredicate(int size);
 void deletePredicate(predicate** p);
-int setPredicate(char* str, predicate** p, predicate** allPredicates,int size);
+int setPredicate(char* str, predicate** p, predicate** allPredicates, int size);
 int checkPredicate(predicate* p1,predicate* p2);
-int checkIfSamePredicateExists(predicate* p,predicate** allPredicates,int size);
+int checkIfSamePredicateExists(predicate* p, predicate** allPredicates, int size);
 void printPredicate(predicate* p);
-
 int isNumeric(char* s);
 
 #endif

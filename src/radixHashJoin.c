@@ -7,7 +7,6 @@
 //Create new node to add to list
 resultNode * createNode() {
     resultNode * newNode;
-
     if ((newNode = malloc(sizeof(resultNode))) == NULL) {
         return NULL;
     }
@@ -21,9 +20,9 @@ resultNode * createNode() {
     return newNode;
 }
 
-result * createList() {
-	result* list;
 
+result* createList() {
+	result* list;
     if ((list = malloc(sizeof(result))) == NULL) {
         return NULL;
     }
@@ -34,14 +33,13 @@ result * createList() {
 	return list;
 }
 
-//Create result as a list of arrays
-int insertToList(result** list, uint32_t rowID1, uint32_t rowID2) {
 
+//Create result as a list of arrays
+int insertToList(result** list, tuple RItemTuple, tuple SItemTuple) {
     if (*list == NULL) {
       *list = createList();
     }
-
-    resultNode * temp = (*list)->head;
+    resultNode *temp = (*list)->head;
 
     while (temp->num_of_elems == ARRAYSIZE) {
         if (temp->next == NULL) {
@@ -49,14 +47,16 @@ int insertToList(result** list, uint32_t rowID1, uint32_t rowID2) {
         }
         temp = temp->next;
     }
-
 	//insert to current node (new node)
-	temp->array[temp->num_of_elems].rowId1 = rowID1;
-	temp->array[temp->num_of_elems].rowId2 = rowID2;
+	temp->array[temp->num_of_elems].rowId1 = RItemTuple.rowId;
+    temp->array[temp->num_of_elems].rArrayRow1 = RItemTuple.rArrayRow;
+	temp->array[temp->num_of_elems].rowId2 = SItemTuple.rowId;
+    temp->array[temp->num_of_elems].rArrayRow2 = SItemTuple.rArrayRow;
 	temp->num_of_elems++;
 
 	return 0;
 }
+
 
 void printList(result * list) {
     resultNode * curr = list->head;
@@ -69,6 +69,7 @@ void printList(result * list) {
     }
     return;
 }
+
 
 void deleteList(result ** list) {
 	if(list == NULL || *list == NULL)
@@ -88,6 +89,7 @@ void deleteList(result ** list) {
     return;
 }
 
+
 //H1 for bucket selection, get last 2 bits
 int hashFunction1(uint64_t value){
 	return value & HEXBUCKETS;
@@ -97,6 +99,7 @@ int hashFunction1(uint64_t value){
 int hashFunction2(uint64_t value){
 	return value & HEXHASH2;
 }
+
 
 //create relation array for field
 relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems){
@@ -109,24 +112,12 @@ relation* createRelation(uint64_t* col, uint64_t* rowIds, uint64_t noOfElems){
             rel->tuples[i].rowId = rowIds[i];
         }
 		rel->tuples[i].value = col[i];
+        rel->tuples[i].rArrayRow = -1;
 	}
 	rel->num_tuples = noOfElems;
 	return rel;
 }
 
-relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn, foundIds* foundIdsRelation){
-	relation* rel = malloc(sizeof(relation));
-	rel->tuples = malloc(rArray->position*sizeof(tuple));
-	for (int i = 0; i < rArray->position; i++){
-        rel->tuples[i].rowId = rArray->rowIds[i];
-		rel->tuples[i].value = initRelations[relationId].Rarray[relColumn][rArray->rowIds[i]];
-		// Insert to intermediate's field with sorting
-		//insertionSortFoundIds(foundIdsRelation, rArray->rowIds[i]);
-		insertIdsHash(foundIdsRelation, rArray->rowIds[i]);
-	}
-	rel->num_tuples = rArray->position;
-	return rel;
-}
 
 void deleteRelation(relation** rel){
 	if(*rel == NULL)
@@ -141,6 +132,7 @@ void deleteRelation(relation** rel){
 	free(*rel);
 	*rel = NULL;
 }
+
 
 void printRelation(relation* rel){
 	printf("Relation has %d tuples\n",rel->num_tuples);
@@ -172,6 +164,7 @@ relation* createHistogram(relation* R){
 	return Hist;
 }
 
+
 // Create Psum just like histogram, but for different purpose
 // We calculate the position of the first element from each bucket in the new ordered array
 relation* createPsum(relation* Hist){
@@ -194,6 +187,7 @@ relation* createPsum(relation* Hist){
 	return Psum;
 }
 
+
 // Create the new ordered array (R')
 relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 	if(R == NULL || Hist == NULL || Psum == NULL)
@@ -210,7 +204,6 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 		if(Psum->tuples == NULL)
 			return NULL;
 	}
-
 	// Allocate a relation array same as R
 	relation* ROrdered = malloc(sizeof(relation));
 	ROrdered->num_tuples = R->num_tuples;
@@ -233,6 +226,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 		int offset = Hist->tuples[hashId].value - RemainHist->tuples[hashId].value;		// Total hash items - hash items left
 		int ElementNewPosition = Psum->tuples[hashId].value + offset;					// Position = bucket's position + offset
 		RemainHist->tuples[hashId].value--;
+        ROrdered->tuples[ElementNewPosition].rArrayRow = R->tuples[i].rArrayRow;
 		ROrdered->tuples[ElementNewPosition].rowId = R->tuples[i].rowId; 				// Copy the element form old to new array
 		ROrdered->tuples[ElementNewPosition].value = R->tuples[i].value;
 	}
@@ -305,7 +299,7 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
                             itemROrderedOffset = itemBigOrderedOffset;
                             itemSOrderedOffset = itemSmallOrderedOffset;
                         }
-						if (insertToList(&ResultList, ROrdered->tuples[itemROrderedOffset].rowId, SOrdered->tuples[itemSOrderedOffset].rowId)) {
+						if (insertToList(&ResultList, ROrdered->tuples[itemROrderedOffset], SOrdered->tuples[itemSOrderedOffset])) {
 							printf("Error\n");
                             return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 						}
@@ -317,6 +311,7 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 	}
     return 0;
 }
+
 
 // Create Histogram with thread
 void createHistogramThread(histArgs* args){
@@ -338,108 +333,5 @@ void createHistogramThread(histArgs* args){
 	for(int i=0;i<R->num_tuples;i++){
 		int bucket = hashFunction1(R->tuples[i].value);
 		(*Hist)->tuples[bucket].value++;
-	}
-}
-
-// For update
-foundIds* initializeFoundIds(){
-	foundIds* foundIdsRelation = malloc(sizeof(foundIds));
-	foundIdsRelation->length = DEFAULT_ROWS;
-	foundIdsRelation->position = 0;
-	foundIdsRelation->idsHash = malloc(foundIdsRelation->length*sizeof(tuple));
-	return foundIdsRelation;
-}
-
-void doubleFoundIds(foundIds* foundIdsRelation){
-	foundIdsRelation->length *= 2;
-	foundIdsRelation->idsHash = realloc(foundIdsRelation->idsHash, foundIdsRelation->length*sizeof(tuple));
-}
-
-void deleteFoundIds(foundIds** foundIdsRelation){
-	if(*foundIdsRelation != NULL){
-		free((*foundIdsRelation)->idsHash);
-		(*foundIdsRelation)->idsHash = NULL;
-		free(*foundIdsRelation);
-		*foundIdsRelation = NULL;
-	}
-}
-
-void insertIdsHash(foundIds* foundIdsRelation, uint64_t rowId) {
-	for (int i = 0; i < foundIdsRelation->position; i++) {
-		// If rowId is the same as the one given
-		if (foundIdsRelation->idsHash[i].rowId == rowId) {
-			foundIdsRelation->idsHash[i].value++;
-			return;
-		}
-	}
-
-	// Not found -> insert
-	if(foundIdsRelation->position == foundIdsRelation->length){
-		doubleFoundIds(foundIdsRelation);
-	}
-
-	foundIdsRelation->idsHash[foundIdsRelation->position].rowId = rowId;
-	foundIdsRelation->idsHash[foundIdsRelation->position].value = 1;
-	foundIdsRelation->position++;
-}
-
-// Binary search foundIds->idsHash array depending on id and return its position
-int binarySearchFoundIds(foundIds* fIds, uint64_t rowId){
-	int first = 0;
-	int last = fIds->position-2;
-	if(last == -2){
-		return 0;
-	}
-	int mid = 0;
-	tuple* rowIds = fIds->idsHash;
-	while (first < last){
-        int mid = first + (last-first)/2;
-        if(rowIds[mid].rowId == rowId)
-            return mid;
-        if (rowIds[mid].rowId < rowId)
-            first = mid + 1;
-		else
-            last = mid - 1;
-    }
-	if(last<=first){
-		if(rowId > fIds->idsHash[first].rowId)
-			return first+1;
-		else
-			return first;
-	}
-    return mid;
-}
-
-// Insert a rowId to foundIds
-void insertionSortFoundIds(foundIds* fIds, uint64_t rowId){
-	int getPosition = binarySearchFoundIds(fIds,rowId);
-
-	// Full array, need to double
-	if(fIds->position == fIds->length){
-		doubleFoundIds(fIds);
-	}
-
-	if(fIds->position == 0){
-		// Insert to first position
-		fIds->idsHash[0].rowId = rowId;
-		fIds->idsHash[0].value = 1;
-		fIds->position++;
-	}else{
-		if(getPosition < fIds->position){
-			// If same id in position, increment counter value
-			if(rowId == fIds->idsHash[getPosition].rowId){
-				fIds->idsHash[getPosition].value++;
-			}else{
-				// Need to shift other elements to insert a new node with different rowId
-				int fullMoveSize = (fIds->position - getPosition)*sizeof(fIds->idsHash[fIds->position]);
-				memmove(&(fIds->idsHash[getPosition+1]), &(fIds->idsHash[getPosition]), fullMoveSize);
-				fIds->idsHash[getPosition].rowId = rowId;
-				fIds->idsHash[getPosition].value = 1;
-				fIds->position++;
-			}
-		}else{
-			fIds->idsHash[getPosition].rowId = rowId;
-			fIds->idsHash[getPosition].value = 1;
-		}
 	}
 }

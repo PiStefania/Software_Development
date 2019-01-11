@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/rowIdArrayMethods.h"
+#include "../include/radixHashJoin.h"
+
 
 // Create a list in rowIdsList to store the rowIds found to satisfy the predicates
 rowIdsArray* createRowIdsArray(int relationId){
@@ -50,4 +52,17 @@ void printRowIdsArray(rowIdsArray* rArray, int noOfRelations){
 			printf("%ld\n",rArray[i].rowIds[j]);
 		}
 	}
+}
+
+// Convert an rArray into a relation, in order to execute a radix hash join
+relation* createRelationFromRarray(rowIdsArray* rArray, relationsInfo* initRelations, int relationId, int relColumn) {
+	relation* rel = malloc(sizeof(relation));
+	rel->tuples = malloc(rArray->position*sizeof(tuple));
+	for (int i = 0; i < rArray->position; i++){
+        rel->tuples[i].rArrayRow = i;
+        rel->tuples[i].rowId = rArray->rowIds[i];
+		rel->tuples[i].value = initRelations[relationId].Rarray[relColumn][rArray->rowIds[i]];
+	}
+	rel->num_tuples = rArray->position;
+	return rel;
 }

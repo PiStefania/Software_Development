@@ -64,12 +64,7 @@ relationsInfo* getRelationsData(FILE* file, char* initPath, int* num_of_initRela
     	relFile = fopen(initRelations[i].relName, "rb");
         // Read the number of rows and columns of current relation
         fread(&initRelations[i].num_of_rows, sizeof(uint64_t), 1, relFile);
-        //fseek(relFile, sizeof(uint64_t), SEEK_SET);
         fread(&initRelations[i].num_of_columns, sizeof(uint64_t), 1, relFile);
-        /*if ((initRelations[i].MDCols = malloc(initRelations[i].num_of_columns * sizeof(metadataCol))) == NULL) {
-            //critical error, not enough memory for metadata
-            return NULL;
-        }*/
 
         // Fill in the arrays with the values from relation File and their metadata
         initRelations[i].Rarray = malloc(initRelations[i].num_of_columns * sizeof(uint64_t*));
@@ -78,7 +73,7 @@ relationsInfo* getRelationsData(FILE* file, char* initPath, int* num_of_initRela
         for (int j = 0; j < initRelations[i].num_of_columns; j++) {
             initRelations[i].Rarray[j] = malloc(initRelations[i].num_of_rows * sizeof(uint64_t));
 
-            uint64_t min, max;
+            uint64_t min = 0, max = 0;
             for (int k = 0; k < initRelations[i].num_of_rows; k++) {
                 fread(&initRelations[i].Rarray[j][k], sizeof(uint64_t), 1, relFile);
                 // Find min, max for each column
