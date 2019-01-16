@@ -1,7 +1,7 @@
 #ifndef CU_TEST_RADIX_HASH_JOIN_H
 #define CU_TEST_RADIX_HASH_JOIN_H
 #include "CuTest.h"
-#include "../include/include/radixHashJoin.h"
+#include "../include/radixHashJoin.h"
 
 void TestHashFunction1(CuTest *tc);
 void TestHashFunction2(CuTest *tc);
@@ -15,6 +15,7 @@ void TestCreateHistogram(CuTest *tc);
 void TestCreatePsum(CuTest *tc);
 void TestCreateROrdered(CuTest *tc);
 void TestIndexCompareJoin(CuTest *tc);
+void TestCreateHistogramThread(CuTest *tc);
 
 CuSuite* RadixHashJoinGetSuite();
 

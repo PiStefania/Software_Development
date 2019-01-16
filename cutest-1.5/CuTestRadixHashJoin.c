@@ -44,42 +44,84 @@ void TestInsertToList(CuTest *tc) {
 	//change ARRAYSIZE to 5 in radixHashJoin.h in order to work correctly
 	result* list = NULL;
 	//insert to first node
-	int result = insertToList(&list,11,23);
+	tuple* RTuple = malloc(sizeof(tuple));
+	RTuple->rowId = 0;
+	RTuple->value = 11;
+	RTuple->rArrayRow = 12;
+	tuple* STuple =  malloc(sizeof(tuple));
+	STuple->rowId = 0;
+	STuple->value = 23;
+	STuple->rArrayRow = 4;
+	int result = insertToList(&list,*RTuple,*STuple);
 	CuAssertPtrNotNull(tc, list);
 	resultNode* temp = list->head;
 	CuAssertPtrNotNull(tc, temp);
-	CuAssertIntEquals(tc, 11, temp->array[0].rowId1);
-	CuAssertIntEquals(tc, 23, temp->array[0].rowId2);
+	CuAssertIntEquals(tc, 0, temp->array[0].rowId1);
+	CuAssertIntEquals(tc, 12, temp->array[0].rArrayRow1);
+	CuAssertIntEquals(tc, 0, temp->array[0].rowId2);
+	CuAssertIntEquals(tc, 4, temp->array[0].rArrayRow2);
 	CuAssertIntEquals(tc, 1, temp->num_of_elems);
 	//insert until new node
-	result = insertToList(&list,1,2);
-	result = insertToList(&list,3,4);
-	result = insertToList(&list,46,54);
-	result = insertToList(&list,7,30);
-	result = insertToList(&list,8,9);
+	RTuple->value = 1;
+	STuple->value = 2;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 3;
+	STuple->value = 4;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 46;
+	STuple->value = 54;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 7;
+	STuple->value = 30;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->rArrayRow = 8;
+	RTuple->value = 8;
+	STuple->rArrayRow = 10;
+	STuple->value = 9;
+	result = insertToList(&list,*RTuple,*STuple);
 	temp = list->head->next;
 	CuAssertPtrNotNull(tc, temp);
-	CuAssertIntEquals(tc, 8, temp->array[0].rowId1);
-	CuAssertIntEquals(tc, 9, temp->array[0].rowId2);
+	CuAssertIntEquals(tc, 8, temp->array[0].rArrayRow1);
+	CuAssertIntEquals(tc, 10, temp->array[0].rArrayRow2);
 	CuAssertIntEquals(tc, 1, temp->num_of_elems);
 	deleteList(&list);
+	free(RTuple);
+	free(STuple);
 }
 
 void TestDeleteList(CuTest *tc) {
 	//change ARRAYSIZE to 5 in radixHashJoin.h in order to work correctly
 	result* list = NULL;
 	//insert to first node
-	int result = insertToList(&list,11,23);
+	tuple* RTuple = malloc(sizeof(tuple));
+	RTuple->rowId = 0;
+	RTuple->value = 11;
+	tuple* STuple = malloc(sizeof(tuple));
+	STuple->rowId = 0;
+	STuple->value = 11;
+	int result = insertToList(&list,*RTuple,*STuple);
 	//delete list with only one record
 	deleteList(&list);
 	CuAssertPtrEquals(tc, NULL, list);
 	//insert until new node
-	result = insertToList(&list,1,2);
-	result = insertToList(&list,3,4);
-	result = insertToList(&list,46,54);
-	result = insertToList(&list,7,30);
-	result = insertToList(&list,8,9);
-	result = insertToList(&list,47,98);
+	RTuple->value = 1;
+	STuple->value = 2;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 3;
+	STuple->value = 4;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 46;
+	STuple->value = 54;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 7;
+	STuple->value = 30;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 8;
+	STuple->value = 9;
+	result = insertToList(&list,*RTuple,*STuple);
+	RTuple->value = 47;
+	STuple->value = 98;
+	result = insertToList(&list,*RTuple,*STuple);
 	//delete list with one new node
 	deleteList(&list);
 	CuAssertPtrEquals(tc, NULL, list);
@@ -87,6 +129,8 @@ void TestDeleteList(CuTest *tc) {
 	//delete NULL pointer
 	deleteList(&list);
 	CuAssertPtrEquals(tc, NULL, list);
+	free(RTuple);
+	free(STuple);
 }
 
 void TestCreateRelation(CuTest *tc) {
@@ -386,6 +430,51 @@ void TestIndexCompareJoin(CuTest *tc) {
 	free(colR);
 }
 
+void TestCreateHistogramThread(CuTest *tc) {
+	//create Hist from normal relation
+	uint64_t* col = malloc(5*sizeof(uint64_t));
+	col[0] = 2;
+	col[1] = 3;
+	col[2] = 5;
+	col[3] = 45;
+	col[4] = 34;
+	relation* rel = createRelation(col,NULL,5);
+	relation** Hist = malloc(sizeof(relation*));
+	histArgs* args = malloc(sizeof(histArgs));
+	args->R = rel;
+	args->Hist = Hist;
+	createHistogramThread(args);
+	CuAssertPtrNotNull(tc, *Hist);
+	CuAssertIntEquals(tc, BUCKETS, (*Hist)->num_tuples);
+	CuAssertPtrNotNull(tc, (*Hist)->tuples);
+	CuAssertIntEquals(tc, 0, (*Hist)->tuples[0].value);
+	CuAssertIntEquals(tc, 2, (*Hist)->tuples[1].value);
+	CuAssertIntEquals(tc, 2, (*Hist)->tuples[2].value);
+	CuAssertIntEquals(tc, 1, (*Hist)->tuples[3].value);
+	CuAssertIntEquals(tc, 0, (*Hist)->tuples[0].rowId);
+	CuAssertIntEquals(tc, 1, (*Hist)->tuples[1].rowId);
+	CuAssertIntEquals(tc, 2, (*Hist)->tuples[2].rowId);
+	CuAssertIntEquals(tc, 3, (*Hist)->tuples[3].rowId);
+	//create Hist from NULL relation
+	deleteRelation(&rel);
+	deleteRelation(Hist);
+	args->R = rel;
+	args->Hist = Hist;
+	createHistogramThread(args);
+	CuAssertPtrEquals(tc, NULL, (*Hist));
+	//create Hist from empty relation
+	rel = malloc(sizeof(relation));
+	rel->tuples = NULL;
+	rel->num_tuples = 0;
+	args->R = rel;
+	args->Hist = Hist;
+	createHistogramThread(args);
+	CuAssertPtrEquals(tc, NULL, (*Hist));
+	free(col);
+	deleteRelation(&rel);
+	free(Hist);
+	free(args);
+}
 
 CuSuite* RadixHashJoinGetSuite() {
     CuSuite* suite = CuSuiteNew();
@@ -394,14 +483,14 @@ CuSuite* RadixHashJoinGetSuite() {
     SUITE_ADD_TEST(suite, TestHashFunction2);
 	SUITE_ADD_TEST(suite, TestCreateNode);
 	SUITE_ADD_TEST(suite, TestCreateList);
-	//SUITE_ADD_TEST(suite, TestInsertToList); 	-> change radixHashJoin.h file (set ARRAYSIZE to 5) and uncomment specific test
-	//SUITE_ADD_TEST(suite, TestDeleteList);	-> change radixHashJoin.h file (set ARRAYSIZE to 5) and uncomment specific test
+	//SUITE_ADD_TEST(suite, TestInsertToList); 	//-> change radixHashJoin.h file (set ARRAYSIZE to 5) and uncomment specific test
+	//SUITE_ADD_TEST(suite, TestDeleteList);	//-> change radixHashJoin.h file (set ARRAYSIZE to 5) and uncomment specific test
 	SUITE_ADD_TEST(suite, TestCreateRelation);
 	SUITE_ADD_TEST(suite, TestDeleteRelation);
 	SUITE_ADD_TEST(suite, TestCreateHistogram);
 	SUITE_ADD_TEST(suite, TestCreatePsum);
 	SUITE_ADD_TEST(suite, TestCreateROrdered);
 	SUITE_ADD_TEST(suite, TestIndexCompareJoin);
-
+	SUITE_ADD_TEST(suite, TestCreateHistogramThread);
     return suite;
 }
