@@ -143,7 +143,7 @@ tuple* getProjectionsFromLine(char* projectionsStr, int* projectionsSize){
 
 
 
-predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize, int* relations, int relationsSize) {
+predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize) {
 	if(predicatesStr == NULL){
 		*predicatesSize = 0;
 		return NULL;
@@ -201,35 +201,6 @@ predicate** getPredicatesFromLine(char* predicatesStr, int* predicatesSize, int*
 		}
 		position++;
 	}
-	// Find if there are same relations, then change number of predicates relations that are same to the one of the first same relation
-	/*int* foundSameRelation = malloc(relationsSize * sizeof(int));
-	for (int i = 0; i < relationsSize; i++) {
-		foundSameRelation[i] = -1;
-	}
-	for (int i = 0; i < relationsSize; i++) {
-		for (int j = 0; j < i; j++) {
-			if (relations[j] == relations[i]) {
-				foundSameRelation[i] = j;
-			}
-		}
-	}
-	for (int i = 0; i < *predicatesSize; i++) {
-		for (int j = 0; j < relationsSize; j++) {
-			if (relations[predicates[i]->leftSide->rowId] == relations[j]) {
-				if (foundSameRelation[j] > -1) {
-					predicates[i]->leftSide->rowId = foundSameRelation[j];
-				}
-			}
-			if (predicates[i]->kind != 0) {
-				if (relations[predicates[i]->rightSide->rowId] == relations[j]) {
-					if (foundSameRelation[j] > -1) {
-						predicates[i]->rightSide->rowId = foundSameRelation[j];
-					}
-				}
-			}
-		}
-	}
-	free(foundSameRelation);*/
 
 	// Find out the compare predicates and place them in the front, so as to be executed first
 	int comparePredicatesIndex = 0;

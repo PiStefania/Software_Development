@@ -81,7 +81,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 		predicate** predicates = NULL;
 		int predicatesSize = 0;
 		if (predicatesStr != NULL) {
-			predicates = getPredicatesFromLine(predicatesStr, &predicatesSize, relations, relationsSize);
+			predicates = getPredicatesFromLine(predicatesStr, &predicatesSize);
 			if (predicates == NULL) {
 				printf("Predicates are incorrect!\n");
 				failed = 1;
