@@ -6,6 +6,9 @@
 
 // Create a list in rowIdsList to store the rowIds found to satisfy the predicates
 rowIdsArray* createRowIdsArray(int relationId){
+	if(relationId < 0){
+		return NULL;
+	}
 	rowIdsArray* rArray = malloc(sizeof(rowIdsArray));
 	rArray->relationId = relationId;
 	rArray->num_of_rowIds = DEFAULT_ROWS;
@@ -38,8 +41,13 @@ void doubleRowIdsArray(rowIdsArray* rArray){
 
 // Delete rowIdsArray
 void deleteRowIdsArray(rowIdsArray** rArray){
-	free((*rArray)->rowIds);
-	(*rArray)->rowIds = NULL;
+	if(*rArray == NULL){
+		return;
+	}
+	if((*rArray)->rowIds != NULL){
+		free((*rArray)->rowIds);
+		(*rArray)->rowIds = NULL;
+	}
 	free((*rArray));
 	*rArray = NULL;
 }

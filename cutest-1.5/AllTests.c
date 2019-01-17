@@ -5,6 +5,8 @@
 #include "CuTestQueryMethods.h"
 #include "CuTestRelationMethods.h"
 #include "CuTestImplementation.h"
+#include "CuTestRowIdArrayMethods.h"
+#include "CuTestStatisticsMethods.h"
 
 CuSuite* CuGetSuite();
 CuSuite* CuStringGetSuite();
@@ -36,6 +38,18 @@ void RunAllTests(void){
 	CuSuiteAddSuite(suite, implementationSuite);
 	free(implementationSuite);
 	implementationSuite=NULL;
+
+	//rowIdArrayMethods
+	CuSuite* rowIdArrayMethodsSuite =  RowIdArrayMethodsGetSuite();
+	CuSuiteAddSuite(suite, rowIdArrayMethodsSuite);
+	free(rowIdArrayMethodsSuite);
+	rowIdArrayMethodsSuite=NULL;
+
+	//statisticsMethods
+	CuSuite* statisticsMethodsSuite =  StatisticsMethodsGetSuite();
+	CuSuiteAddSuite(suite, statisticsMethodsSuite);
+	free(statisticsMethodsSuite);
+	statisticsMethodsSuite=NULL;
 
 	CuSuiteRun(suite);
 	CuSuiteSummary(suite, output);
