@@ -8,7 +8,7 @@
 #define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
 #define HASH2 8
 #define HEXHASH2 0x7						// Second hash number for indexing in buckets
-#define ARRAYSIZE ((1024 * 1024) / 128)
+#define ARRAYSIZE 1000	//((1024 * 1024) / 128)
 
 #define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
 #define R_ROWS 7							// Number of rows for R array
@@ -63,6 +63,17 @@ typedef struct rOrderedArgs{
 	relation* Psum;
 }rOrderedArgs;
 
+typedef struct indexCompareJoinArgs{
+	result* ResultList;
+	relation* ROrdered;
+	relation* RHist;
+	relation* RPsum;
+	relation* SOrdered;
+	relation* SHist;
+	relation* SPsum;
+	int currentBucket;
+} indexCompareJoinArgs;
+
 
 resultNode * createNode();
 result * createList();
@@ -98,6 +109,6 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 
 // Threads
 void createHistogramThread(histArgs* args);
-
+int indexCompareJoinThread(indexCompareJoinArgs* args);
 
 #endif

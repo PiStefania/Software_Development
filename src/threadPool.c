@@ -122,7 +122,7 @@ threadPool* initializeThreadPool(int numThreads){
 		destroyThreadPool(&thPool);
 		return NULL;
 	}
-	if(pthread_cond_init(&thPool->allIdle, NULL) != 0){
+	if(pthread_cond_init(&thPool->allNotWorking, NULL) != 0){
 		destroyThreadPool(&thPool);
 		return NULL;
 	}
@@ -170,7 +170,7 @@ void destroyThreadPool(threadPool** thPool){
 	(*thPool)->noThreads = -1;
 
     pthread_mutex_destroy(&((*thPool)->lockThreadPool));
-    pthread_cond_destroy(&((*thPool)->allIdle));
+    pthread_cond_destroy(&((*thPool)->allNotWorking));
 
 	free((*thPool));
 	*thPool = NULL;
@@ -206,13 +206,13 @@ void* executeJob(thread* th){
 			// Free job object
 			free(job->arg);
 			free(job);
-			/*pthread_mutex_lock(&thPool->lockThreadPool);
+			pthread_mutex_lock(&thPool->lockThreadPool);
 			thPool->noWorking--;
 			if (thPool->noWorking == 0) {
-				// Signal that all threads are idle, not working
-				pthread_cond_signal(&thPool->allIdle);
+				// Signal that all threads are not working
+				pthread_cond_signal(&thPool->allNotWorking);
 			}
-			pthread_mutex_unlock(&thPool->lockThreadPool);*/
+			pthread_mutex_unlock(&thPool->lockThreadPool);
 		}
 	}
 
@@ -225,7 +225,7 @@ void* executeJob(thread* th){
 
 
 relation* mergeIntoHist(threadPool* thPool, relation* R){
-	 // Use threads for creating SHist by cutting it to pieces as the number of threads exist
+	// Use threads for creating SHist by cutting it to pieces as the number of threads exist
     relation** rels = malloc(thPool->noThreads*sizeof(relation*));
    	int remainingTuples = R->num_tuples % thPool->noThreads;
     // Perfect division - easy cut
@@ -262,7 +262,11 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 		insertJob(thPool->jobPool, job);
 	}
 
-	sleep(1);
+	/*pthread_mutex_lock(&(thPool->lockThreadPool));
+	while(thPool->noWorking <= 0) {
+		pthread_cond_wait(&(thPool->allNotWorking), &(thPool->lockThreadPool));
+	}
+	pthread_mutex_unlock(&(thPool->lockThreadPool));*/
 
     // Create histogram
     // Merge all chunks of Hists to a single Hist

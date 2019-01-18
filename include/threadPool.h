@@ -30,7 +30,7 @@ typedef struct threadPool{
 	volatile int noAlive;      			//threads currently alive
 	volatile int noWorking;    			//threads currently working
 	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
-	pthread_cond_t allIdle;    		//cond var for checking if thread pool is empty, no working threads
+	pthread_cond_t allNotWorking;    	//cond var for checking if thread pool has no working threads
 }threadPool;
 
 static volatile int keepAlive;

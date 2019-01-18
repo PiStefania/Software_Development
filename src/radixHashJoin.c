@@ -335,3 +335,84 @@ void createHistogramThread(histArgs* args){
 		(*Hist)->tuples[bucket].value++;
 	}
 }
+
+int indexCompareJoinThread(indexCompareJoinArgs* args) {
+	result* ResultList = args->ResultList;
+	relation* ROrdered = args->ROrdered;
+	relation* RHist = args->RHist;
+	relation* RPsum = args->RPsum;
+	relation* SOrdered = args->SOrdered;
+	relation* SHist = args->SHist;
+	relation* SPsum = args->SPsum;
+	int i = args->currentBucket;
+	//printf("indexCompareJoinThread %d\n", i);
+	// Find which of the 2 buckets (from R and S array) is the smaller one, in order to create the index in that one
+    relation *smallOrdered, *smallHist, *smallPsum, *bigOrdered, *bigHist, *bigPsum;
+    if (RHist->tuples[i].value < SHist->tuples[i].value) {
+        smallOrdered = ROrdered;
+        smallHist    = RHist;
+        smallPsum    = RPsum;
+        bigOrdered   = SOrdered;
+        bigHist      = SHist;
+        bigPsum      = SPsum;
+    }
+    else {
+        smallOrdered = SOrdered;
+        smallHist    = SHist;
+        smallPsum    = SPsum;
+        bigOrdered   = ROrdered;
+        bigHist      = RHist;
+        bigPsum      = RPsum;
+    }
+	int itemsInSmallBucket = smallHist->tuples[i].value;
+	int chain[itemsInSmallBucket];
+	int bucket[HASH2];
+	for (int j = 0; j < HASH2; j++) {             // Initialize bucket array with -1
+		bucket[j] = -1;
+	}
+    // Create the index for smaller bucket with a second hash value
+	for (int j = 0; j < itemsInSmallBucket; j++){
+		int itemSmallOrderedOffset = smallPsum->tuples[i].value + j;
+		int hash2Id = hashFunction2(smallOrdered->tuples[itemSmallOrderedOffset].value);
+		if (bucket[hash2Id] == -1)
+			chain[j] = -1;                      // The first item hashed (2) with current value, is set to -1
+		else chain[j] = bucket[hash2Id];        // Write the last position to chain and current to bucket array
+		bucket[hash2Id] = j;
+	}
+    // Print Chain and Bucket arrays (indexing on smaller bucket)
+    if (PRINT) {
+        char arrayStr[3];
+        if (RHist->tuples[i].value < SHist->tuples[i].value)
+            strcpy(arrayStr, "R");
+        else strcpy(arrayStr, "S");
+    }
+	// Search all the items from unindexed bigger bucket in the same bucket and compare them with smaller's
+	int itemsInBigBucket = bigHist->tuples[i].value;
+	for (int j = 0; j < itemsInBigBucket; j++){
+		int itemBigOrderedOffset = bigPsum->tuples[i].value + j;
+		int hash2Id = hashFunction2(bigOrdered->tuples[itemBigOrderedOffset].value);
+		if (bucket[hash2Id] != -1) {
+			int currentInChain = bucket[hash2Id];       // Search each item from bigger to the similarly hashed ones from smaller (help from bucket and chain)
+			do {
+				int itemSmallOrderedOffset = smallPsum->tuples[i].value + currentInChain;
+				if (smallOrdered->tuples[itemSmallOrderedOffset].value == bigOrdered->tuples[itemBigOrderedOffset].value) {
+                    int itemROrderedOffset, itemSOrderedOffset;
+                    if (RHist->tuples[i].value < SHist->tuples[i].value) {
+                        itemROrderedOffset = itemSmallOrderedOffset;
+                        itemSOrderedOffset = itemBigOrderedOffset;
+                    }                                                       // First field of result tuples is for R's rowId while second for S's rowId
+                    else {
+                        itemROrderedOffset = itemBigOrderedOffset;
+                        itemSOrderedOffset = itemSmallOrderedOffset;
+                    }
+					if (insertToList(&ResultList, ROrdered->tuples[itemROrderedOffset], SOrdered->tuples[itemSOrderedOffset])) {
+						printf("Error\n");
+                        return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
+					}
+				}
+				currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of smaller with the current one from bigger
+			} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from smaller left
+		}
+	}
+    return 0;
+}

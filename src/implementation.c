@@ -392,12 +392,52 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(SOrdered);
 
     // Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
-	result* resultList = createList();
+    // Create array of args for each thread
+	indexCompareJoinArgs* args = malloc(BUCKETS * sizeof(indexCompareJoinArgs));
+	for(int i=0;i<BUCKETS;i++){
+		args[i].ResultList = createList();
+		args[i].ROrdered = ROrdered;
+		args[i].RHist = RHist;
+		args[i].RPsum = RPsum;
+		args[i].SOrdered = SOrdered;
+		args[i].SHist = SHist;
+		args[i].SPsum = SPsum;
+		args[i].currentBucket = i;
+	}
+    // Create threads
+    pthread_t* threadIds = malloc(BUCKETS*sizeof(pthread_t));
+	for(int i=0; i < BUCKETS; i++){
+		// Initialize each thread
+		pthread_create(&threadIds[i], NULL, (void *) indexCompareJoinThread, &args[i]);
+	}
+	//printf("AFTER CREATE\n");
+    // Index Compare Join for each thread
+	/*result* resultList = createList();
     if (indexCompareJoin(resultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
         printf("Error\n");
         return -1;
     }
-    if (PRINT) printList(resultList);
+    if (PRINT) printList(resultList);*/
+    // Wait until all threads are over
+    for(int i=0;i<BUCKETS;i++){
+    	pthread_join(threadIds[i], NULL);
+    }
+    free(threadIds);
+    //printf("THREADS DELETED\n");
+
+    // Combine Resultlists of threads
+    for (int i = 1; i < BUCKETS; i++) {
+    	resultNode* curr = args[i-1].ResultList->head;
+    	resultNode* previous = curr;
+   	 	while (curr != NULL) {
+   	 		previous = curr;
+   	 		curr = curr->next;
+   	 	}
+   	 	// Set last node to next ResultList
+   	 	previous->next = args[i].ResultList->head;
+    }
+    result* resultList = args[0].ResultList;
+    //printf("COMBINE DONE\n");
 
 	// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 	rowIdsArray** newUpdatedLeftRArray = NULL;
