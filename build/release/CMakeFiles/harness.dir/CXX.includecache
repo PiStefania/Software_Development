@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/spatsou/Desktop/Software_Development/harness.cpp
+errno.h
+-
+fcntl.h
+-
+stdio.h
+-
+stdlib.h
+-
+sys/time.h
+-
+thread
+-
+unistd.h
+-
+fstream
+-
+iostream
+-
+sstream
+-
+string
+-
+vector
+-
+

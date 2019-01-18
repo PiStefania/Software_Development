@@ -13,19 +13,20 @@ void TestGetRelationsData(CuTest *tc){
 	relationsInfo* info = getRelationsData(initFile, init, &num_of_initRelations);
 	CuAssertPtrNotNull(tc,info);
 	CuAssertIntEquals(tc,3,num_of_initRelations);
-	CuAssertStrEquals(tc,"./files_for_testing/r0",info[0].relName);
+	CuAssertStrEquals(tc,"r0",info[0].relName);
 	CuAssertIntEquals(tc,1561,info[0].num_of_rows);
 	CuAssertIntEquals(tc,3,info[0].num_of_columns);
 	CuAssertIntEquals(tc,1,info[0].Rarray[0][0]);
-	CuAssertStrEquals(tc,"./files_for_testing/r1",info[1].relName);
+	CuAssertStrEquals(tc,"r1",info[1].relName);
 	CuAssertIntEquals(tc,3754,info[1].num_of_rows);
 	CuAssertIntEquals(tc,3,info[1].num_of_columns);
 	CuAssertIntEquals(tc,4,info[1].Rarray[0][0]);
-	CuAssertStrEquals(tc,"./files_for_testing/r2",info[2].relName);
+	CuAssertStrEquals(tc,"r2",info[2].relName);
 	CuAssertIntEquals(tc,26808,info[2].num_of_rows);
 	CuAssertIntEquals(tc,4,info[2].num_of_columns);
 	CuAssertIntEquals(tc,4,info[2].Rarray[0][0]);
 	deleteRelationsData(info, &num_of_initRelations);
+	free(init);
 }
 
 
@@ -38,6 +39,7 @@ void TestDeleteRelationsData(CuTest *tc){
 	relationsInfo* info = getRelationsData(initFile, init, &num_of_initRelations);
 	deleteRelationsData(info, &num_of_initRelations);
 	CuAssertIntEquals(tc, -1, num_of_initRelations);
+	free(init);
 }
 
 
@@ -128,8 +130,8 @@ void TestDeleteNameList(CuTest *tc){
 
 CuSuite* RelationMethodsGetSuite() {		
     CuSuite* suite = CuSuiteNew();
-    //SUITE_ADD_TEST(suite, TestGetRelationsData);
-    //SUITE_ADD_TEST(suite, TestDeleteRelationsData);
+    SUITE_ADD_TEST(suite, TestGetRelationsData);
+    SUITE_ADD_TEST(suite, TestDeleteRelationsData);
     SUITE_ADD_TEST(suite, TestCreateNameList);
     SUITE_ADD_TEST(suite, TestInsertIntoNameList);
     SUITE_ADD_TEST(suite, TestFindNameByIndex);
