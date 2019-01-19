@@ -7,7 +7,7 @@
 #include "../include/relationMethods.h"
 #include "../include/implementation.h"
 #include "../include/threadPool.h"
-#define THREADS 1
+#define THREADS 2
 
 
 int main(int argc, char* argv[]){

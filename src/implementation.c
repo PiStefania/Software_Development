@@ -345,8 +345,9 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
     // Create histogram
     // Use threads for creating RHist by cutting it to pieces as the number of threads exist
-   	//relation* RHist = mergeIntoHist(thPool, Rrel);
-    relation* RHist = createHistogram(Rrel);
+    //printf("Before merge hists R\n");
+   	relation* RHist = mergeIntoHist(thPool, Rrel);
+    //relation* RHist = createHistogram(Rrel);
     if (PRINT) printRelation(RHist);
 
     // Create Psum
@@ -378,9 +379,10 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(Srel);
 
     // Create histogram
-    // Use threads for creating RHist by cutting it to pieces as the number of threads exist
-   	//relation* SHist = mergeIntoHist(thPool, Srel);
-    relation* SHist = createHistogram(Srel);
+    // Use threads for creating SHist by cutting it to pieces as the number of threads exist
+    //printf("Before merge hists S\n");
+   	relation* SHist = mergeIntoHist(thPool, Srel);
+    //relation* SHist = createHistogram(Srel);
     if (PRINT) printRelation(SHist);
 
     // Create Psum
@@ -404,26 +406,18 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 		args[i].SPsum = SPsum;
 		args[i].currentBucket = i;
 	}
+
     // Create threads
     pthread_t* threadIds = malloc(BUCKETS*sizeof(pthread_t));
 	for(int i=0; i < BUCKETS; i++){
 		// Initialize each thread
 		pthread_create(&threadIds[i], NULL, (void *) indexCompareJoinThread, &args[i]);
 	}
-	//printf("AFTER CREATE\n");
-    // Index Compare Join for each thread
-	/*result* resultList = createList();
-    if (indexCompareJoin(resultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum)) {
-        printf("Error\n");
-        return -1;
-    }
-    if (PRINT) printList(resultList);*/
     // Wait until all threads are over
     for(int i=0;i<BUCKETS;i++){
     	pthread_join(threadIds[i], NULL);
     }
     free(threadIds);
-    //printf("THREADS DELETED\n");
 
     // Combine Resultlists of threads
     for (int i = 1; i < BUCKETS; i++) {
@@ -437,7 +431,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
    	 	previous->next = args[i].ResultList->head;
     }
     result* resultList = args[0].ResultList;
-    //printf("COMBINE DONE\n");
+    if (PRINT) printList(resultList);
 
 	// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 	rowIdsArray** newUpdatedLeftRArray = NULL;
@@ -530,6 +524,11 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     deleteRelation(&SHist);
     deleteRelation(&SPsum);
     deleteRelation(&SOrdered);
+
+    for(int i=1;i<BUCKETS;i++){
+   		free(args[i].ResultList);
+	}
+    free(args);
 
     return 1;
 }

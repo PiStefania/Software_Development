@@ -177,7 +177,6 @@ void destroyThreadPool(threadPool** thPool){
 }
 
 void* executeJob(thread* th){
-	//printf("EXECUTE: %ld\n",th->threadId);
 	threadPool* thPool = th->thPool;
 	// Set thread as alive
 	pthread_mutex_lock(&thPool->lockThreadPool);
@@ -193,7 +192,6 @@ void* executeJob(thread* th){
 		pthread_mutex_unlock(&(thPool->jobPool->lockJobPool));
 		// If threads are kept alive
 		if (keepAlive && thPool->jobPool->size > 0){
-			//printf("WORK: %ld\n",th->threadId);
 			pthread_mutex_lock(&thPool->lockThreadPool);
 			// Set current thread as working
 			thPool->noWorking++;
@@ -202,13 +200,12 @@ void* executeJob(thread* th){
 			Job* job = getJob(thPool->jobPool);
 			// Execute job
 			job->function(job->arg);
-			//printf("RET\n");
 			// Free job object
 			free(job->arg);
 			free(job);
 			pthread_mutex_lock(&thPool->lockThreadPool);
 			thPool->noWorking--;
-			if (thPool->noWorking == 0) {
+			if (thPool->noWorking <= 0) {
 				// Signal that all threads are not working
 				pthread_cond_signal(&thPool->allNotWorking);
 			}
@@ -225,6 +222,11 @@ void* executeJob(thread* th){
 
 
 relation* mergeIntoHist(threadPool* thPool, relation* R){
+	//printf("IN MERGE\n");
+	// No meaning if we only have 1 thread
+	if(thPool->noThreads == 1){
+		return createHistogram(R);
+	}
 	// Use threads for creating SHist by cutting it to pieces as the number of threads exist
     relation** rels = malloc(thPool->noThreads*sizeof(relation*));
    	int remainingTuples = R->num_tuples % thPool->noThreads;
@@ -258,17 +260,21 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 		Job* job = malloc(sizeof(Job));
 		job->function = (void*)createHistogramThread;
 		job->arg = args;
-		//printf("ADD WORK\n");
 		insertJob(thPool->jobPool, job);
 	}
 
-	/*pthread_mutex_lock(&(thPool->lockThreadPool));
-	while(thPool->noWorking <= 0) {
+	sleep(1);
+
+	//printf("WAIT ALL TO END\n");
+	// Wait main thread until all jobs are done
+	pthread_mutex_lock(&(thPool->lockThreadPool));
+	while(thPool->noWorking > 0) {
 		pthread_cond_wait(&(thPool->allNotWorking), &(thPool->lockThreadPool));
 	}
-	pthread_mutex_unlock(&(thPool->lockThreadPool));*/
+	pthread_mutex_unlock(&(thPool->lockThreadPool));
 
-    // Create histogram
+	//printf("CONTINUE COMBINING\n");
+    // Continue creating histogram
     // Merge all chunks of Hists to a single Hist
     // Same number of tuples for each Hist == BUCKETS
     int numTuplesHists = hists[0]->num_tuples;
@@ -280,14 +286,13 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 	for(int j=0;j<thPool->noThreads;j++){
 		for(int i=0;i < numTuplesHists ;i++){
 			Hist->tuples[i].rowId = hists[j]->tuples[i].rowId;
-			if(i == 0){
+			if(j == 0){
 				Hist->tuples[i].value = hists[j]->tuples[i].value;
 			}else{
 				Hist->tuples[i].value += hists[j]->tuples[i].value;
 			}
 		}
 	}
-
 	// Delete additional vars
     for(int i=0;i<thPool->noThreads;i++){
     	deleteRelation(&rels[i]);
@@ -295,6 +300,5 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
     }
     free(rels);
     free(hists);
-
 	return Hist;
 }

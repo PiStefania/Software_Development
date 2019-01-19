@@ -27,8 +27,8 @@ typedef struct threadPool{
 	int noThreads;						//number of threads
 	thread* threads; 					//execution threads
 	JobPool* jobPool;					//jobs that the threads consume
-	volatile int noAlive;      			//threads currently alive
-	volatile int noWorking;    			//threads currently working
+	int noAlive;      			//threads currently alive
+	int noWorking;    			//threads currently working
 	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
 	pthread_cond_t allNotWorking;    	//cond var for checking if thread pool has no working threads
 }threadPool;
