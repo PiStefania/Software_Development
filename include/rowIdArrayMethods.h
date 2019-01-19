@@ -4,7 +4,7 @@
 #include "relationMethods.h"
 #include "radixHashJoin.h"
 
-#define DEFAULT_ROWS 100
+#define DEFAULT_ROWS 1000
 
 
 typedef struct rowIdsArray{
