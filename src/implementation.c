@@ -345,7 +345,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
     // Create histogram
     // Use threads for creating RHist by cutting it to pieces as the number of threads exist
-    //printf("Before merge hists R\n");
    	relation* RHist = mergeIntoHist(thPool, Rrel);
     //relation* RHist = createHistogram(Rrel);
     if (PRINT) printRelation(RHist);
@@ -380,7 +379,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 
     // Create histogram
     // Use threads for creating SHist by cutting it to pieces as the number of threads exist
-    //printf("Before merge hists S\n");
    	relation* SHist = mergeIntoHist(thPool, Srel);
     //relation* SHist = createHistogram(Srel);
     if (PRINT) printRelation(SHist);
@@ -407,31 +405,12 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 		args[i].currentBucket = i;
 	}
 
-    // Create threads
-    pthread_t* threadIds = malloc(BUCKETS*sizeof(pthread_t));
-	for(int i=0; i < BUCKETS; i++){
-		// Initialize each thread
-		pthread_create(&threadIds[i], NULL, (void *) indexCompareJoinThread, &args[i]);
+	// Calculate resultLists with threads
+	result* resultList = mergeIntoResultList(thPool,args);
+	for(int i=1;i<BUCKETS;i++){
+   		free(args[i].ResultList);
 	}
-    // Wait until all threads are over
-    for(int i=0;i<BUCKETS;i++){
-    	pthread_join(threadIds[i], NULL);
-    }
-    free(threadIds);
-
-    // Combine Resultlists of threads
-    for (int i = 1; i < BUCKETS; i++) {
-    	resultNode* curr = args[i-1].ResultList->head;
-    	resultNode* previous = curr;
-   	 	while (curr != NULL) {
-   	 		previous = curr;
-   	 		curr = curr->next;
-   	 	}
-   	 	// Set last node to next ResultList
-   	 	previous->next = args[i].ResultList->head;
-    }
-    result* resultList = args[0].ResultList;
-    if (PRINT) printList(resultList);
+    free(args);
 
 	// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 	rowIdsArray** newUpdatedLeftRArray = NULL;
@@ -524,11 +503,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     deleteRelation(&SHist);
     deleteRelation(&SPsum);
     deleteRelation(&SOrdered);
-
-    for(int i=1;i<BUCKETS;i++){
-   		free(args[i].ResultList);
-	}
-    free(args);
 
     return 1;
 }

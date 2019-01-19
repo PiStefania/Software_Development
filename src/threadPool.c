@@ -122,11 +122,12 @@ threadPool* initializeThreadPool(int numThreads){
 		destroyThreadPool(&thPool);
 		return NULL;
 	}
-	if(pthread_cond_init(&thPool->allNotWorking, NULL) != 0){
+	/*if(pthread_cond_init(&thPool->allNotWorking, NULL) != 0){
 		destroyThreadPool(&thPool);
 		return NULL;
-	}
+	}*/
 	// In addition, we want to keep them alive (until it is set to 0)
+	pthread_barrier_init(&thPool->barrier, NULL, numThreads + 1);
 	keepAlive = 1;
 
 	// Initialize threads
@@ -170,7 +171,8 @@ void destroyThreadPool(threadPool** thPool){
 	(*thPool)->noThreads = -1;
 
     pthread_mutex_destroy(&((*thPool)->lockThreadPool));
-    pthread_cond_destroy(&((*thPool)->allNotWorking));
+   // pthread_cond_destroy(&((*thPool)->allNotWorking));
+    pthread_barrier_destroy(&(*thPool)->barrier);
 
 	free((*thPool));
 	*thPool = NULL;
@@ -201,15 +203,17 @@ void* executeJob(thread* th){
 			// Execute job
 			job->function(job->arg);
 			// Free job object
-			free(job->arg);
 			free(job);
 			pthread_mutex_lock(&thPool->lockThreadPool);
 			thPool->noWorking--;
+			pthread_mutex_unlock(&thPool->lockThreadPool);
+			/*pthread_mutex_lock(&thPool->lockThreadPool);
 			if (thPool->noWorking <= 0) {
 				// Signal that all threads are not working
 				pthread_cond_signal(&thPool->allNotWorking);
 			}
-			pthread_mutex_unlock(&thPool->lockThreadPool);
+			pthread_mutex_unlock(&thPool->lockThreadPool);*/
+			pthread_barrier_wait(&thPool->barrier);
 		}
 	}
 
@@ -222,7 +226,6 @@ void* executeJob(thread* th){
 
 
 relation* mergeIntoHist(threadPool* thPool, relation* R){
-	//printf("IN MERGE\n");
 	// No meaning if we only have 1 thread
 	if(thPool->noThreads == 1){
 		return createHistogram(R);
@@ -240,6 +243,7 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
     relation** hists = malloc(thPool->noThreads*sizeof(relation*));
 	int rowsEachChunk = R->num_tuples / thPool->noThreads;
 	int tempTuples = 0;
+	histArgs* args = malloc(thPool->noThreads*sizeof(histArgs));
 	for(int i=0;i<thPool->noThreads;i++){
 		// Allocate and set chunk relations
 		// Last chunk will have additional rows if divisionFlag == 0
@@ -253,42 +257,63 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 		tempTuples += rowsEachChunk;
 		// Add chunk and hist creation function
 		// Create histArgs struct
-		histArgs* args = malloc(sizeof(histArgs));
-		args->Hist = &hists[i];
-		args->R = rels[i];
+		hists[i] = NULL;
+		args[i].Hist = &hists[i];
+		args[i].R = rels[i];
+	}
+
+	for(int i=0;i<thPool->noThreads;i++){
 		// Add to job Pool
 		Job* job = malloc(sizeof(Job));
 		job->function = (void*)createHistogramThread;
-		job->arg = args;
+		job->arg = &args[i];
 		insertJob(thPool->jobPool, job);
 	}
 
-	sleep(1);
-
-	//printf("WAIT ALL TO END\n");
-	// Wait main thread until all jobs are done
+	/*
 	pthread_mutex_lock(&(thPool->lockThreadPool));
-	while(thPool->noWorking > 0) {
+	while (thPool->jobPool->size > 0 || thPool->noWorking > 0) {
 		pthread_cond_wait(&(thPool->allNotWorking), &(thPool->lockThreadPool));
 	}
-	pthread_mutex_unlock(&(thPool->lockThreadPool));
+	pthread_mutex_unlock(&(thPool->lockThreadPool));*/
 
-	//printf("CONTINUE COMBINING\n");
+	pthread_barrier_wait(&thPool->barrier);
+
+	free(args);
     // Continue creating histogram
     // Merge all chunks of Hists to a single Hist
     // Same number of tuples for each Hist == BUCKETS
-    int numTuplesHists = hists[0]->num_tuples;
+    int numTuplesHists = 0;
+	for(int j=0;j<thPool->noThreads;j++){
+		if(hists[j] != NULL){
+			numTuplesHists = hists[j]->num_tuples;
+			break;
+		}
+	}
+
+	if(numTuplesHists == 0){
+		// Delete additional vars
+	    for(int i=0;i<thPool->noThreads;i++){
+	    	deleteRelation(&rels[i]);
+	    	deleteRelation(&hists[i]);
+	    }
+	    free(rels);
+	    free(hists);
+	    return NULL;
+	}
     relation* Hist = malloc(sizeof(relation));
     Hist->num_tuples = numTuplesHists;
     Hist->tuples = malloc(numTuplesHists*sizeof(tuple));
 
+    for(int i=0;i<Hist->num_tuples;i++){
+    	Hist->tuples[i].value = 0;
+    }
+
 	// Merge Hists to one by adding each row
 	for(int j=0;j<thPool->noThreads;j++){
-		for(int i=0;i < numTuplesHists ;i++){
-			Hist->tuples[i].rowId = hists[j]->tuples[i].rowId;
-			if(j == 0){
-				Hist->tuples[i].value = hists[j]->tuples[i].value;
-			}else{
+		if(hists[j] != NULL){
+			for(int i=0;i < numTuplesHists ;i++){
+				Hist->tuples[i].rowId = hists[j]->tuples[i].rowId;
 				Hist->tuples[i].value += hists[j]->tuples[i].value;
 			}
 		}
@@ -301,4 +326,48 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
     free(rels);
     free(hists);
 	return Hist;
+}
+
+
+result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
+	// No meaning if we only have 1 thread
+	if(thPool->noThreads == 1){
+		result* ResultList = args->ResultList;
+		relation* ROrdered = args->ROrdered;
+		relation* RHist = args->RHist;
+		relation* RPsum = args->RPsum;
+		relation* SOrdered = args->SOrdered;
+		relation* SHist = args->SHist;
+		relation* SPsum = args->SPsum;
+		if(indexCompareJoin(ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum))
+			return NULL;
+		return ResultList;
+	}
+
+	for(int i=0;i<thPool->noThreads;i++){
+		// Add to job Pool
+		Job* job = malloc(sizeof(Job));
+		job->function = (void*) indexCompareJoinThread;
+		job->arg = &args[i];
+		insertJob(thPool->jobPool, job);
+	}
+
+	pthread_barrier_wait(&thPool->barrier);
+
+    // Combine Resultlists of threads
+    for (int i = 1; i < BUCKETS; i++) {
+    	resultNode* curr = args[i-1].ResultList->head;
+    	resultNode* previous = curr;
+   	 	while (curr != NULL) {
+   	 		previous = curr;
+   	 		curr = curr->next;
+   	 	}
+   	 	// Set last node to next ResultList
+   	 	previous->next = args[i].ResultList->head;
+    }
+    result* resultList = args[0].ResultList;
+    if (PRINT) printList(resultList);
+
+	
+	return resultList;
 }

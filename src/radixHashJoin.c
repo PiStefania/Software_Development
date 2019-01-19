@@ -336,7 +336,7 @@ void createHistogramThread(histArgs* args){
 	}
 }
 
-int indexCompareJoinThread(indexCompareJoinArgs* args) {
+void indexCompareJoinThread(indexCompareJoinArgs* args) {
 	result* ResultList = args->ResultList;
 	relation* ROrdered = args->ROrdered;
 	relation* RHist = args->RHist;
@@ -345,7 +345,6 @@ int indexCompareJoinThread(indexCompareJoinArgs* args) {
 	relation* SHist = args->SHist;
 	relation* SPsum = args->SPsum;
 	int i = args->currentBucket;
-	//printf("indexCompareJoinThread %d\n", i);
 	// Find which of the 2 buckets (from R and S array) is the smaller one, in order to create the index in that one
     relation *smallOrdered, *smallHist, *smallPsum, *bigOrdered, *bigHist, *bigPsum;
     if (RHist->tuples[i].value < SHist->tuples[i].value) {
@@ -407,12 +406,11 @@ int indexCompareJoinThread(indexCompareJoinArgs* args) {
                     }
 					if (insertToList(&ResultList, ROrdered->tuples[itemROrderedOffset], SOrdered->tuples[itemSOrderedOffset])) {
 						printf("Error\n");
-                        return -1;                      // Insert the rowIds of same valued tuples in Result List (if error return)
+                        return;                      // Insert the rowIds of same valued tuples in Result List (if error return)
 					}
 				}
 				currentInChain = chain[currentInChain];        // Go on in chain to compare other similar items of smaller with the current one from bigger
 			} while (currentInChain != -1);                    // When a chain item is -1, then there is no similar tuple from smaller left
 		}
 	}
-    return 0;
 }

@@ -113,6 +113,6 @@ int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, re
 
 // Threads
 void createHistogramThread(histArgs* args);
-int indexCompareJoinThread(indexCompareJoinArgs* args);
+void indexCompareJoinThread(indexCompareJoinArgs* args);
 
 #endif

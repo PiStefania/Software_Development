@@ -27,10 +27,11 @@ typedef struct threadPool{
 	int noThreads;						//number of threads
 	thread* threads; 					//execution threads
 	JobPool* jobPool;					//jobs that the threads consume
-	int noAlive;      			//threads currently alive
-	int noWorking;    			//threads currently working
+	volatile int noAlive;      			//threads currently alive
+	volatile int noWorking;    			//threads currently working
 	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
 	pthread_cond_t allNotWorking;    	//cond var for checking if thread pool has no working threads
+	pthread_barrier_t barrier;			// helpful if we want to wait all threads' results in order to combine them
 }threadPool;
 
 static volatile int keepAlive;
@@ -51,4 +52,6 @@ void* executeJob(thread* th);
 
 // General Functions for mergind data
 relation* mergeIntoHist(threadPool* thPool, relation* R);
+result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args);
+
 #endif
