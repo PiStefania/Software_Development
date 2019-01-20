@@ -6,6 +6,8 @@
 #define HASHFUNC1VALUE1 200
 #define HASHFUNC1VALUE2 211
 
+// BUCKETS SHOULD BE 4
+
 void TestHashFunction1(CuTest *tc){
 	int32_t result = hashFunction1(HASHFUNC1VALUE1);
 	CuAssertIntEquals(tc,0,result);
