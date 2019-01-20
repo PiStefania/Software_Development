@@ -26,7 +26,6 @@ int main(int argc, char* argv[]){
 	}
 
 	// Read binary data from init file
-	//printf("Init: %s, work: %s\n", init, work);
 	FILE* initFile = NULL;
 	if (init != NULL) {
 		initFile = fopen(init, "r");
@@ -34,11 +33,18 @@ int main(int argc, char* argv[]){
 	relationsInfo* initRelations = NULL;
 	int num_of_initRelations = 0;
 	initRelations = getRelationsData(initFile, init, &num_of_initRelations);
-	if (initRelations == NULL) printf("INIT FAILED\n");
+	if (initRelations == NULL) {
+		printf("INIT FAILED\n");
+		deleteRelationsData(initRelations, &num_of_initRelations);
+		// Delete threadPool
+		destroyThreadPool(&thPool);
+		return -1;
+	}
 
 	if (PRINT) printf("--------------------------------------------------\n");
 	if (PRINT) printf("   Reading data files done! Now read queries!!\n");
 	if (PRINT) printf("--------------------------------------------------\n");
+	
 	// Wait 1 sec
 	sleep(1);
 

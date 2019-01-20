@@ -8,7 +8,7 @@ void TestCreateRowIdsArray(CuTest *tc){
 	rowIdsArray* rArray = createRowIdsArray(2);
 	CuAssertPtrNotNull(tc,rArray);
 	CuAssertIntEquals(tc,2,rArray->relationId);
-	CuAssertIntEquals(tc,100,rArray->num_of_rowIds);
+	CuAssertIntEquals(tc,1000,rArray->num_of_rowIds);
 	CuAssertIntEquals(tc,0,rArray->position);
 	CuAssertPtrNotNull(tc,rArray->rowIds);
 	// Create rowIdsArray with negative relationId
@@ -28,16 +28,16 @@ void TestInsertIntoRowIdsArray(CuTest *tc){
 	result = insertIntoRowIdsArray(rArray,4);
 	CuAssertIntEquals(tc,1,result);
 	CuAssertIntEquals(tc,1,rArray->position);
-	CuAssertIntEquals(tc,100,rArray->num_of_rowIds);
+	CuAssertIntEquals(tc,1000,rArray->num_of_rowIds);
 	CuAssertIntEquals(tc,4,rArray->rowIds[rArray->position-1]);
 	// Insert until double
-	for(int i=0;i<99;i++){
+	for(int i=0;i<999;i++){
 		insertIntoRowIdsArray(rArray,4);
 	}
 	result = insertIntoRowIdsArray(rArray,86);
 	CuAssertIntEquals(tc,1,result);
-	CuAssertIntEquals(tc,101,rArray->position);
-	CuAssertIntEquals(tc,200,rArray->num_of_rowIds);
+	CuAssertIntEquals(tc,1001,rArray->position);
+	CuAssertIntEquals(tc,2000,rArray->num_of_rowIds);
 	CuAssertIntEquals(tc,86,rArray->rowIds[rArray->position-1]);
 	// Delete rowIdsArray
 	deleteRowIdsArray(&rArray);
@@ -47,7 +47,7 @@ void TestDoubleRowIdsArray(CuTest *tc){
 	rowIdsArray* rArray = createRowIdsArray(2);
 	// Double rArray
 	doubleRowIdsArray(rArray);
-	CuAssertIntEquals(tc,200,rArray->num_of_rowIds);
+	CuAssertIntEquals(tc,2000,rArray->num_of_rowIds);
 	CuAssertPtrNotNull(tc,rArray->rowIds);
 	// Delete rowIdsArray
 	deleteRowIdsArray(&rArray);

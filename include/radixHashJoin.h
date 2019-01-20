@@ -8,6 +8,7 @@
 #define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
 #define HASH2 8
 #define HEXHASH2 0x7						// Second hash number for indexing in buckets
+// For 8 BUCKETS
 /*#define BUCKETS 8
 #define HEXBUCKETS 0x7
 #define HASH2 16
@@ -56,17 +57,21 @@ typedef struct result{
 }result;
 
 // For job scheduler - threads
+// Struct of args of createHistogramThread function
 typedef struct histArgs{
 	relation** Hist;
 	relation* R;
 }histArgs;
 
+
+// Not used
 typedef struct rOrderedArgs{
 	relation* R;
 	relation* Hist;
 	relation* Psum;
 }rOrderedArgs;
 
+// Struct of args of indexCompareJoinThread function
 typedef struct indexCompareJoinArgs{
 	result* ResultList;
 	relation* ROrdered;

@@ -122,6 +122,7 @@ threadPool* initializeThreadPool(int numThreads){
 		destroyThreadPool(&thPool);
 		return NULL;
 	}
+	// Uncomment if we want to synchronize with cond var
 	/*if(pthread_cond_init(&thPool->allNotWorking, NULL) != 0){
 		destroyThreadPool(&thPool);
 		return NULL;
@@ -171,7 +172,7 @@ void destroyThreadPool(threadPool** thPool){
 	(*thPool)->noThreads = -1;
 
     pthread_mutex_destroy(&((*thPool)->lockThreadPool));
-   // pthread_cond_destroy(&((*thPool)->allNotWorking));
+    //pthread_cond_destroy(&((*thPool)->allNotWorking));
     pthread_barrier_destroy(&(*thPool)->barrier);
 
 	free((*thPool));
@@ -213,6 +214,7 @@ void* executeJob(thread* th){
 				pthread_cond_signal(&thPool->allNotWorking);
 			}
 			pthread_mutex_unlock(&thPool->lockThreadPool);*/
+			// Stop and wait for all in order for main to get the rightful chunks
 			pthread_barrier_wait(&thPool->barrier);
 		}
 	}
@@ -270,6 +272,7 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 		insertJob(thPool->jobPool, job);
 	}
 
+	// Uncomment if we want to synchronize with cond var
 	/*
 	pthread_mutex_lock(&(thPool->lockThreadPool));
 	while (thPool->jobPool->size > 0 || thPool->noWorking > 0) {
@@ -277,6 +280,7 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 	}
 	pthread_mutex_unlock(&(thPool->lockThreadPool));*/
 
+	// Wait until all threads complete their jobs
 	pthread_barrier_wait(&thPool->barrier);
 
 	free(args);
@@ -389,7 +393,6 @@ result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
    	 	previous->next = args[i].ResultList->head;
     }
     result* resultList = args[0].ResultList;
-    if (PRINT) printList(resultList);
 
     // Reinitialize barrier
     if(THREADS != BUCKETS){

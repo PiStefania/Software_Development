@@ -7,9 +7,9 @@
 #define THREADS 4
 
 typedef struct Job{
-	struct Job* nextJob;
-	void (*function)(void* arg);
-	void* arg;
+	struct Job* nextJob;				//pointer to next job
+	void (*function)(void* arg);		//function pointer
+	void* arg;							//argument of function pointer
 }Job;
 
 typedef struct JobPool{
@@ -31,12 +31,12 @@ typedef struct threadPool{
 	JobPool* jobPool;					//jobs that the threads consume
 	volatile int noAlive;      			//threads currently alive
 	volatile int noWorking;    			//threads currently working
-	pthread_mutex_t lockThreadPool;    //mutex for locking threadPool
-	pthread_cond_t allNotWorking;    	//cond var for checking if thread pool has no working threads
-	pthread_barrier_t barrier;			// helpful if we want to wait all threads' results in order to combine them
+	pthread_mutex_t lockThreadPool;     //mutex for locking threadPool
+	//pthread_cond_t allNotWorking;    	//cond var for checking if thread pool has no working threads
+	pthread_barrier_t barrier;			//helpful if we want to wait all threads' results in order to combine them
 }threadPool;
 
-static volatile int keepAlive;
+static volatile int keepAlive;			//set to zero, if we want to destroy threads
 
 
 // Functions for jobPool
@@ -52,7 +52,7 @@ void destroyThreadPool(threadPool** th);
 // General function for executing job
 void* executeJob(thread* th);
 
-// General Functions for mergind data
+// General Functions for merging data
 relation* mergeIntoHist(threadPool* thPool, relation* R);
 result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args);
 

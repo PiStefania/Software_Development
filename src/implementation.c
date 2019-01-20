@@ -30,7 +30,6 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Get line and each section
-		//printf("%s", line);
 		char* lineStr = strtok(line,"\n");
 		char* relationsStr = strtok(lineStr,"|");
 		char* predicatesStr = strtok(NULL,"|");
@@ -95,9 +94,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
                 for (int i = 0; i < relationsSize; i++) {
 					rArray[i] = createRowIdsArray(relations[i]);
 				}
-				//int currentJoinPredicates = 0;
 				for (int i = 0; i < predicatesSize; i++) {
-					//printPredicate(predicates[i]);
 					// Compare column with a number
 					if (predicates[i]->kind == 0) {
 						// Get relation from line of predicate
@@ -105,11 +102,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
                         // Get column that we need to compare, from predicate
                         int relColumn = predicates[i]->leftSide->value;
 						// Check if the compare values are legitimate for this column and update the first statistics if so
-						//metadataCol *oldMetadata = malloc(sizeof(metadataCol));
-						//int outOfBoundaries = checkCompareStatistics(predicates, queryMetadata, oldMetadata, i, relationId1, relColumn);
-						//if (outOfBoundaries == 1) continue;
 						if (joinEnumVal == 0) continue;
-						//char foundValue = 0;
                         // If rArray for specific relation is empty, use initRelations
                         if(rArray[predicates[i]->leftSide->rowId]->position == 0){
 	                        // For each row of current relation, compare column, j is number of row aka id
@@ -120,27 +113,18 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                	// Insert row id of predicare into rArray of specific relation id
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
-	                                    else if (result == 1) {
-											//foundValue = 1;
-		                                }
 	                                }
 	                            }
 	                            if (predicates[i]->comparator == '>') {
 	                                if (initRelations[relationId1].Rarray[relColumn][j] > predicates[i]->rightSide->rowId) {
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
-	                                    else if (result == 1) {
-											//foundValue = 1;
-		                                }
 	                                }
 	                            }
 	                            else if (predicates[i]->comparator == '<') {
 	                                if (initRelations[relationId1].Rarray[relColumn][j] < predicates[i]->rightSide->rowId) {
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
-	                                    else if (result == 1) {
-											//foundValue = 1;
-		                                }
 	                                }
 	                            }
 	                        }
@@ -160,19 +144,16 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                if (value == predicates[i]->rightSide->rowId) {
 	                                	// Insert row id of predicare into rArray of specific relation id
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										//foundValue = 1;
 	                                }
 	                            }
 	                            if (predicates[i]->comparator == '>') {
 	                                if (value > predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										//foundValue = 1;
 	                                }
 	                            }
 	                            else if (predicates[i]->comparator == '<') {
 	                                if (value < predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										//foundValue = 1;
 	                                }
 	                            }
 	                        }
@@ -183,13 +164,8 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 								rArray[predicates[i]->leftSide->rowId]->position = -1;
 							}
 						}
-						// Update the rest of statistics
-						//updateCompareStatistics(predicates, initRelations, queryMetadata, oldMetadata, i, relationId1, relColumn, foundValue);
-						//free(oldMetadata);
 					}
 					else {	// Join
-						// Update join statistics
-						//updateJoinStatistics(predicates, initRelations, relations, queryMetadata, i);
 					  	// Join columns
 						int result = joinColumns(relations, predicates, initRelations, rArray, i, thPool);
                         if (result == -1) {
@@ -351,7 +327,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     // Create histogram
     // Use threads for creating RHist by cutting it to pieces as the number of threads exist
    	relation* RHist = mergeIntoHist(thPool, Rrel);
-    //relation* RHist = createHistogram(Rrel);
     if (PRINT) printRelation(RHist);
 
     // Create Psum
@@ -385,7 +360,6 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     // Create histogram
     // Use threads for creating SHist by cutting it to pieces as the number of threads exist
    	relation* SHist = mergeIntoHist(thPool, Srel);
-    //relation* SHist = createHistogram(Srel);
     if (PRINT) printRelation(SHist);
 
     // Create Psum
