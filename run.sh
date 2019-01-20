@@ -14,4 +14,3 @@ DATA_DIR="small"
 ${DIR}/build/release/joinProgram -i ./workloads/"$DATA_DIR"/small.init -w ./workloads/"$DATA_DIR"/small.work
 
 #$statistic $statisticTool $logFile ${DIR}/build/release/joinProgram -i ./workloads/"$DATA_DIR"/small.init -w ./workloads/"$DATA_DIR"/small.work
-

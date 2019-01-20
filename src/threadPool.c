@@ -333,21 +333,7 @@ relation* mergeIntoHist(threadPool* thPool, relation* R){
 }
 
 
-result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
-	// No meaning if we only have 1 thread
-	if(thPool->noThreads == 1){
-		result* ResultList = args->ResultList;
-		relation* ROrdered = args->ROrdered;
-		relation* RHist = args->RHist;
-		relation* RPsum = args->RPsum;
-		relation* SOrdered = args->SOrdered;
-		relation* SHist = args->SHist;
-		relation* SPsum = args->SPsum;
-		if(indexCompareJoin(ResultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum))
-			return NULL;
-		return ResultList;
-	}
-
+result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args) {
 	// We need BUCKETS = THREADS
 	int noThreads = BUCKETS;
 	if(THREADS > BUCKETS){
@@ -399,6 +385,6 @@ result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
 		pthread_barrier_destroy(&thPool->barrier);
 		pthread_barrier_init(&thPool->barrier, NULL, thPool->noThreads + 1);
 	}
-	
+
 	return resultList;
 }

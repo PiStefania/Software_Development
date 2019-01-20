@@ -370,26 +370,31 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     relation* SOrdered = createROrdered(Srel, SHist, SPsum);
     if (PRINT) printRelation(SOrdered);
 
-    // Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
-    // Create array of args for each thread
-	indexCompareJoinArgs* args = malloc(BUCKETS * sizeof(indexCompareJoinArgs));
-	for(int i=0;i<BUCKETS;i++){
-		args[i].ResultList = createList();
-		args[i].ROrdered = ROrdered;
-		args[i].RHist = RHist;
-		args[i].RPsum = RPsum;
-		args[i].SOrdered = SOrdered;
-		args[i].SHist = SHist;
-		args[i].SPsum = SPsum;
-		args[i].currentBucket = i;
+	result* resultList;
+	if (thPool->noThreads == 1) {
+		resultList = createList();
+		if (indexCompareJoin(resultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum) == -1) return -1;
 	}
-
-	// Calculate resultLists with threads
-	result* resultList = mergeIntoResultList(thPool,args);
-	for(int i=1;i<BUCKETS;i++){
-   		free(args[i].ResultList);
+	else {		// Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
+	    // Create array of args for each thread
+		indexCompareJoinArgs* args = malloc(BUCKETS * sizeof(indexCompareJoinArgs));
+		for(int i=0;i<BUCKETS;i++){
+			args[i].ResultList = createList();
+			args[i].ROrdered = ROrdered;
+			args[i].RHist = RHist;
+			args[i].RPsum = RPsum;
+			args[i].SOrdered = SOrdered;
+			args[i].SHist = SHist;
+			args[i].SPsum = SPsum;
+			args[i].currentBucket = i;
+		}
+		// Calculate resultLists with threads
+		resultList = mergeIntoResultList(thPool,args);
+		for(int i=1;i<BUCKETS;i++){
+	   		free(args[i].ResultList);
+		}
+	    free(args);
 	}
-    free(args);
 
 	// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 	rowIdsArray** newUpdatedLeftRArray = NULL;
