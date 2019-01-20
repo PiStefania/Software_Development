@@ -15,10 +15,10 @@
 #define HEXHASH2 0xF*/
 #define ARRAYSIZE 1000	//((1024 * 1024) / 128)
 
-#define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
+/*#define RANGE 17							// Range of values for arrays initialization (1 to RANGE)
 #define R_ROWS 7							// Number of rows for R array
 #define S_ROWS 5							// Number of rows for S array
-#define COLUMNS 1							// Colums of arrays (for this program, only 1)
+#define COLUMNS 1							// Colums of arrays (for this program, only 1)*/
 
 #define PRINT 0				// Print results and arrays throughout process (suggested for debbuging and with small data)
 

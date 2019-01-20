@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include "radixHashJoin.h"
 
-#define THREADS 4
+#define THREADS 2
 
 typedef struct Job{
 	struct Job* nextJob;				//pointer to next job
