@@ -9,9 +9,6 @@
 
 // Initial check for compare statistics
 int checkCompareStatistics(predicate** predicates, metadataCol** queryMetadata, metadataCol* oldMetadata, int currentPredicate, int relationId, int relColumn) {
-    // Print initial statistics (optional)
-    //printf("Old - Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId, relColumn, queryMetadata[relationId][relColumn].num_of_data,
-    //            queryMetadata[relationId][relColumn].min, queryMetadata[relationId][relColumn].max, queryMetadata[relationId][relColumn].discrete_values);
     uint64_t compareValue = predicates[currentPredicate]->rightSide->rowId;
     int outOfBoundaries = 0;
     // Keep some previous statistics that may be used in the calculation of the new ones later
@@ -58,7 +55,6 @@ uint32_t updateCompareStatistics(predicate** predicates, relationsInfo* initRela
         else if (foundVal == 0) {
             queryMetadata[relationId][relColumn].num_of_data = 0;
             queryMetadata[relationId][relColumn].discrete_values = 0;
-            //rList[predicates[currentPred]->leftSide->rowId].num_of_rowIds = -1;
         }
     }
     else if (predicates[currentPred]->comparator == '>') {
@@ -82,12 +78,9 @@ uint32_t updateCompareStatistics(predicate** predicates, relationsInfo* initRela
             float fraction = (float)queryMetadata[relationId][relColumn].num_of_data / (float)oldMetadata->num_of_data;
             float exponent = (float)queryMetadata[relationId][j].num_of_data / (float)queryMetadata[relationId][j].discrete_values;
             float new_discrete_values = (float)queryMetadata[relationId][j].discrete_values * (float)(1.0 - (float)pow((1.0 - fraction), exponent));
-            //printf("New Discrete: %f - Fraction: %f - Exponent: %f\n", new_discrete_values, fraction, exponent);
             queryMetadata[relationId][j].discrete_values = (uint32_t)roundf(new_discrete_values);
             queryMetadata[relationId][j].num_of_data = queryMetadata[relationId][relColumn].num_of_data;
         }
-        //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId, j, queryMetadata[relationId][j].num_of_data,
-        //        queryMetadata[relationId][j].min, queryMetadata[relationId][j].max, queryMetadata[relationId][j].discrete_values);
     }
     return queryMetadata[relationId][relColumn].num_of_data;
 }
@@ -99,18 +92,10 @@ uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelatio
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
     int relationId2 = relations[predicates[currentPredicate]->rightSide->rowId];
     int relColumn2 = predicates[currentPredicate]->rightSide->value;
-    // Print initial statistics (optional)
-    /*printf("Old1 - Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, relColumn1,
-            queryMetadata[relationId1][relColumn1].num_of_data, queryMetadata[relationId1][relColumn1].min,
-            queryMetadata[relationId1][relColumn1].max, queryMetadata[relationId1][relColumn1].discrete_values);
-    printf("Old2 - Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId2, relColumn2,
-            queryMetadata[relationId2][relColumn2].num_of_data, queryMetadata[relationId2][relColumn2].min,
-            queryMetadata[relationId2][relColumn2].max, queryMetadata[relationId2][relColumn2].discrete_values);*/
     // Check if the filter consists of columns from the same relation
     if (relationId1 == relationId2) {
         // Maybe there is a selfJoin, aka same relation and same columns
         if (relColumn1 == relColumn2) {
-            //printf("self Join\n");
             // Update only the number of data here
             uint32_t old_num_of_data1 = queryMetadata[relationId1][relColumn1].num_of_data;
             uint32_t nValue = queryMetadata[relationId1][relColumn1].max - queryMetadata[relationId1][relColumn1].min + 1;
@@ -120,11 +105,8 @@ uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelatio
                 if (j != relColumn1) {
                     queryMetadata[relationId1][j].num_of_data = queryMetadata[relationId1][relColumn1].num_of_data;
                 }
-                //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, j, queryMetadata[relationId1][j].num_of_data,
-                //        queryMetadata[relationId1][j].min, queryMetadata[relationId1][j].max, queryMetadata[relationId1][j].discrete_values);
             }
         } else {    // Update minimum values
-            //printf("Same Relation\n");
             uint32_t maxLower = queryMetadata[relationId1][relColumn1].min;
             if (queryMetadata[relationId2][relColumn2].min > maxLower) {
                 maxLower = queryMetadata[relationId2][relColumn2].min;
@@ -156,16 +138,12 @@ uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelatio
                     float fraction = (float)queryMetadata[relationId1][relColumn1].num_of_data / (float)old_num_of_data1;
                     float exponent = (float)queryMetadata[relationId1][j].num_of_data / (float)queryMetadata[relationId1][j].discrete_values;
                     float new_discrete_values = (float)queryMetadata[relationId1][j].discrete_values * (float)(1.0 - (float)pow((1.0 - fraction), exponent));
-                    //printf("New Discrete: %f - Fraction: %f - Exponent: %f\n", new_discrete_values, fraction, exponent);
                     queryMetadata[relationId1][j].discrete_values = (uint32_t)roundf(new_discrete_values);
                     queryMetadata[relationId1][j].num_of_data = queryMetadata[relationId1][relColumn1].num_of_data;
                 }
-                //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, j, queryMetadata[relationId1][j].num_of_data,
-                //        queryMetadata[relationId1][j].min, queryMetadata[relationId1][j].max, queryMetadata[relationId1][j].discrete_values);
             }
         }
     } else {    // Normal Join
-        //printf("Normal Join\n");
         // Update minimum values
         uint32_t maxLower = queryMetadata[relationId1][relColumn1].min;
         if (queryMetadata[relationId2][relColumn2].min > maxLower) {
@@ -199,12 +177,9 @@ uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelatio
                 float fraction = (float)queryMetadata[relationId1][relColumn1].discrete_values / (float)old_discrete_values1;
                 float exponent = (float)queryMetadata[relationId1][j].num_of_data / (float)queryMetadata[relationId1][j].discrete_values;
                 float new_discrete_values = (float)queryMetadata[relationId1][j].discrete_values * (float)(1.0 - (float)pow((1.0 - fraction), exponent));
-                //printf("New Discrete: %f - Fraction: %f - Exponent: %f\n", new_discrete_values, fraction, exponent);
                 queryMetadata[relationId1][j].discrete_values = (uint32_t)roundf(new_discrete_values);
                 queryMetadata[relationId1][j].num_of_data = queryMetadata[relationId1][relColumn1].num_of_data;
             }
-            //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId1, j, queryMetadata[relationId1][j].num_of_data,
-            //        queryMetadata[relationId1][j].min, queryMetadata[relationId1][j].max, queryMetadata[relationId1][j].discrete_values);
         }
         // Now update the rest columns of relation 2
         for (int j = 0; j < initRelations[relationId2].num_of_columns; j++) {
@@ -216,8 +191,6 @@ uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelatio
                 queryMetadata[relationId2][j].discrete_values = (uint32_t)roundf(new_discrete_values);
                 queryMetadata[relationId2][j].num_of_data = queryMetadata[relationId2][relColumn2].num_of_data;
             }
-            //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId2, j, queryMetadata[relationId2][j].num_of_data,
-            //        queryMetadata[relationId2][j].min, queryMetadata[relationId2][j].max, queryMetadata[relationId2][j].discrete_values);
         }
     }
     return queryMetadata[relationId1][relColumn1].num_of_data;
@@ -281,8 +254,6 @@ int joinEnumeration(predicate** predicates, int predicatesSize, relationsInfo* i
     }
     // Find the best path by a semi-recursive function
     totalCost += findBestPath(predicates, predicatesSize, initRelations, num_of_initRelations, relations, queryMetadata, predicatesFinalPosition);
-    //printf("Total Cost: %d\n", totalCost);
-
     // Rearrange the predicates array
     int rearrangedIndex = 0;
 	predicate** copiedPredicates = createPredicate(predicatesSize);
@@ -295,7 +266,6 @@ int joinEnumeration(predicate** predicates, int predicatesSize, relationsInfo* i
 		copiedPredicates[i]->rightSide->value = predicates[i]->rightSide->value;
 		copiedPredicates[i]->needsToBeDeleted = predicates[i]->needsToBeDeleted;
 	}
-    //printf("Rearrange: ");
     for (int i = 0; i < predicatesSize; i++) {
         rearrangedIndex = predicatesFinalPosition[i];
         // Check if the expected predicate (from joinEnumeration), which will take place after the predicate, is refered to the same relation
@@ -319,9 +289,7 @@ int joinEnumeration(predicate** predicates, int predicatesSize, relationsInfo* i
 		predicates[rearrangedIndex]->rightSide->rowId = copiedPredicates[i]->rightSide->rowId;
 		predicates[rearrangedIndex]->rightSide->value = copiedPredicates[i]->rightSide->value;
 		predicates[rearrangedIndex]->needsToBeDeleted = copiedPredicates[i]->needsToBeDeleted;
-        //printf("%d ", rearrangedIndex);
 	}
-    //printf("\n");
     // Delete dynamically allocated arrays and return
     for (int i = 0; i < predicatesSize; i++) {
 		deletePredicate(&copiedPredicates[i]);
@@ -357,7 +325,6 @@ int findBestPath(predicate** predicates, int predicatesSize, relationsInfo* init
     for (int i = 0; i < predicatesSize; i++) {
         if (predicatesFinalPosition[i] == -1) {
             joinCosts[i] = updateJoinStatistics(predicates, initRelations, relations, totalQueryMetadata[i], i);
-            //printf("Cost:%d ", joinCosts[i]);
         }
     }
     // Find which is the lowest cost (less number of row ids after possible join) and the index of this predicate
@@ -374,7 +341,6 @@ int findBestPath(predicate** predicates, int predicatesSize, relationsInfo* init
             }
         }
     }
-    //printf("\nMin Cost: %d, Min Index: %d\n", minCost, minIndex);
     // If all predicates have been ordered, return 0 as cost
     if (minIndex != -1) {
         // Update the array with ordered predicates
@@ -400,27 +366,3 @@ int findBestPath(predicate** predicates, int predicatesSize, relationsInfo* init
 
     return minCost;
 }
-
-
-/*int findBestPathRecursively(predicate** predicates, int predicatesSize, relationsInfo* initRelations, int* relations, metadataCol** queryMetadata,
-                                int* predicatesOrder, int currentCombination) {
-    // Initialize current level data
-    int numOfChildren = predicatesSize - 1;
-    if (numOfChildren == 0) {
-        int costFinal = 1;
-        return costFinal;
-    } else {
-        int* childrenCost = malloc(numOfChildren * sizeof(int));
-        for (int i = 0; i < numOfChildren; i++) {
-            childrenCost[i] = findBestPathRecursively(predicates, numOfChildren, initRelations, relations, queryMetadata, predicatesOrder, i);
-        }
-        // Calculate the lowest cost of all and its path
-        int minCost = childrenCost[0];
-        for (int i = 1; i < numOfChildren; i++) {
-            if (childrenCost[i] < minCost) {
-                minCost = childrenCost[i];
-            }
-        }
-        free(childrenCost);
-    }
-}*/

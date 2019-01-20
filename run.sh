@@ -8,6 +8,3 @@ statisticTool="${args[2]}"
 logFile="${args[3]}"
 
 $statistic $statisticTool $logFile ${DIR}/build/release/joinProgram -i ./workloads/"$DATA_DIR"/small.init -w ./workloads/"$DATA_DIR"/small.work
-
-#DATA_DIR="small"
-#${DIR}/build/release/joinProgram -i ./workloads/"$DATA_DIR"/small.init -w ./workloads/"$DATA_DIR"/small.work
