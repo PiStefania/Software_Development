@@ -344,7 +344,30 @@ result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
 		return ResultList;
 	}
 
-	for(int i=0;i<thPool->noThreads;i++){
+	// We need BUCKETS = THREADS
+	int noThreads = BUCKETS;
+	if(THREADS > BUCKETS){
+		// Use less threads
+		// Reinitialize barrier
+		pthread_barrier_destroy(&thPool->barrier);
+		pthread_barrier_init(&thPool->barrier, NULL, noThreads + 1);
+	}else if(THREADS < BUCKETS){
+		// Create more threads
+		thPool->threads = realloc(thPool->threads, noThreads * sizeof(thread));
+		for(int i=thPool->noThreads; i<noThreads;i++){
+			// Set access to thread pool
+			thPool->threads[i].thPool = thPool;
+			// Initialize each thread
+			pthread_create(&thPool->threads[i].threadId, NULL, (void *) executeJob, &thPool->threads[i]);
+			// No need to join threads at end
+			pthread_detach(thPool->threads[i].threadId);
+		}
+		// Reinitialize barrier
+		pthread_barrier_destroy(&thPool->barrier);
+		pthread_barrier_init(&thPool->barrier, NULL, noThreads + 1);
+	}
+
+	for(int i=0;i<noThreads;i++){
 		// Add to job Pool
 		Job* job = malloc(sizeof(Job));
 		job->function = (void*) indexCompareJoinThread;
@@ -368,6 +391,11 @@ result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args){
     result* resultList = args[0].ResultList;
     if (PRINT) printList(resultList);
 
+    // Reinitialize barrier
+    if(THREADS != BUCKETS){
+		pthread_barrier_destroy(&thPool->barrier);
+		pthread_barrier_init(&thPool->barrier, NULL, thPool->noThreads + 1);
+	}
 	
 	return resultList;
 }
