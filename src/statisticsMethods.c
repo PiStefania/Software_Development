@@ -44,7 +44,7 @@ int checkCompareStatistics(predicate** predicates, metadataCol** queryMetadata, 
 
 
 
-void updateCompareStatistics(predicate** predicates, relationsInfo* initRelations, metadataCol** queryMetadata, metadataCol* oldMetadata,
+uint32_t updateCompareStatistics(predicate** predicates, relationsInfo* initRelations, metadataCol** queryMetadata, metadataCol* oldMetadata,
                                         int currentPred, int relationId, int relColumn, char foundVal) {
     // Update the rest of statistics for compare predicates
     uint64_t compareValue = predicates[currentPred]->rightSide->rowId;
@@ -89,10 +89,11 @@ void updateCompareStatistics(predicate** predicates, relationsInfo* initRelation
         //printf("Rel: %d.%d - Num Of Data: %d - Min: %d - Max: %d - Discrete Values: %d\n", relationId, j, queryMetadata[relationId][j].num_of_data,
         //        queryMetadata[relationId][j].min, queryMetadata[relationId][j].max, queryMetadata[relationId][j].discrete_values);
     }
+    return queryMetadata[relationId][relColumn].num_of_data;
 }
 
 
-void updateJoinStatistics(predicate** predicates, relationsInfo* initRelations, int* relations, metadataCol** queryMetadata, int currentPredicate) {
+uint32_t updateJoinStatistics(predicate** predicates, relationsInfo* initRelations, int* relations, metadataCol** queryMetadata, int currentPredicate) {
     // Find each side's relationId and column
     int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
     int relColumn1 = predicates[currentPredicate]->leftSide->value;
@@ -219,6 +220,7 @@ void updateJoinStatistics(predicate** predicates, relationsInfo* initRelations, 
             //        queryMetadata[relationId2][j].min, queryMetadata[relationId2][j].max, queryMetadata[relationId2][j].discrete_values);
         }
     }
+    return queryMetadata[relationId1][relColumn1].num_of_data;
 }
 
 
@@ -245,3 +247,180 @@ void copyMetadata(relationsInfo* initRelations, int num_of_initRelations, int* r
         }
     }
 }
+
+
+
+int joinEnumeration(predicate** predicates, int predicatesSize, relationsInfo* initRelations, int num_of_initRelations, int* relations, metadataCol** queryMetadata) {
+    // Find the cost summary of all compare predicates
+    uint32_t totalCost = 0;
+    int currentPredicate = 0;
+    while (predicates[currentPredicate]->kind == 0) {
+        // Get relation and column that we need to compare, from predicate
+        int relationId1 = relations[predicates[currentPredicate]->leftSide->rowId];
+        int relColumn = predicates[currentPredicate]->leftSide->value;
+        // Check if the compare values are legitimate for this column and update the first statistics if so
+        metadataCol *oldMetadata = malloc(sizeof(metadataCol));
+        int outOfBoundaries = checkCompareStatistics(predicates, queryMetadata, oldMetadata, currentPredicate, relationId1, relColumn);
+        if (outOfBoundaries == 1) {
+            free(oldMetadata);
+            return 0;
+        }
+        // Now update the current compare statistics
+        totalCost += updateCompareStatistics(predicates, initRelations, queryMetadata, oldMetadata, currentPredicate, relationId1, relColumn, 1);
+        free(oldMetadata);
+        currentPredicate++;
+    }
+    // Create an array that shows the final order of each predicate (until a predicate is examined, its value is -1)
+    int* predicatesFinalPosition = malloc(predicatesSize * sizeof(int));
+    for (int i = 0; i < predicatesSize; i++) {
+        if (i < currentPredicate) {
+            predicatesFinalPosition[i] = i;
+        } else {
+            predicatesFinalPosition[i] = -1;
+        }
+    }
+    // Find the best path by a semi-recursive function
+    totalCost += findBestPath(predicates, predicatesSize, initRelations, num_of_initRelations, relations, queryMetadata, predicatesFinalPosition);
+    //printf("Total Cost: %d\n", totalCost);
+
+    // Rearrange the predicates array
+    int rearrangedIndex = 0;
+	predicate** copiedPredicates = createPredicate(predicatesSize);
+	for (int i = 0; i < predicatesSize; i++) {
+		copiedPredicates[i]->kind = predicates[i]->kind;
+		copiedPredicates[i]->comparator = predicates[i]->comparator;
+		copiedPredicates[i]->leftSide->rowId = predicates[i]->leftSide->rowId;
+		copiedPredicates[i]->leftSide->value = predicates[i]->leftSide->value;
+		copiedPredicates[i]->rightSide->rowId = predicates[i]->rightSide->rowId;
+		copiedPredicates[i]->rightSide->value = predicates[i]->rightSide->value;
+		copiedPredicates[i]->needsToBeDeleted = predicates[i]->needsToBeDeleted;
+	}
+    //printf("Rearrange: ");
+    for (int i = 0; i < predicatesSize; i++) {
+        rearrangedIndex = predicatesFinalPosition[i];
+        // Check if the expected predicate (from joinEnumeration), which will take place after the predicate, is refered to the same relation
+        if (predicates[i]->kind == 1 && predicates[i-1]->kind == 0) {
+            int foundIndex = 0;
+            for (int j = 0; j < predicatesSize; j++) {
+                if (predicatesFinalPosition[j] == i) {
+                    foundIndex = j;
+                    break;              // If it does not consist the same relation as the compare predicate, then do not use join Enumeration results
+                }                       // We do this as it is sure that a relation same to the compare one, uses less values than any other relation
+            }
+            if (predicates[foundIndex]->leftSide->rowId != predicates[i-1]->leftSide->rowId &&
+                    predicates[foundIndex]->rightSide->rowId != predicates[i-1]->leftSide->rowId) {
+                        break;
+                    }                   // Sometimes the statistics are not accurate at all, as a result we push our own improvements, like this one
+        }
+		predicates[rearrangedIndex]->kind = copiedPredicates[i]->kind;
+		predicates[rearrangedIndex]->comparator = copiedPredicates[i]->comparator;
+		predicates[rearrangedIndex]->leftSide->rowId = copiedPredicates[i]->leftSide->rowId;
+		predicates[rearrangedIndex]->leftSide->value = copiedPredicates[i]->leftSide->value;
+		predicates[rearrangedIndex]->rightSide->rowId = copiedPredicates[i]->rightSide->rowId;
+		predicates[rearrangedIndex]->rightSide->value = copiedPredicates[i]->rightSide->value;
+		predicates[rearrangedIndex]->needsToBeDeleted = copiedPredicates[i]->needsToBeDeleted;
+        //printf("%d ", rearrangedIndex);
+	}
+    //printf("\n");
+    // Delete dynamically allocated arrays and return
+    for (int i = 0; i < predicatesSize; i++) {
+		deletePredicate(&copiedPredicates[i]);
+	}
+	free(copiedPredicates);
+    free(predicatesFinalPosition);
+
+    return 1;
+}
+
+
+
+// Find every time the least predicted number of row ids and keep that predicate's order, then look for the rest
+int findBestPath(predicate** predicates, int predicatesSize, relationsInfo* initRelations, int num_of_initRelations, int* relations,
+                        metadataCol** queryMetadata, int* predicatesFinalPosition) {
+    // Copy metadata for each predicate, in order to use it if needed for future predictions
+    metadataCol*** totalQueryMetadata = malloc(predicatesSize * sizeof(metadataCol**));
+    int* joinCosts = malloc(predicatesSize * sizeof(int));
+    for (int k = 0; k < predicatesSize; k++) {
+        totalQueryMetadata[k] = malloc(num_of_initRelations * sizeof(metadataCol*));
+        for (int i = 0; i < num_of_initRelations; i++) {
+            totalQueryMetadata[k][i] = malloc(initRelations[i].num_of_columns * sizeof(metadataCol));
+            for (int j = 0; j < initRelations[i].num_of_columns; j++) {
+                totalQueryMetadata[k][i][j].min = queryMetadata[i][j].min;
+                totalQueryMetadata[k][i][j].max = queryMetadata[i][j].max;
+                totalQueryMetadata[k][i][j].num_of_data = queryMetadata[i][j].num_of_data;
+                totalQueryMetadata[k][i][j].discrete_values = queryMetadata[i][j].discrete_values;
+            }
+        }
+        joinCosts[k] = -1;      // Keep the costs found in each update join procedure in an array (initialized with -1)
+    }
+    // Calculate the number of rows estimation for each predicate not estimated yet
+    for (int i = 0; i < predicatesSize; i++) {
+        if (predicatesFinalPosition[i] == -1) {
+            joinCosts[i] = updateJoinStatistics(predicates, initRelations, relations, totalQueryMetadata[i], i);
+            //printf("Cost:%d ", joinCosts[i]);
+        }
+    }
+    // Find which is the lowest cost (less number of row ids after possible join) and the index of this predicate
+    int minCost = -1, minIndex = -1;
+    for (int i = 0; i < predicatesSize; i++) {
+        if (joinCosts[i] == -1) continue;
+        if (minCost == -1) {
+            minCost = joinCosts[i];
+            minIndex = i;
+        } else {
+            if (joinCosts[i] < minCost) {
+                minCost = joinCosts[i];
+                minIndex = i;
+            }
+        }
+    }
+    //printf("\nMin Cost: %d, Min Index: %d\n", minCost, minIndex);
+    // If all predicates have been ordered, return 0 as cost
+    if (minIndex != -1) {
+        // Update the array with ordered predicates
+        int itemsSorted = 0;
+        for (int i = 0; i < predicatesSize; i++) {
+            if (predicatesFinalPosition[i] != -1) itemsSorted++;
+        }
+        predicatesFinalPosition[minIndex] = itemsSorted;
+        // Now check for the rest predicates
+        minCost += findBestPath(predicates, predicatesSize, initRelations, num_of_initRelations, relations, totalQueryMetadata[minIndex], predicatesFinalPosition);
+    }
+    else minCost = 0;
+
+    // Delete current allocated -to copy each predicate's metadata- queryMetadata array
+    for (int k = 0; k < predicatesSize; k++) {
+        for (int i = 0; i < num_of_initRelations; i++) {
+            free(totalQueryMetadata[k][i]);
+        }
+        free(totalQueryMetadata[k]);
+    }
+    free(totalQueryMetadata);
+    free(joinCosts);
+
+    return minCost;
+}
+
+
+/*int findBestPathRecursively(predicate** predicates, int predicatesSize, relationsInfo* initRelations, int* relations, metadataCol** queryMetadata,
+                                int* predicatesOrder, int currentCombination) {
+    // Initialize current level data
+    int numOfChildren = predicatesSize - 1;
+    if (numOfChildren == 0) {
+        int costFinal = 1;
+        return costFinal;
+    } else {
+        int* childrenCost = malloc(numOfChildren * sizeof(int));
+        for (int i = 0; i < numOfChildren; i++) {
+            childrenCost[i] = findBestPathRecursively(predicates, numOfChildren, initRelations, relations, queryMetadata, predicatesOrder, i);
+        }
+        // Calculate the lowest cost of all and its path
+        int minCost = childrenCost[0];
+        for (int i = 1; i < numOfChildren; i++) {
+            if (childrenCost[i] < minCost) {
+                minCost = childrenCost[i];
+            }
+        }
+        free(childrenCost);
+    }
+}*/

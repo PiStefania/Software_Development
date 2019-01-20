@@ -86,6 +86,10 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 				printf("Predicates are incorrect!\n");
 				failed = 1;
 			} else {
+				// Find the best order of predicates, using statistics in joinEnumeration algorithm
+				int joinEnumVal = 1;
+				joinEnumVal = joinEnumeration(predicates, predicatesSize, initRelations, num_of_initRelations, relations, queryMetadata);
+				if (joinEnumVal == -1) return -1;
                 // Create the array to store the rowIds that satisfy each predicate
                 rArray = malloc(relationsSize * sizeof(rowIdsArray*));
                 for (int i = 0; i < relationsSize; i++) {
@@ -101,10 +105,11 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
                         // Get column that we need to compare, from predicate
                         int relColumn = predicates[i]->leftSide->value;
 						// Check if the compare values are legitimate for this column and update the first statistics if so
-						metadataCol *oldMetadata = malloc(sizeof(metadataCol));
-						int outOfBoundaries = checkCompareStatistics(predicates, queryMetadata, oldMetadata, i, relationId1, relColumn);
-						if (outOfBoundaries == 1) continue;
-						char foundValue = 0;
+						//metadataCol *oldMetadata = malloc(sizeof(metadataCol));
+						//int outOfBoundaries = checkCompareStatistics(predicates, queryMetadata, oldMetadata, i, relationId1, relColumn);
+						//if (outOfBoundaries == 1) continue;
+						if (joinEnumVal == 0) continue;
+						//char foundValue = 0;
                         // If rArray for specific relation is empty, use initRelations
                         if(rArray[predicates[i]->leftSide->rowId]->position == 0){
 	                        // For each row of current relation, compare column, j is number of row aka id
@@ -116,7 +121,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
 	                                    else if (result == 1) {
-											foundValue = 1;
+											//foundValue = 1;
 		                                }
 	                                }
 	                            }
@@ -125,7 +130,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
 	                                    else if (result == 1) {
-											foundValue = 1;
+											//foundValue = 1;
 		                                }
 	                                }
 	                            }
@@ -134,7 +139,7 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                	int result = insertIntoRowIdsArray(rArray[predicates[i]->leftSide->rowId], j);
 	                                    if (result == -1) return 0;
 	                                    else if (result == 1) {
-											foundValue = 1;
+											//foundValue = 1;
 		                                }
 	                                }
 	                            }
@@ -155,19 +160,19 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 	                                if (value == predicates[i]->rightSide->rowId) {
 	                                	// Insert row id of predicare into rArray of specific relation id
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										foundValue = 1;
+										//foundValue = 1;
 	                                }
 	                            }
 	                            if (predicates[i]->comparator == '>') {
 	                                if (value > predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										foundValue = 1;
+										//foundValue = 1;
 	                                }
 	                            }
 	                            else if (predicates[i]->comparator == '<') {
 	                                if (value < predicates[i]->rightSide->rowId) {
 	                                	if (!insertIntoRowIdsArray(new_rowIds, currentArray->rowIds[counter])) return 0;
-										foundValue = 1;
+										//foundValue = 1;
 	                                }
 	                            }
 	                        }
@@ -179,12 +184,12 @@ int queriesImplementation(FILE* file, relationsInfo* initRelations, int num_of_i
 							}
 						}
 						// Update the rest of statistics
-						updateCompareStatistics(predicates, initRelations, queryMetadata, oldMetadata, i, relationId1, relColumn, foundValue);
-						free(oldMetadata);
+						//updateCompareStatistics(predicates, initRelations, queryMetadata, oldMetadata, i, relationId1, relColumn, foundValue);
+						//free(oldMetadata);
 					}
 					else {	// Join
 						// Update join statistics
-						updateJoinStatistics(predicates, initRelations, relations, queryMetadata, i);
+						//updateJoinStatistics(predicates, initRelations, relations, queryMetadata, i);
 					  	// Join columns
 						int result = joinColumns(relations, predicates, initRelations, rArray, i, thPool);
                         if (result == -1) {
