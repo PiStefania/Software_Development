@@ -90,12 +90,12 @@ void deleteList(result ** list) {
 }
 
 
-//H1 for bucket selection, get last 2 bits
+//H1 for bucket selection, get last 3 bits
 int hashFunction1(uint64_t value){
 	return value & HEXBUCKETS;
 }
 
-//H2 for indexing in buckets, get last 3 bits
+//H2 for indexing in buckets, get last 4 bits
 int hashFunction2(uint64_t value){
 	return value & HEXHASH2;
 }
@@ -236,7 +236,7 @@ relation* createROrdered(relation* R, relation* Hist, relation* Psum){
 }
 
 
-//Create indexes for each bucket in the smaller one, compare the items of bigger with smaller's and finally join the same values (return in the list rowIds)
+// Create indexes for each bucket in the smaller one, compare the items of bigger with smaller's and finally join the same values (return in the list rowIds)
 // We create indexes for each bucket, one by one, for the smaller bucket of the 2 arrays (for optimization)
 int indexCompareJoin(result* ResultList, relation* ROrdered, relation* RHist, relation* RPsum, relation* SOrdered, relation* SHist, relation* SPsum) {
     for (int i = 0; i < BUCKETS; i++) {

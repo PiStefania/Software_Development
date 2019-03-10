@@ -4,12 +4,13 @@
 
 This work has been implemented for the course of Software Development for Information Systems, in Department of Informatics and Telecommunications, at University of Athens, Greece. It is based on Sigmod contest of 2018, and the Implementation is fully functional for the contest's requirements.
 
-The **Radix Hash Join** algorithm has been implemented, using 2 hash functions, in order to create both buckets and indexes, using the 3 and 4 last bits of each numbers, for each one of these functions, respectively.
+
+The **Radix Hash Join** algorithm has been implemented, using 2 hash functions, in order to create both buckets and indexes, using the **7 and 8 last bits** of each numbers, for each one of these functions, respectively.
 
 
 ### Designing Options
 - There are comments throughout the code, for better explanation of program's functionality.
-- The application is executed properly, using 8 threads, for optimization.
+- The application is executed properly, using any number of threads.
 - For more information (in greek) check [Report.pdf](https://github.com/PiStefania/Software_Development/blob/master/Report.pdf).
 
 

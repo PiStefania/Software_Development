@@ -352,6 +352,7 @@ result* mergeIntoResultList(threadPool* thPool, indexCompareJoinArgs* args) {
 			// No need to join threads at end
 			pthread_detach(thPool->threads[i].threadId);
 		}
+		thPool->noThreads = noThreads;
 		// Reinitialize barrier
 		pthread_barrier_destroy(&thPool->barrier);
 		pthread_barrier_init(&thPool->barrier, NULL, noThreads + 1);

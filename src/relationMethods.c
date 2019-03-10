@@ -160,15 +160,15 @@ stringNode* createNameList() {
 
 // Insert strings into the list (helps while reading files)
 int insertIntoNameList(stringNode* nameList, char* name) {
-    if(name == NULL || nameList == NULL){
+    if (name == NULL || nameList == NULL) {
       return 0;
     }
   	stringNode *currentNode, *newNode;
-  	if (nameList->isEmptyList == 1){
+  	if (nameList->isEmptyList == 1) {
         nameList->name = malloc((strlen(name)+1)*sizeof(char));
-    		strcpy(nameList->name, name);
-    		nameList->isEmptyList = 0;
-    		return 1;
+		strcpy(nameList->name, name);
+		nameList->isEmptyList = 0;
+		return 1;
   	}
   	currentNode = nameList;
   	while (currentNode->next != NULL) {

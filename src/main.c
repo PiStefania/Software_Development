@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
 	char* init = NULL;
 	char* work = NULL;
 
-	for (int i=0; i<argc; i++){
+	for (int i=0; i<argc; i++) {
 		if (strcmp(argv[i],"-i") == 0)
 			init = argv[i+1];
 		if (strcmp(argv[i],"-w") == 0)
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
 	if (PRINT) printf("--------------------------------------------------\n");
 	if (PRINT) printf("   Reading data files done! Now read queries!!\n");
 	if (PRINT) printf("--------------------------------------------------\n");
-	
+
 	// Wait 1 sec
 	sleep(1);
 

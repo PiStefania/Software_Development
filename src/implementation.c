@@ -371,11 +371,11 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
     if (PRINT) printRelation(SOrdered);
 
 	result* resultList;
-	if (thPool->noThreads == 1) {
+	/*if (thPool->noThreads == 1) {
 		resultList = createList();
 		if (indexCompareJoin(resultList, ROrdered, RHist, RPsum, SOrdered, SHist, SPsum) == -1) return -1;
 	}
-	else {		// Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
+	else {*/		// Index (in the smallest bucket of the 2 arrays for each hash1 value), compare and join by bucket
 	    // Create array of args for each thread
 		indexCompareJoinArgs* args = malloc(BUCKETS * sizeof(indexCompareJoinArgs));
 		for(int i=0;i<BUCKETS;i++){
@@ -394,7 +394,7 @@ int joinColumns(int* relations, predicate** predicates, relationsInfo* initRelat
 	   		free(args[i].ResultList);
 		}
 	    free(args);
-	}
+	//}
 
 	// Create an array to store which predicates need an update after a repeatitive presence of a certain column of a relation
 	rowIdsArray** newUpdatedLeftRArray = NULL;
