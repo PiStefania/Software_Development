@@ -1,53 +1,42 @@
 # Software Development - Sigmod 2018
-## Ανάπτυξη Λογισμικού για Πληροφοριακά Συστήματα
 
-Στην συγκεκριμένη εργασία, υλοποιείται η συνάρτηση **JOIN** ανάμεσα σε δύο σχέσεις, ανάλογα με το πεδίο που επιλέγεται για σύγκριση.
-H επίλυση έγινε με την υλοποίηση του **Radix Hash Join** αλγορίθμου. Για την συνάρτηση κατακερματισμού η οποία χωρίζει τις τιμές σε buckets, χρησιμοποιήσαμε ταξινόμηση βάσει των τελευταίων **7 bits** του αριθμού. Για την δεύτερη συνάρτηση κατακερματισμού, η οποία επιλέγει τα στοιχεία για το ευρετήριο, χρησιμοποιήσαμε ταξινόμηση βάσει των τελευταίων **8 bits**. Η συγκεκριμένη εργασία είναι βασισμένη στον διαγωνισμό Sigmod 2018.
+## Software Development for Information Systems
 
-### Σχεδιαστικές επιλογές
-- Σε όλο το εύρος του κώδικα υπάρχουν επεξηγηματικά σχόλια που βοηθούν στην κατανόηση των λειτουργιών.
-- Το πρόγραμμα εκτελείται επιτυχώς με οποιοδήποτε πλήθος από threads ορίσουμε.
-- Για πιο αναλυτικές πληροφορίες για την υλοποίηση, ανατρέξτε στο [Report.pdf](https://github.com/PiStefania/Software_Development/blob/master/Report.pdf).
+This work has been implemented for the course of Software Development for Information Systems, in Department of Informatics and Telecommunications, at University of Athens, Greece. It is based on Sigmod contest of 2018, and the Implementation is fully functional for the contest's requirements.
 
-### Prerequisites - Προϋποθέσεις
-Για την εγκατάσταση της εφαρμογής, το περιβάλλον πρέπει να είναι **Linux** ενώ η έκδοση του **gcc** πρέπει να είναι **5.4+**.
-Για τον έλεγχο του version
-`gcc -v`.
-Για την ενημέρωση του
-```
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt update
-sudo apt install gcc-6
-```
-Επίσης χρειάζεται το **g++** και το **cmake** για την εκτέλεση του **harness**.
+The **Radix Hash Join** algorithm has been implemented, using 2 hash functions, in order to create both buckets and indexes, using the **7 and 8 last bits** of each numbers, for each one of these functions, respectively.
 
-### Installing - Εγκατάσταση
-Για την εγκατάσταση της εφαρμογής:
-1. Ανοίγουμε τον φάκελο **Software_Development**.
-2. Ανοίγουμε **terminal** στον συγκεκριμένο φάκελο.
-3. Εκτελούμε την εντολή `./compile.sh`.
 
-## Running - Εκτέλεση
-Για την εκτέλεση, απλώς τρέχουμε την εντολή `./runTestHarness.sh` ή `./run.sh`
+### Designing Options
+- There are comments throughout the code, for better explanation of program's functionality.
+- The application is executed properly, using any number of threads.
+- For more information (in greek) check [Report.pdf](https://github.com/PiStefania/Software_Development/blob/master/Report.pdf).
+
+
+### Prerequisites
+The application runs in **Linux**, and requires **gcc 5.4+**, **g++** and **cmake**.
+
+
+### Installing - Running
+1. Download and open folder **Software_Development**.
+2. Open **terminal** in current folder.
+3. Run `./compile.sh` and then `./runTestHarness.sh` or `./run.sh`.
+
 
 ## Unit Testing
-Για το unit testing χρησιμοποιήθηκε το framework [CuTest](https://github.com/ennorehling/cutest).
+For unit testing framework [CuTest](https://github.com/ennorehling/cutest) has been used.
+1. Open the folder **Software_Development/cutest-1.5/**.
+2. Open **terminal** in current folder.
+3. Run `make` and after that `./test`.
 
-### Εγκατάσταση Unit Testing
-Για την εγκατάσταση:
-1. Ανοίγουμε τον φάκελο **Software_Development/cutest-1.5/**.
-2. Ανοίγουμε **terminal** στον συγκεκριμένο φάκελο.
-3. Εκτελούμε την εντολή `make`.
 
-### Εκτέλεση Unit Testing
-Για την εκτέλεση, απλώς τρέχουμε την εντολή `./test`.
+## Contributors
+- [Stefania Patsou](https://github.com/PiStefania)
+- [Andreas Tsolkas](https://github.com/andreasgtech)
+- [Orestis Garmpis](https://github.com/Pantokratoras7)
 
-## Authors - Συγγραφείς
-- [Στεφανία Πάτσου](https://github.com/PiStefania)
-- [Ανδρέας Τσόλκας](https://github.com/andreasgtech)
-- [Παναγιώτης-Ορέστης Γαρμπής](https://github.com/Pantokratoras7)
 
-## Reference - Αναφορά
+## Reference
 - Cagri Balkesen, Jens Teubner, Gustavo Alonso, and M. Tamer Özsu. [Main-Memory
 Hash Joins on Multi-Core CPUs: Tuning to the Underlying Hardware](https://ieeexplore.ieee.org/document/6544839). Proc. of the 29th
 International Conference on Data Engineering (ICDE 2013) , Brisbane, Australia, April 2013.
