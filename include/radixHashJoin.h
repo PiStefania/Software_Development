@@ -4,15 +4,16 @@
 #include <stdint.h>
 #include "relationMethods.h"
 
-/*#define BUCKETS 4							// Number of buckets is 2^n, where n = num of last bits for hashing
-#define HEXBUCKETS 0x3						// From decimal to hex, for proper hashing (use of logical &)
-#define HASH2 8								// Second hash number for indexing in buckets
-#define HEXHASH2 0x7*/
-// For 8 BUCKETS
-#define BUCKETS 8
-#define HEXBUCKETS 0x7
-#define HASH2 16
-#define HEXHASH2 0xF
+
+/*#define BUCKETS 16
+#define HEXBUCKETS 0xF
+#define HASH2 32
+#define HEXHASH2 0x1F*/
+
+#define BUCKETS 128							// Number of buckets is 2^n, where n = num of last bits for hashing
+#define HEXBUCKETS 0x7F						// From decimal to hex, for proper hashing (use of logical &)
+#define HASH2 256							// Second hash number for indexing in buckets
+#define HEXHASH2 0xFF
 #define ARRAYSIZE 1000	//((1024 * 1024) / 128)
 
 /*#define RANGE 17							// Range of values for arrays initialization (1 to RANGE)

@@ -3,6 +3,7 @@
 # compile program
 echo "---------COMPILE PROGRAM---------"
 ./compile.sh
+mkdir statistics
 
 # run run.sh with valgrind --tool=callgrind
 echo "---------with callgrind-------------"
